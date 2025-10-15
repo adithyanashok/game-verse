@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@tailwindcss base;
+@tailwindcss components;
+@tailwindcss utilities;
+:root {
+  --color-primary: #191022;
+  --color-purple: #7f13ec;
+  --color-accent: #10b981;
+}
+@layer components {
+  .bg-gameverse {
+    @apply bg-[#191022];
+  }
+  .app-purple {
+    @apply bg-[#7f13ec];
+  }
+}
+@apply text-[#191022];
+
+@font-face {
+  font-family: "SpaceGrotesk";
+  src: local("SpaceGrotesk"),
+    url("./assets/fonts/SpaceGrotesk.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
