@@ -15,6 +15,17 @@
   .app-purple {
     @apply bg-[#7f13ec];
   }
+
+  .scroll-row {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    margin-top: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    height: 256px;
+    padding-bottom: 16px;
+  }
 }
 @apply text-[#191022];
 
@@ -24,4 +35,16 @@
     url("./assets/fonts/SpaceGrotesk.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
+}
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }
