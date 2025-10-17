@@ -3,10 +3,10 @@ import Button from "../../../components/common/Button";
 
 const Banner = () => {
   return (
-    <div className="">
+    <div className="p-5 md:p-10">
       <div className="relative rounded-2xl bg-[url('https://assets.xboxservices.com/assets/64/ea/64ea9f0e-6c8f-44f9-8866-429edbad9784.jpg?n=2626994_Poster-Image-1084_1920x1080_02.jpg')] bg-cover bg-center h-[200px] md:h-[450px] lg:h-[700px] overflow-hidden">
         {/* Overlay */}
-        <div className="absolute inset-0 bg-[var(--color-primary)] opacity-60"></div>
+        <div className="absolute inset-0 bg-primary opacity-40"></div>
 
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-center h-full px-10 space-y-3 md:space-y-5">
