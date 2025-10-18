@@ -21,6 +21,7 @@ function HomePage() {
       </div>
       {/* Banner */}
       <Banner />
+
       {/* Trending Section */}
       <Trending />
 

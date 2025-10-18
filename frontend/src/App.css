@@ -4,20 +4,36 @@
 @tailwindcss components;
 @tailwindcss utilities;
 :root {
-  --color-primary: #0f1323;
-  --color-purple: #7f13ec;
+  --color-primary: #191022;
+  --color-purple: #6711bf;
   --color-blue: #155dfc;
-  --color-accent: #10b981;
+  --color-grey: #989fab;
 }
 @layer components {
   .bg-primary {
-    @apply bg-[#0f1323];
+    @apply bg-[#191022];
   }
+
+  .bg-secondary {
+    @apply bg-blue-600;
+  }
+  .bg-dark {
+    @apply bg-[#140c1b];
+  }
+
+  .bg-dark-purple {
+    @apply bg-[#290d44];
+  }
+
   .text-primary {
     @apply text-[#ffffff];
   }
   .text-secondary {
-    @apply text-[#0f1323];
+    @apply text-[#191022];
+  }
+
+  .text-purple {
+    @apply text-[#6711bf];
   }
 
   .text-blue {
@@ -25,18 +41,13 @@
   }
 
   .app-purple-secondary {
-    @apply bg-[#0f1323];
-  }
-
-  .bg-secondary {
-    @apply bg-blue-600;
+    @apply bg-[#191022];
   }
 
   .scroll-row {
     display: flex;
     flex-direction: row;
     gap: 16px;
-    margin-top: 10px;
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -45,6 +56,10 @@
     width: 200px;
     height: 100px;
     border-radius: 10px;
+  }
+  .vertical-line {
+    border-left: 0.5px solid grey;
+    /* height: 100; */
   }
   @media (min-width: 768px) {
     .card-image {

@@ -3,8 +3,8 @@ import FooterItems from "./FooterItems";
 
 const Footer = () => {
   return (
-    <div className="text-gray-500">
-      <hr className="app-purple my-15" />
+    <div className="bg-primary text-gray-500">
+      <hr className="py-5" />
       <div className="flex flex-wrap gap-4  justify-evenly">
         <FooterItems
           items={["About Us", "Terms of Service", "Privacy Policy"]}
