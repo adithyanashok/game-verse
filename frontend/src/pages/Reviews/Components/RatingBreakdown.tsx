@@ -7,7 +7,7 @@ const RatingBreakdown = () => {
     <div className="text-white md:flex md:flex-col justify-between p-2 mt-2 border-1 border-[var(--color-grey)] rounded-[10px]">
       {arr.map((e) => {
         return (
-          <div className="md:flex md:flex-row justify-between p-2">
+          <div key={e} className="md:flex md:flex-row justify-between p-2">
             <p className="text-[13px]">Graphics</p>
             <div className="flex items-center gap-3">
               <progress

@@ -8,7 +8,7 @@ const TopReviewers = () => {
       <div className="flex flex-col gap-x-2 gap-y-2 mt-3">
         {dummy.map((review) => {
           return (
-            <div className="flex gap-4 items-center mt-2">
+            <div key={review.id} className="flex gap-4 items-center mt-2">
               <img
                 src={review.image}
                 className="w-[60px] h-[60px] rounded-full"

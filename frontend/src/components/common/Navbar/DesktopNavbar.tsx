@@ -25,7 +25,13 @@ function DesktopNavbar() {
             >
               <Link to="/reviews">Reviews</Link>
             </li>
-            <li>Games</li>
+            <li
+              className={
+                activePath.includes("game") ? "text-purple font-medium" : ""
+              }
+            >
+              <Link to={"/games"}>Games</Link>
+            </li>
             <li>Community</li>
           </ul>
         </div>
@@ -42,13 +48,7 @@ function DesktopNavbar() {
           </div>
         </div>
       </div>
-      <hr
-        style={{
-          background: "#989fab",
-          border: "none",
-          height: "0.5px",
-        }}
-      />
+      <hr className="hr" />
     </>
   );
 }

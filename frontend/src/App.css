@@ -13,7 +13,9 @@
   .bg-primary {
     @apply bg-[#191022];
   }
-
+  .bg-purple {
+    @apply bg-[#6711bf];
+  }
   .bg-secondary {
     @apply bg-blue-600;
   }
@@ -39,9 +41,15 @@
   .text-blue {
     @apply text-[#155dfc];
   }
-
+  .text-grey {
+    @apply text-[#989fab];
+  }
   .app-purple-secondary {
     @apply bg-[#191022];
+  }
+
+  .hr {
+    @apply border-[#989fab1e];
   }
 
   .scroll-row {
@@ -58,7 +66,7 @@
     border-radius: 10px;
   }
   .vertical-line {
-    border-left: 0.5px solid grey;
+    border-left: 0.5px solid #989fab1e;
     /* height: 100; */
   }
   @media (min-width: 768px) {

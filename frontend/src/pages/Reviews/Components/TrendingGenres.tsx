@@ -8,7 +8,10 @@ const TrendingGenres = () => {
       <div className="flex flex-wrap gap-x-2 gap-y-2 mt-3">
         {dummy.map((review) => {
           return (
-            <p className="bg-dark-purple py-1.5 px-2 text-[var(--color-purple)] rounded-full text-[12px] font-bold">
+            <p
+              key={review.id}
+              className="bg-dark-purple py-1.5 px-2 text-[var(--color-purple)] rounded-full text-[12px] font-bold"
+            >
               Adventure
             </p>
           );

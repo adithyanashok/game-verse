@@ -9,7 +9,7 @@ const ReviewSection = () => {
 
   return (
     <div className="md:w-[95%] p-2 md:p-10">
-      <div className=" md:border-1 rounded-[10px] md:bg-dark md:border-[#656575] md:p-5">
+      <div className=" md:border-1 rounded-[8px] md:bg-dark md:border-[#989fab1e] md:p-5">
         <div className="flex items-center gap-x-2 bg-dark md:bg-primary  p-3 rounded-[15px]">
           <BiSearch className="text-white text-2xl" />
           <input

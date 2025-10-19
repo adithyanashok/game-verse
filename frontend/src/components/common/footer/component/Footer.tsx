@@ -4,7 +4,7 @@ import FooterItems from "./FooterItems";
 const Footer = () => {
   return (
     <div className="bg-primary text-gray-500">
-      <hr className="py-5" />
+      <hr className="hr py-5" />
       <div className="flex flex-wrap gap-4  justify-evenly">
         <FooterItems
           items={["About Us", "Terms of Service", "Privacy Policy"]}
@@ -19,7 +19,7 @@ const Footer = () => {
           <li>Careers</li>
         </ul>
       </div>
-      <hr className="app-purple my-15" />
+      <hr className="hr my-15" />
 
       <p className="text-center pb-10">© 2025 GameVerse. All right Reserved</p>
     </div>
