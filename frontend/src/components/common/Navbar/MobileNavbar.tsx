@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { MdDehaze } from "react-icons/md";
-import controller from "../../assets/images/controller.png";
+import controller from "../../../assets/images/controller.png";
 
 const navLinks = ["Home", "Reviews", "Games", "Community"];
 

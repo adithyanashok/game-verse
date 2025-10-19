@@ -1,5 +1,5 @@
-import DesktopNavbar from "../../components/common/DesktopNavbar";
-import MobileNavbar from "../../components/common/MobileNavbar";
+import DesktopNavbar from "../../components/common/Navbar/DesktopNavbar";
+import MobileNavbar from "../../components/common/Navbar/MobileNavbar";
 import Banner from "./components/Banner";
 import "../../App.css";
 import Trending from "./components/Trending";

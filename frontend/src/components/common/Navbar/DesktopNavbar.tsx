@@ -1,9 +1,11 @@
-import React from "react";
-import controller from "../../assets/images/controller.png";
-import { Link } from "react-router";
-import MobileNavbar from "./MobileNavbar";
+import controller from "../../../assets/images/controller.png";
+import { Link, useLocation } from "react-router";
 
 function DesktopNavbar() {
+  const location = useLocation();
+  const activePath = location.pathname;
+
+  console.log(location);
   return (
     <>
       <div className="flex justify-between bg-primary items-center primary text-primary h-[80px]">
@@ -13,11 +15,15 @@ function DesktopNavbar() {
         </div>
         <div className="lg:block hidden">
           <ul className="flex md:gap-x-10 sm:gap-x-3 font-light">
-            <li>
-              <a href="/">Home</a>
+            <li className={activePath === "/" ? "text-purple font-medium" : ""}>
+              <Link to="/">Home</Link>
             </li>
-            <li>
-              <Link to={"/reviews"}>Reviews</Link>
+            <li
+              className={
+                activePath.includes("review") ? "text-purple font-medium" : ""
+              }
+            >
+              <Link to="/reviews">Reviews</Link>
             </li>
             <li>Games</li>
             <li>Community</li>
