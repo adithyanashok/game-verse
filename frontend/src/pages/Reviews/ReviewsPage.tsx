@@ -31,9 +31,6 @@ const ReviewsPage = () => {
           <TopReviewers />
         </div>
       </div>
-
-      {/* Footer */}
-      <Footer />
     </>
   );
 };

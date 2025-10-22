@@ -77,7 +77,6 @@ const Review = () => {
           <Comment />
         </div>
       </div>
-      <Footer />
     </>
   );
 };

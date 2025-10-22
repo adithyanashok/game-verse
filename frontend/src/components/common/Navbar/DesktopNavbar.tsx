@@ -32,19 +32,28 @@ function DesktopNavbar() {
             >
               <Link to={"/games"}>Games</Link>
             </li>
-            <li>Community</li>
+            <li>
+              <Link to={"/dashboard"}>Dashboard</Link>
+            </li>
+            <li>
+              <Link to={"/profile"}>Profile</Link>
+            </li>
           </ul>
         </div>
         <div className="hidden lg:flex  gap-x-2 mr-3">
           <div className=" bg-dark-purple px-5 py-1 rounded-full">
-            <p className="text-center text-purple font-semibold text-[14px]">
-              Sign Up
-            </p>
+            <Link to={"/signup"}>
+              <p className="text-center text-purple font-semibold text-[14px]">
+                Sign Up
+              </p>
+            </Link>
           </div>
           <div className="primary border-2 border-[var(--color-purple)] px-5 py-1 rounded-full">
-            <p className="text-center text-purple font-semibold text-[14px]">
-              Login
-            </p>
+            <Link to={"/login"}>
+              <p className="text-center text-purple font-semibold text-[14px]">
+                Login
+              </p>
+            </Link>
           </div>
         </div>
       </div>

@@ -7,7 +7,6 @@ import PopularGames from "./components/PopularGames";
 import TopReviewers from "./components/TopReviewers";
 import RecentReviews from "./components/RecentReviews";
 import NewsLetter from "./components/NewsLetter";
-import Footer from "../../components/common/footer/component/Footer";
 function HomePage() {
   return (
     <div className="bg-[var(--color-primary)]">
@@ -36,9 +35,6 @@ function HomePage() {
 
       {/* News Letter Section */}
       <NewsLetter />
-
-      {/* Footer */}
-      <Footer />
     </div>
   );
 }
