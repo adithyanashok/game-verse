@@ -4,10 +4,13 @@ import { GameService } from './game.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import database from './config/database';
+import { Game } from './entities/game.entity';
+
 const ENV = process.env.NODE_ENV;
 console.log(ENV);
 @Module({
   imports: [
+    TypeOrmModule.forFeature([Game]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: !ENV ? '.env' : `.env.${ENV}`,
@@ -23,7 +26,8 @@ console.log(ENV);
         username: config.get<string>('database.username'),
         password: config.get<string>('database.password'),
         database: config.get<string>('database.name'),
-        autoLoadEntities: config.get<boolean>('database.autoLoadEntities'),
+        entities: [Game],
+        // autoLoadEntities: config.get<boolean>('database.autoLoadEntities'),
         synchronize: config.get<boolean>('database.synchronize'),
       }),
     }),
