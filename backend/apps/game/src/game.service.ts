@@ -47,4 +47,22 @@ export class GameService {
       console.log(error);
     }
   }
+
+  public async deleteGame(id: number) {
+    try {
+      const game = await this.gameRepo.findOneBy({ id });
+
+      if (!game) {
+        throw new NotFoundException('Game not found');
+      }
+
+      await this.gameRepo.delete({ id });
+
+      return new ApiResponse(true, 'Game Deleted Successfully', {
+        game,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
 }

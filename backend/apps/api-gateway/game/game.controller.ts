@@ -1,4 +1,13 @@
-import { Body, Controller, Inject, Patch, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Inject,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
@@ -50,6 +59,22 @@ export class GameController {
   ): Promise<Api<EditGameDto>> {
     return firstValueFrom(
       this.gameClient.send(MessagePatterns.GAME_UPDATE, editGameDto),
+    );
+  }
+
+  @ApiOperation({
+    summary: 'Api for deleting Game',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Game Deleted successfully',
+  })
+  @Delete('delete-game')
+  public async deleteGame(
+    @Query('id', ParseIntPipe) id: number,
+  ): Promise<Api<CreateGameDto>> {
+    return firstValueFrom(
+      this.gameClient.send(MessagePatterns.GAME_DELETE, id),
     );
   }
 }

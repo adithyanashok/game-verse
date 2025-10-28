@@ -16,4 +16,9 @@ export class GameController {
   public async editGame(@Payload() payload: EditGameDto) {
     return await this.gameService.editGame(payload);
   }
+
+  @MessagePattern(MessagePatterns.GAME_DELETE)
+  public async deleteGame(@Payload() payload: number) {
+    return await this.gameService.deleteGame(payload);
+  }
 }
