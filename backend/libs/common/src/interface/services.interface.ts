@@ -12,4 +12,5 @@ export enum MessagePatterns {
   USER_FIND_BY_ID = 'user.findById',
   USER_FIND_BY_EMAIL = 'user.findByEmail',
   GAME_CREATE = 'game.create',
+  GAME_UPDATE = 'game.update',
 }
