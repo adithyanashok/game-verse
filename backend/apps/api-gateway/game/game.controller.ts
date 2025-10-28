@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  Get,
   Inject,
   ParseIntPipe,
   Patch,
@@ -11,7 +12,6 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import {
-  ApiResponse as Api,
   CreateGameDto,
   EditGameDto,
   MessagePatterns,
@@ -38,12 +38,14 @@ export class GameController {
     description: 'Game created successfully',
   })
   @Post('create-game')
-  public async createGame(
-    @Body() createGameDto: CreateGameDto,
-  ): Promise<Api<CreateGameDto>> {
-    return firstValueFrom(
-      this.gameClient.send(MessagePatterns.GAME_CREATE, createGameDto),
-    );
+  public async createGame(@Body() createGameDto: CreateGameDto): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.gameClient.send(MessagePatterns.GAME_CREATE, createGameDto),
+      );
+    } catch (error) {
+      return error;
+    }
   }
 
   @ApiOperation({
@@ -54,12 +56,14 @@ export class GameController {
     description: 'Game updated successfully',
   })
   @Patch('edit-game')
-  public async editGame(
-    @Body() editGameDto: EditGameDto,
-  ): Promise<Api<EditGameDto>> {
-    return firstValueFrom(
-      this.gameClient.send(MessagePatterns.GAME_UPDATE, editGameDto),
-    );
+  public async editGame(@Body() editGameDto: EditGameDto): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.gameClient.send(MessagePatterns.GAME_UPDATE, editGameDto),
+      );
+    } catch (error) {
+      return error;
+    }
   }
 
   @ApiOperation({
@@ -70,11 +74,31 @@ export class GameController {
     description: 'Game Deleted successfully',
   })
   @Delete('delete-game')
-  public async deleteGame(
-    @Query('id', ParseIntPipe) id: number,
-  ): Promise<Api<CreateGameDto>> {
-    return firstValueFrom(
-      this.gameClient.send(MessagePatterns.GAME_DELETE, id),
-    );
+  public async deleteGame(@Query('id', ParseIntPipe) id: number): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.gameClient.send(MessagePatterns.GAME_DELETE, id),
+      );
+    } catch (error) {
+      return error;
+    }
+  }
+
+  @ApiOperation({
+    summary: 'Api for get a Game',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Game Fetched successfully',
+  })
+  @Get('get-game')
+  public async getGame(@Query('id', ParseIntPipe) id: number): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.gameClient.send(MessagePatterns.GAME_GET, id),
+      );
+    } catch (error) {
+      return error;
+    }
   }
 }

@@ -14,4 +14,5 @@ export enum MessagePatterns {
   GAME_CREATE = 'game.create',
   GAME_UPDATE = 'game.update',
   GAME_DELETE = 'game.delete',
+  GAME_GET = 'game.get',
 }

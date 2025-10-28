@@ -3,6 +3,7 @@ import { Repository } from 'typeorm';
 import { Game } from './entities/game.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ApiResponse, CreateGameDto, EditGameDto } from 'libs/common/src';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class GameService {
@@ -13,6 +14,8 @@ export class GameService {
     @InjectRepository(Game)
     private readonly gameRepo: Repository<Game>,
   ) {}
+
+  // Create Game
   public async addGame(createGameDto: CreateGameDto) {
     try {
       const game = this.gameRepo.create(createGameDto);
@@ -26,13 +29,37 @@ export class GameService {
     }
   }
 
+  // Get Game
+  public async getGame(id: number) {
+    try {
+      const game = await this.gameRepo.findOneBy({ id });
+
+      if (!game) {
+        throw new RpcException({
+          status: 404,
+          message: 'Game not found',
+        });
+      }
+
+      return new ApiResponse(true, 'Game Fetched Successfully', {
+        game,
+      });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
   // Edit Game
   public async editGame(editGameDto: EditGameDto) {
     try {
       const game = await this.gameRepo.findOneBy({ id: editGameDto.id });
 
       if (!game) {
-        throw new NotFoundException('Game not found');
+        throw new RpcException({
+          status: 404,
+          message: 'Game not found',
+        });
       }
       game.name = editGameDto.name ?? game.name;
       game.description = editGameDto.description ?? game.description;
@@ -45,6 +72,7 @@ export class GameService {
       });
     } catch (error) {
       console.log(error);
+      throw error;
     }
   }
 
@@ -53,7 +81,10 @@ export class GameService {
       const game = await this.gameRepo.findOneBy({ id });
 
       if (!game) {
-        throw new NotFoundException('Game not found');
+        throw new RpcException({
+          status: 404,
+          message: 'Game not found',
+        });
       }
 
       await this.gameRepo.delete({ id });
@@ -63,6 +94,7 @@ export class GameService {
       });
     } catch (error) {
       console.log(error);
+      throw error;
     }
   }
 }
