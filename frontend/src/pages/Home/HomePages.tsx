@@ -1,18 +1,41 @@
-import React from "react";
-import controller from "../../assets/images/controller.png";
-import { MdDehaze } from "react-icons/md";
-import DesktopNavbar from "../../components/common/DesktopNavbar";
-import MobileNavbar from "../../components/common/MobileNavbar";
+import DesktopNavbar from "../../components/common/Navbar/DesktopNavbar";
+import MobileNavbar from "../../components/common/Navbar/MobileNavbar";
+import Banner from "./components/Banner";
+import "../../App.css";
+import Trending from "./components/Trending";
+import PopularGames from "./components/PopularGames";
+import TopReviewers from "./components/TopReviewers";
+import RecentReviews from "./components/RecentReviews";
+import NewsLetter from "./components/NewsLetter";
 function HomePage() {
   return (
-    <>
+    <div className="bg-[var(--color-primary)]">
+      {/* Navbar Mobile */}
       <div className="block lg:hidden">
         <MobileNavbar />
       </div>
+      {/* Navbar Desktop */}
       <div className="lg:block hidden">
         <DesktopNavbar />
       </div>
-    </>
+      {/* Banner */}
+      <Banner />
+
+      {/* Trending Section */}
+      <Trending />
+
+      {/* Popular Games */}
+      <PopularGames />
+
+      {/* Top Reviewers */}
+      <TopReviewers />
+
+      {/* Recent Reviews */}
+      <RecentReviews />
+
+      {/* News Letter Section */}
+      <NewsLetter />
+    </div>
   );
 }
 

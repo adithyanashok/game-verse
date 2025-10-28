@@ -5,15 +5,76 @@
 @tailwindcss utilities;
 :root {
   --color-primary: #191022;
-  --color-purple: #7f13ec;
-  --color-accent: #10b981;
+  --color-purple: #6711bf;
+  --color-blue: #155dfc;
+  --color-grey: #989fab;
 }
 @layer components {
-  .bg-gameverse {
+  .bg-primary {
     @apply bg-[#191022];
   }
-  .app-purple {
-    @apply bg-[#7f13ec];
+  .bg-purple {
+    @apply bg-[#6711bf];
+  }
+  .bg-secondary {
+    @apply bg-blue-600;
+  }
+  .bg-dark {
+    @apply bg-[#140c1b];
+  }
+
+  .bg-dark-purple {
+    @apply bg-[#290d44];
+  }
+
+  .text-primary {
+    @apply text-[#ffffff];
+  }
+  .text-secondary {
+    @apply text-[#191022];
+  }
+
+  .text-purple {
+    @apply text-[#6711bf];
+  }
+
+  .text-blue {
+    @apply text-[#155dfc];
+  }
+  .text-grey {
+    @apply text-[#989fab];
+  }
+  .app-purple-secondary {
+    @apply bg-[#191022];
+  }
+
+  .hr {
+    @apply border-[#989fab1e];
+  }
+
+  .scroll-row {
+    display: flex;
+    flex-direction: row;
+    gap: 16px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .card-image {
+    width: 200px;
+    height: 100px;
+    border-radius: 10px;
+  }
+  .vertical-line {
+    border-left: 0.5px solid #989fab1e;
+    /* height: 100; */
+  }
+  @media (min-width: 768px) {
+    .card-image {
+      width: 350px;
+      height: 190px;
+      border-radius: 10px;
+    }
   }
 }
 @apply text-[#191022];
@@ -24,4 +85,16 @@
     url("./assets/fonts/SpaceGrotesk.ttf") format("truetype");
   font-weight: normal;
   font-style: normal;
+}
+@layer utilities {
+  /* Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { MdDehaze } from "react-icons/md";
-import controller from "../../assets/images/controller.png";
+import controller from "../../../assets/images/controller.png";
 
 const navLinks = ["Home", "Reviews", "Games", "Community"];
 
@@ -21,17 +21,17 @@ const MobileNavbar: React.FC = () => {
         >
           <MdDehaze className="w-6 h-6" />
         </button>
-
         {/* Logo */}
         <div className="flex items-center gap-2">
           <img className="w-[35px]" src={controller} alt="GameVerse logo" />
           <h1 className="font-bold text-[16px]">GameVerse</h1>
         </div>
-
         {/* Login Button */}
-        <button className="bg-[#22172e] px-4 py-1 rounded-full text-[11px] font-semibold text-[var(--color-purple)] hover:bg-[#2c1f3b] transition-colors duration-200">
-          Login
-        </button>
+        <div className="primary border-2 border-white px-3 py-1 rounded-full">
+          <p className="text-center text-white font-semibold text-[12px]">
+            Login
+          </p>
+        </div>
       </div>
 
       {/* Dropdown Menu */}
