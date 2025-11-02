@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Review } from '../entities/review.entity';
+import { Like } from '../entities/like.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ApiResponse, MessagePatterns, ServiceName } from 'libs/common/src';
@@ -13,6 +14,9 @@ export class ReviewService {
   constructor(
     @InjectRepository(Review)
     private readonly repo: Repository<Review>,
+
+    @InjectRepository(Like)
+    private readonly likeRepo: Repository<Like>,
 
     @Inject(ServiceName.GAME)
     private client: ClientProxy,
@@ -41,6 +45,94 @@ export class ReviewService {
       });
     } catch (error) {
       console.error(error);
+      throw error;
+    }
+  }
+
+  // Get Review
+  public async getReview(reviewId: number) {
+    try {
+      const review = await this.repo.findOneBy({ id: reviewId });
+      if (!review) {
+        throw new RpcException({
+          status: 404,
+          message: 'Review Not Found',
+        });
+      }
+
+      return new ApiResponse(true, 'Review Fetched Successfully', review);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  public async likeReview(reviewId: number, userId: number) {
+    try {
+      const review = await this.repo.findOneBy({ id: reviewId });
+
+      if (!review) {
+        throw new RpcException({
+          status: 404,
+          message: 'Review Not Found',
+        });
+      }
+
+      const existingLike = await this.likeRepo.findOneBy({
+        review: { id: reviewId },
+        userId,
+      });
+
+      if (existingLike) {
+        await this.repo
+          .createQueryBuilder()
+          .relation(Review, 'like')
+          .of(reviewId)
+          .remove(existingLike.id);
+
+        await this.likeRepo.remove(existingLike);
+
+        return new ApiResponse(true, 'Review Unliked Successfully', {
+          liked: false,
+          reviewId,
+        });
+      } else {
+        const newLike = this.likeRepo.create({
+          userId,
+        });
+        const savedLike = await this.likeRepo.save(newLike);
+
+        await this.repo
+          .createQueryBuilder()
+          .relation(Review, 'like')
+          .of(reviewId)
+          .add(savedLike.id);
+
+        return new ApiResponse(true, 'Review Liked Successfully', {
+          liked: true,
+          reviewId,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  // Get Trending Reviews
+  public async getTrendingReviews() {
+    try {
+      const review = await this.repo.findBy({});
+      if (!review) {
+        throw new RpcException({
+          status: 404,
+          message: 'Review Not Found',
+        });
+      }
+
+      return new ApiResponse(true, 'Review Fetched Successfully', review);
+    } catch (error) {
+      console.log(error);
       throw error;
     }
   }

@@ -1,7 +1,12 @@
 import { Body, Controller, Inject, Post } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CreateReviewDto, MessagePatterns, ServiceName } from 'libs/common/src';
+import {
+  CreateReviewDto,
+  LikeReviewDto,
+  MessagePatterns,
+  ServiceName,
+} from 'libs/common/src';
 import { firstValueFrom } from 'rxjs';
 
 @Controller()
@@ -25,6 +30,24 @@ export class ReviewController {
     try {
       return await firstValueFrom(
         this.reviewClient.send(MessagePatterns.CREATE_REVIEW, createReviewDto),
+      );
+    } catch (error) {
+      return error;
+    }
+  }
+
+  @ApiOperation({
+    summary: 'Api for liking a review',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Review liked successfully',
+  })
+  @Post('like-review')
+  public async likeReview(@Body() likeReviewDto: LikeReviewDto): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.reviewClient.send(MessagePatterns.LIKE_REVIEW, likeReviewDto),
       );
     } catch (error) {
       return error;

@@ -12,4 +12,14 @@ export class ReviewController {
   public async createReview(@Payload() payload: CreateReviewDto) {
     return await this.reviewService.createReview(payload);
   }
+
+  @MessagePattern(MessagePatterns.LIKE_REVIEW)
+  public async likeReview(
+    @Payload() payload: { reviewId: number; userId: number },
+  ) {
+    return await this.reviewService.likeReview(
+      payload.reviewId,
+      payload.userId,
+    );
+  }
 }

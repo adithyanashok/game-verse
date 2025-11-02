@@ -22,4 +22,5 @@ export enum MessagePatterns {
   FIND_ONE_GAME = 'game.findone',
   // Review
   CREATE_REVIEW = 'review.create',
+  LIKE_REVIEW = 'review.like',
 }

@@ -1,4 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { Like } from './like.entity';
 
 @Entity()
 export class Review {
@@ -19,4 +28,14 @@ export class Review {
 
   @Column()
   rating: number;
+
+  @ManyToMany(() => Like, (like) => like.review)
+  @JoinTable()
+  like: Like[];
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }
