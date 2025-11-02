@@ -5,3 +5,5 @@ export * from './dto/game/create-game.dto';
 export * from './dto/game/edit-game.dto';
 export * from './interface/services.interface';
 export * from './filters/rpc-exceptions.filter';
+export * from './constants/microservice.constants';
+export * from './dto/review/create-review.dto';

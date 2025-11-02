@@ -13,7 +13,7 @@ console.log(ENV);
     TypeOrmModule.forFeature([Game]),
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: !ENV ? '.env' : `.env.${ENV}`,
+      envFilePath: !ENV ? 'apps/game/.env' : `apps/game/.env.${ENV}`,
       load: [database],
     }),
     TypeOrmModule.forRootAsync({

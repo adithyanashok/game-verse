@@ -5,6 +5,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { ServiceName } from 'libs/common/src';
 import { GameController } from '../game/game.controller';
 import { MICROSERVICE_CONFIG } from 'libs/common/src/constants/microservice.constants';
+import { ReviewController } from '../review/review.controller';
 
 @Module({
   imports: [
@@ -17,9 +18,17 @@ import { MICROSERVICE_CONFIG } from 'libs/common/src/constants/microservice.cons
           port: MICROSERVICE_CONFIG.GAME_SERVICE.port,
         },
       },
+      {
+        name: ServiceName.REVIEW,
+        transport: Transport.TCP,
+        options: {
+          host: MICROSERVICE_CONFIG.REVIEW_SERVICE.host,
+          port: MICROSERVICE_CONFIG.REVIEW_SERVICE.port,
+        },
+      },
     ]),
   ],
-  controllers: [ApiGatewayController, GameController],
+  controllers: [ApiGatewayController, GameController, ReviewController],
   providers: [ApiGatewayService],
 })
 export class ApiGatewayModule {}

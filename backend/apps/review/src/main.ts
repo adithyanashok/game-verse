@@ -1,0 +1,19 @@
+import { NestFactory } from '@nestjs/core';
+import { ReviewModule } from './review.module';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { MICROSERVICE_CONFIG } from 'libs/common/src';
+
+async function bootstrap() {
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(
+    ReviewModule,
+    {
+      transport: Transport.TCP,
+      options: {
+        host: MICROSERVICE_CONFIG.REVIEW_SERVICE.host,
+        port: MICROSERVICE_CONFIG.REVIEW_SERVICE.port,
+      },
+    },
+  );
+  await app.listen();
+}
+bootstrap();

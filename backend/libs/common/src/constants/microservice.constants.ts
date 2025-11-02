@@ -3,6 +3,10 @@ export const MICROSERVICE_CONFIG = {
     host: 'localhost',
     port: 4000,
   },
+  REVIEW_SERVICE: {
+    host: 'localhost',
+    port: 5000,
+  },
   API_GATEWAY: {
     port: 3000,
   },

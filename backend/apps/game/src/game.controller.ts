@@ -26,4 +26,10 @@ export class GameController {
   public async getGame(@Payload() payload: number) {
     return await this.gameService.getGame(payload);
   }
+
+  @MessagePattern(MessagePatterns.FIND_ONE_GAME)
+  public async findOne(@Payload() payload: { id: number }) {
+    console.log(payload);
+    return await this.gameService.findOne(payload.id);
+  }
 }

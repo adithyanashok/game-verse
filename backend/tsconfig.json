@@ -25,6 +25,12 @@
       "@app/*": [
         "apps/*/src"
       ],
+      "@app/contract": [
+        "libs/contract/src"
+      ],
+      "@app/contract/*": [
+        "libs/contract/src/*"
+      ],
       "@common/*": [
         "libs/common/src/lib/*"
       ]

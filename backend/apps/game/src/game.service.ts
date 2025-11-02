@@ -1,9 +1,10 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Game } from './entities/game.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ApiResponse, CreateGameDto, EditGameDto } from 'libs/common/src';
 import { RpcException } from '@nestjs/microservices';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class GameService {
@@ -13,6 +14,8 @@ export class GameService {
      */
     @InjectRepository(Game)
     private readonly gameRepo: Repository<Game>,
+
+    private readonly configService: ConfigService,
   ) {}
 
   // Create Game
@@ -96,5 +99,14 @@ export class GameService {
       console.log(error);
       throw error;
     }
+  }
+
+  // Find One
+  public async findOne(id: number) {
+    console.log(id);
+    const game = await this.gameRepo.findOneBy({ id });
+
+    console.log(game);
+    return game;
   }
 }
