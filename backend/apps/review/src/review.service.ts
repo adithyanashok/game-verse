@@ -8,6 +8,7 @@ import { ApiResponse, MessagePatterns, ServiceName } from 'libs/common/src';
 import { CreateReviewDto } from 'libs/common/src/dto/review/create-review.dto';
 import { lastValueFrom } from 'rxjs';
 import { GameResponse } from '@app/contract';
+import { View } from '../entities/view.entity';
 
 @Injectable()
 export class ReviewService {
@@ -17,6 +18,9 @@ export class ReviewService {
 
     @InjectRepository(Like)
     private readonly likeRepo: Repository<Like>,
+
+    @InjectRepository(View)
+    private readonly viewRepo: Repository<View>,
 
     @Inject(ServiceName.GAME)
     private client: ClientProxy,
@@ -119,10 +123,10 @@ export class ReviewService {
     }
   }
 
-  // Get Trending Reviews
-  public async getTrendingReviews() {
+  public async increaseViews(reviewId: number, userId: number) {
     try {
-      const review = await this.repo.findBy({});
+      const review = await this.repo.findOneBy({ id: reviewId });
+
       if (!review) {
         throw new RpcException({
           status: 404,
@@ -130,7 +134,49 @@ export class ReviewService {
         });
       }
 
-      return new ApiResponse(true, 'Review Fetched Successfully', review);
+      const alreadyViewed = await this.viewRepo.findOneBy({
+        review: { id: reviewId },
+        userId,
+      });
+
+      if (!alreadyViewed) {
+        const newView = this.viewRepo.create({
+          userId,
+        });
+        const savedSavedView = await this.viewRepo.save(newView);
+
+        await this.repo
+          .createQueryBuilder()
+          .relation(Review, 'view')
+          .of(reviewId)
+          .add(savedSavedView.id);
+
+        return new ApiResponse(true, 'View Increased Successfully', {
+          viewed: true,
+          reviewId,
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  // Get Trending Reviews
+  public async getTrendingReviews() {
+    try {
+      const review = await this.repo
+        .createQueryBuilder('review')
+        .orderBy('review.views', 'DESC')
+        .addOrderBy('review.likes', 'DESC')
+        .limit(10)
+        .getMany();
+
+      return new ApiResponse(
+        true,
+        'Trending Review Fetched Successfully',
+        review,
+      );
     } catch (error) {
       console.log(error);
       throw error;

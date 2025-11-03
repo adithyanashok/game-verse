@@ -8,6 +8,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { Like } from './like.entity';
+import { View } from './view.entity';
 
 @Entity()
 export class Review {
@@ -32,6 +33,10 @@ export class Review {
   @ManyToMany(() => Like, (like) => like.review)
   @JoinTable()
   like: Like[];
+
+  @ManyToMany(() => View, (view) => view.review)
+  @JoinTable()
+  view: View[];
 
   @CreateDateColumn()
   createdAt: Date;
