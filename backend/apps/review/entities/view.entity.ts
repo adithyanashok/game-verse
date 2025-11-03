@@ -12,7 +12,7 @@ export class View {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToMany(() => Review, (review) => review.view)
+  @ManyToMany(() => Review, (review) => review.views)
   review: Review[];
 
   @Column()

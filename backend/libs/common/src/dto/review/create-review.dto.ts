@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsString, ValidateNested } from 'class-validator';
+import { CreateRatingDto } from './create-rating.dto';
+import { Type } from 'class-transformer';
 
 export class CreateReviewDto {
   @ApiProperty({ example: 'Chess', description: 'Name of the game' })
@@ -21,7 +23,11 @@ export class CreateReviewDto {
   @IsNumber()
   gameId: number;
 
-  @ApiProperty({ example: 4.4, description: 'Rating of the game' })
-  @IsNumber()
-  rating: number;
+  @ApiProperty({
+    description: 'Rating of the game',
+    type: () => CreateRatingDto,
+  })
+  @ValidateNested()
+  @Type(() => CreateRatingDto)
+  rating: CreateRatingDto;
 }

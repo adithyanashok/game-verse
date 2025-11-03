@@ -4,12 +4,17 @@ import { Review } from '../entities/review.entity';
 import { Like } from '../entities/like.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { ApiResponse, MessagePatterns, ServiceName } from 'libs/common/src';
+import {
+  ApiResponse,
+  MessagePatterns,
+  ServiceName,
+  UpdateReviewDto,
+} from 'libs/common/src';
 import { CreateReviewDto } from 'libs/common/src/dto/review/create-review.dto';
 import { lastValueFrom } from 'rxjs';
 import { GameResponse } from '@app/contract';
 import { View } from '../entities/view.entity';
-
+import { Like as SearchLike } from 'typeorm';
 @Injectable()
 export class ReviewService {
   constructor(
@@ -29,11 +34,16 @@ export class ReviewService {
   // Create Review
   public async createReview(createReviewDto: CreateReviewDto) {
     try {
+      const rating = createReviewDto.rating;
+
       const game: GameResponse = await lastValueFrom(
         this.client.send(MessagePatterns.FIND_ONE_GAME, {
           id: createReviewDto.gameId,
         }),
       );
+
+      const overall =
+        (rating.graphics + rating.gameplay + rating.story + rating.sound) / 4;
 
       if (!game) {
         throw new RpcException({
@@ -42,7 +52,10 @@ export class ReviewService {
         });
       }
 
-      const review = this.repo.create(createReviewDto);
+      const review = this.repo.create({
+        ...createReviewDto,
+        rating: { ...rating, overall },
+      });
       const savedReview = await this.repo.save(review);
       return new ApiResponse(true, 'Review Created Successfully', {
         savedReview,
@@ -56,7 +69,8 @@ export class ReviewService {
   // Get Review
   public async getReview(reviewId: number) {
     try {
-      const review = await this.repo.findOneBy({ id: reviewId });
+      console.log(reviewId);
+      const review = await this.repo.findOne({ where: { id: reviewId } });
       if (!review) {
         throw new RpcException({
           status: 404,
@@ -96,6 +110,10 @@ export class ReviewService {
 
         await this.likeRepo.remove(existingLike);
 
+        review.likeCount = review.likeCount--;
+
+        await this.repo.save(review);
+
         return new ApiResponse(true, 'Review Unliked Successfully', {
           liked: false,
           reviewId,
@@ -112,6 +130,10 @@ export class ReviewService {
           .of(reviewId)
           .add(savedLike.id);
 
+        review.likeCount = review.likeCount++;
+
+        await this.repo.save(review);
+
         return new ApiResponse(true, 'Review Liked Successfully', {
           liked: true,
           reviewId,
@@ -123,9 +145,16 @@ export class ReviewService {
     }
   }
 
-  public async increaseViews(reviewId: number, userId: number) {
+  // Update Views
+  public async updateViews(reviewId: number, userId: number) {
     try {
-      const review = await this.repo.findOneBy({ id: reviewId });
+      console.log('reviewId: ', reviewId);
+      console.log('userId ', userId);
+
+      const review = await this.repo.findOne({
+        where: { id: reviewId },
+        relations: ['views'],
+      });
 
       if (!review) {
         throw new RpcException({
@@ -134,26 +163,29 @@ export class ReviewService {
         });
       }
 
-      const alreadyViewed = await this.viewRepo.findOneBy({
-        review: { id: reviewId },
-        userId,
-      });
+      const alreadyViewed = await this.viewRepo.findOne({ where: { userId } });
 
-      if (!alreadyViewed) {
+      if (alreadyViewed) {
+        return new ApiResponse(true, 'Already Viewed', {
+          viewed: true,
+          alreadyViewed,
+        });
+      } else {
         const newView = this.viewRepo.create({
           userId,
         });
         const savedSavedView = await this.viewRepo.save(newView);
+        review.viewCount = review.viewCount + 1;
 
+        await this.repo.save(review);
         await this.repo
           .createQueryBuilder()
-          .relation(Review, 'view')
+          .relation(Review, 'views')
           .of(reviewId)
           .add(savedSavedView.id);
 
-        return new ApiResponse(true, 'View Increased Successfully', {
+        return new ApiResponse(true, 'View Updated Successfully', {
           viewed: true,
-          reviewId,
         });
       }
     } catch (error) {
@@ -167,8 +199,12 @@ export class ReviewService {
     try {
       const review = await this.repo
         .createQueryBuilder('review')
-        .orderBy('review.views', 'DESC')
-        .addOrderBy('review.likes', 'DESC')
+        .leftJoin('review.like', 'like')
+        .leftJoin('review.views', 'views')
+        .loadRelationCountAndMap('review.likeCount', 'review.like')
+        .loadRelationCountAndMap('review.viewCount', 'review.views')
+        .orderBy('likeCount', 'DESC')
+        .addOrderBy('viewCount', 'DESC')
         .limit(10)
         .getMany();
 
@@ -177,6 +213,104 @@ export class ReviewService {
         'Trending Review Fetched Successfully',
         review,
       );
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  // Get Recent Reviews
+  public async getRecentReviews() {
+    try {
+      const review = await this.repo.find({
+        order: { createdAt: 'DESC' },
+        take: 10,
+        relations: ['rating'],
+      });
+
+      return new ApiResponse(
+        true,
+        'Recent Reviews Fetched Successfully',
+        review,
+      );
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  // Search Reviews
+  public async searchReviews(
+    query: string,
+    page: number = 1,
+    limit: number = 20,
+  ) {
+    try {
+      const reviews = await this.repo.find({
+        where: { title: SearchLike(`%${query}%`) },
+        take: limit,
+        skip: ((page ?? 1) - 1) * (limit ?? 20),
+      });
+
+      return new ApiResponse(
+        true,
+        'Search Result Fetched Successfully',
+        reviews,
+      );
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  // Update Reviews
+  public async updateReview(updateReviewDto: UpdateReviewDto) {
+    try {
+      const { id, userId, comment, title } = updateReviewDto;
+      const review = await this.repo.findOne({
+        where: { id, userId },
+      });
+
+      if (!review) {
+        throw new RpcException({
+          status: 404,
+          message: 'Review not found',
+        });
+      }
+
+      review.comment = comment ?? review.comment;
+      review.title = title ?? review.comment;
+
+      const updatedReview = await this.repo.save(review);
+
+      return new ApiResponse(
+        true,
+        'Review Updated Successfully',
+        updatedReview,
+      );
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  // Delete Review
+  public async deleteReview(id: number, userId: number) {
+    try {
+      const review = await this.repo.findOne({
+        where: { id, userId },
+      });
+
+      if (!review) {
+        throw new RpcException({
+          status: 404,
+          message: 'Review not found',
+        });
+      }
+
+      const deletedReview = await this.repo.delete(id);
+
+      return new ApiResponse(true, 'Deleted Successfully', deletedReview);
     } catch (error) {
       console.log(error);
       throw error;

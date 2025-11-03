@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ReviewModule } from './review.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { MICROSERVICE_CONFIG } from 'libs/common/src';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.createMicroservice<MicroserviceOptions>(
@@ -13,6 +14,14 @@ async function bootstrap() {
         port: MICROSERVICE_CONFIG.REVIEW_SERVICE.port,
       },
     },
+  );
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+      transformOptions: { enableImplicitConversion: false },
+    }),
   );
   await app.listen();
 }

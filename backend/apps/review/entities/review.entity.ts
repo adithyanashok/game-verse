@@ -4,11 +4,13 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Like } from './like.entity';
 import { View } from './view.entity';
+import { Rating } from './rating.entity';
 
 @Entity()
 export class Review {
@@ -27,16 +29,32 @@ export class Review {
   @Column()
   comment: string;
 
-  @Column()
-  rating: number;
+  @Column({ default: 0 })
+  likeCount: number;
 
-  @ManyToMany(() => Like, (like) => like.review)
+  @Column({ default: 0 })
+  viewCount: number;
+
+  @ManyToMany(() => Like, (like) => like.review, {
+    cascade: true,
+    eager: true,
+  })
   @JoinTable()
   like: Like[];
 
-  @ManyToMany(() => View, (view) => view.review)
+  @ManyToMany(() => View, (view) => view.review, {
+    cascade: true,
+    eager: true,
+  })
   @JoinTable()
-  view: View[];
+  views: View[];
+
+  @OneToOne(() => Rating, (rating) => rating.review, {
+    cascade: true,
+    eager: true,
+  })
+  // @JoinColumn()
+  rating: Rating;
 
   @CreateDateColumn()
   createdAt: Date;

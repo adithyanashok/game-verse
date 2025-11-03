@@ -23,4 +23,11 @@ export enum MessagePatterns {
   // Review
   CREATE_REVIEW = 'review.create',
   LIKE_REVIEW = 'review.like',
+  GET_REVIEW = 'review.get',
+  INCREASE_VIEWS = 'review.views',
+  TRENDING_REVIEWS = 'review.trending',
+  RECENT_REVIEWS = 'review.recent',
+  SEARCH_REVIEWS = 'review.search',
+  UPDATE_REVIEWS = 'review.update',
+  DELETE_REVIEWS = 'review.delete',
 }

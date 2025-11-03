@@ -7,4 +7,6 @@ export * from './interface/services.interface';
 export * from './filters/rpc-exceptions.filter';
 export * from './constants/microservice.constants';
 export * from './dto/review/create-review.dto';
+export * from './dto/review/update-review.dto';
 export * from './dto/review/like-review';
+export * from './dto/search.dto';

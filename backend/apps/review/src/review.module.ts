@@ -8,6 +8,8 @@ import { Review } from '../entities/review.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MICROSERVICE_CONFIG, ServiceName } from 'libs/common/src';
 import { Like } from '../entities/like.entity';
+import { View } from '../entities/view.entity';
+import { Rating } from '../entities/rating.entity';
 const ENV = process.env.NODE_ENV;
 
 @Module({
@@ -22,7 +24,7 @@ const ENV = process.env.NODE_ENV;
         },
       },
     ]),
-    TypeOrmModule.forFeature([Review, Like]),
+    TypeOrmModule.forFeature([Review, Like, View, Rating]),
 
     ConfigModule.forRoot({
       isGlobal: true,
@@ -39,7 +41,7 @@ const ENV = process.env.NODE_ENV;
         username: config.get<string>('database.username'),
         password: config.get<string>('database.password'),
         database: config.get<string>('database.name'),
-        entities: [Review, Like],
+        entities: [Review, Like, View, Rating],
         // autoLoadEntities: config.get<boolean>('database.autoLoadEntities'),
         synchronize: config.get<boolean>('database.synchronize'),
       }),
