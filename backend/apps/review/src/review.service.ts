@@ -2,6 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Review } from '../entities/review.entity';
 import { Like } from '../entities/like.entity';
+import { Rating } from '../entities/rating.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {
@@ -26,6 +27,9 @@ export class ReviewService {
 
     @InjectRepository(View)
     private readonly viewRepo: Repository<View>,
+
+    @InjectRepository(Rating)
+    private readonly ratingRepo: Repository<Rating>,
 
     @Inject(ServiceName.GAME)
     private client: ClientProxy,
@@ -53,10 +57,26 @@ export class ReviewService {
       }
 
       const review = this.repo.create({
-        ...createReviewDto,
-        rating: { ...rating, overall },
+        title: createReviewDto.title,
+        text: createReviewDto.comment,
+        userId: createReviewDto.userId,
+        gameId: createReviewDto.gameId,
       });
+
       const savedReview = await this.repo.save(review);
+
+      const ratingEntity = this.ratingRepo.create({
+        graphics: rating.graphics,
+        gameplay: rating.gameplay,
+        story: rating.story,
+        sound: rating.sound,
+        overall,
+        review: savedReview,
+      });
+
+      await this.ratingRepo.save(ratingEntity);
+
+      savedReview.rating = ratingEntity;
       return new ApiResponse(true, 'Review Created Successfully', {
         savedReview,
       });
@@ -278,8 +298,8 @@ export class ReviewService {
         });
       }
 
-      review.comment = comment ?? review.comment;
-      review.title = title ?? review.comment;
+      review.text = comment ?? review.text;
+      review.title = title ?? review.title;
 
       const updatedReview = await this.repo.save(review);
 

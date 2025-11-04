@@ -12,6 +12,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
+  CreateCommentDto,
   CreateReviewDto,
   LikeReviewDto,
   MessagePatterns,
@@ -219,6 +220,32 @@ export class ReviewController {
     try {
       return await firstValueFrom(
         this.reviewClient.send(MessagePatterns.DELETE_REVIEWS, likeReviewDto),
+      );
+    } catch (error) {
+      return error;
+    }
+  }
+
+  /**
+   * Add Comment
+   */
+  @ApiOperation({
+    summary: 'Api For Add Comment',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Coment Added',
+  })
+  @Post('add-comment')
+  public async addComment(
+    @Body() createCommentDto: CreateCommentDto,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.reviewClient.send(
+          MessagePatterns.COMMENT_REVIEWS,
+          createCommentDto,
+        ),
       );
     } catch (error) {
       return error;

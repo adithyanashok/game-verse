@@ -4,6 +4,7 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
@@ -11,6 +12,7 @@ import {
 import { Like } from './like.entity';
 import { View } from './view.entity';
 import { Rating } from './rating.entity';
+import { Comment } from './comment.entity';
 
 @Entity()
 export class Review {
@@ -27,7 +29,7 @@ export class Review {
   title: string;
 
   @Column()
-  comment: string;
+  text: string;
 
   @Column({ default: 0 })
   likeCount: number;
@@ -37,24 +39,24 @@ export class Review {
 
   @ManyToMany(() => Like, (like) => like.review, {
     cascade: true,
-    eager: true,
   })
   @JoinTable()
   like: Like[];
 
   @ManyToMany(() => View, (view) => view.review, {
     cascade: true,
-    eager: true,
   })
   @JoinTable()
   views: View[];
 
   @OneToOne(() => Rating, (rating) => rating.review, {
     cascade: true,
-    eager: true,
   })
   // @JoinColumn()
   rating: Rating;
+
+  @OneToMany(() => Comment, (comment) => comment.review, { cascade: true })
+  comment: Comment[];
 
   @CreateDateColumn()
   createdAt: Date;

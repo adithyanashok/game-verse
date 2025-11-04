@@ -10,6 +10,9 @@ import { MICROSERVICE_CONFIG, ServiceName } from 'libs/common/src';
 import { Like } from '../entities/like.entity';
 import { View } from '../entities/view.entity';
 import { Rating } from '../entities/rating.entity';
+import { Comment } from '../entities/comment.entity';
+import { CommentController } from '../comment/comment.controller';
+import { CommentService } from '../comment/comment.service';
 const ENV = process.env.NODE_ENV;
 
 @Module({
@@ -24,7 +27,7 @@ const ENV = process.env.NODE_ENV;
         },
       },
     ]),
-    TypeOrmModule.forFeature([Review, Like, View, Rating]),
+    TypeOrmModule.forFeature([Review, Like, View, Rating, Comment]),
 
     ConfigModule.forRoot({
       isGlobal: true,
@@ -41,13 +44,13 @@ const ENV = process.env.NODE_ENV;
         username: config.get<string>('database.username'),
         password: config.get<string>('database.password'),
         database: config.get<string>('database.name'),
-        entities: [Review, Like, View, Rating],
+        entities: [Review, Like, View, Rating, Comment],
         // autoLoadEntities: config.get<boolean>('database.autoLoadEntities'),
         synchronize: config.get<boolean>('database.synchronize'),
       }),
     }),
   ],
-  controllers: [ReviewController],
-  providers: [ReviewService],
+  controllers: [ReviewController, CommentController],
+  providers: [ReviewService, CommentService],
 })
 export class ReviewModule {}
