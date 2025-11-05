@@ -108,9 +108,9 @@ export class CommentService {
         });
       }
 
-      const deleted = await this.commentRepo.delete(commentId);
+      await this.commentRepo.delete(commentId);
 
-      return new ApiResponse(true, 'Comment Deleted', deleted);
+      return new ApiResponse(true, 'Comment Deleted');
     } catch (error) {
       console.log(error);
       throw error;

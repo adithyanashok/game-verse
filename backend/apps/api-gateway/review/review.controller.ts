@@ -18,6 +18,7 @@ import {
   MessagePatterns,
   SearchDto,
   ServiceName,
+  UpdateCommentDto,
   UpdateReviewDto,
 } from 'libs/common/src';
 import { firstValueFrom } from 'rxjs';
@@ -246,6 +247,81 @@ export class ReviewController {
           MessagePatterns.COMMENT_REVIEWS,
           createCommentDto,
         ),
+      );
+    } catch (error) {
+      return error;
+    }
+  }
+
+  /**
+   * Get Comments
+   */
+  @ApiOperation({
+    summary: 'Api For Get Comments',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Coment Fetched',
+  })
+  @Get('get-comments')
+  public async getComments(
+    @Query('reviewId', ParseIntPipe) reviewId: number,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.reviewClient.send(MessagePatterns.GET_COMMENT, reviewId),
+      );
+    } catch (error) {
+      return error;
+    }
+  }
+
+  /**
+   * Update Comment
+   */
+  @ApiOperation({
+    summary: 'Api For Update Comment',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Coment Updated',
+  })
+  @Patch('update-comment')
+  public async updateComment(
+    @Body() updateCommentDto: UpdateCommentDto,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.reviewClient.send(
+          MessagePatterns.UPDATE_COMMENT,
+          updateCommentDto,
+        ),
+      );
+    } catch (error) {
+      return error;
+    }
+  }
+
+  /**
+   * Delete Comment
+   */
+  @ApiOperation({
+    summary: 'Api For Delete Comment',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Coment Delete',
+  })
+  @Delete('delete-comment')
+  public async deleteComment(
+    @Query('reviewId', ParseIntPipe) commentId: number,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.reviewClient.send(MessagePatterns.DELETE_COMMENT, {
+          userId: 8,
+          commentId,
+        }),
       );
     } catch (error) {
       return error;

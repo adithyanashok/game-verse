@@ -12,3 +12,5 @@ export * from './dto/review/like-review';
 export * from './dto/search.dto';
 export * from './dto/review/create-comment.dto';
 export * from './dto/review/update-comment.dto';
+export * from './dto/user/create-user.dto';
+export * from './dto/user/login-user.dto';

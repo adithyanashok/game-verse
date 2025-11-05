@@ -30,5 +30,9 @@ export enum MessagePatterns {
   SEARCH_REVIEWS = 'review.search',
   UPDATE_REVIEWS = 'review.update',
   DELETE_REVIEWS = 'review.delete',
+  // Comment
   COMMENT_REVIEWS = 'review.comment',
+  GET_COMMENT = 'comment.get',
+  UPDATE_COMMENT = 'comment.update',
+  DELETE_COMMENT = 'comment.delete',
 }
