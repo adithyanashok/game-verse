@@ -10,8 +10,10 @@ export class ReviewController {
 
   // Create Review
   @MessagePattern(MessagePatterns.CREATE_REVIEW)
-  public async createReview(@Payload() payload: CreateReviewDto) {
-    return await this.reviewService.createReview(payload);
+  public async createReview(
+    @Payload() payload: { dto: CreateReviewDto; userId: number },
+  ) {
+    return await this.reviewService.createReview(payload.dto, payload.userId);
   }
 
   // Get Review
@@ -67,8 +69,10 @@ export class ReviewController {
 
   // Update Review
   @MessagePattern(MessagePatterns.UPDATE_REVIEWS)
-  public async updateReview(@Payload() paylod: UpdateReviewDto) {
-    return await this.reviewService.updateReview(paylod);
+  public async updateReview(
+    @Payload() paylod: { dto: UpdateReviewDto; userId: number },
+  ) {
+    return await this.reviewService.updateReview(paylod.dto, paylod.userId);
   }
 
   // Delete Review

@@ -8,9 +8,15 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 import {
   CreateGameDto,
   EditGameDto,
@@ -18,7 +24,11 @@ import {
   ServiceName,
 } from 'libs/common/src';
 import { firstValueFrom } from 'rxjs';
+import { RoleGuard } from '../src/guards/role.guard';
+import { Roles } from '../src/decorators/roles.decorators';
+import { Role } from '../src/enums/role.enum';
 
+@ApiBearerAuth()
 @ApiTags('games')
 @Controller('game')
 export class GameController {
@@ -37,6 +47,8 @@ export class GameController {
     status: 201,
     description: 'Game created successfully',
   })
+  @Roles(Role.Admin)
+  @UseGuards(RoleGuard)
   @Post('create-game')
   public async createGame(@Body() createGameDto: CreateGameDto): Promise<any> {
     try {
@@ -55,6 +67,8 @@ export class GameController {
     status: 200,
     description: 'Game updated successfully',
   })
+  @Roles(Role.Admin)
+  @UseGuards(RoleGuard)
   @Patch('edit-game')
   public async editGame(@Body() editGameDto: EditGameDto): Promise<any> {
     try {
@@ -73,6 +87,8 @@ export class GameController {
     status: 200,
     description: 'Game Deleted successfully',
   })
+  @Roles(Role.Admin)
+  @UseGuards(RoleGuard)
   @Delete('delete-game')
   public async deleteGame(@Query('id', ParseIntPipe) id: number): Promise<any> {
     try {
@@ -91,6 +107,8 @@ export class GameController {
     status: 200,
     description: 'Game Fetched successfully',
   })
+  @Roles(Role.User, Role.Admin)
+  @UseGuards(RoleGuard)
   @Get('get-game')
   public async getGame(@Query('id', ParseIntPipe) id: number): Promise<any> {
     try {

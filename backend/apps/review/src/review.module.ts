@@ -26,6 +26,14 @@ const ENV = process.env.NODE_ENV;
           port: MICROSERVICE_CONFIG.GAME_SERVICE.port,
         },
       },
+      {
+        name: ServiceName.USER,
+        transport: Transport.TCP,
+        options: {
+          host: MICROSERVICE_CONFIG.USER_SERVICE.host,
+          port: MICROSERVICE_CONFIG.USER_SERVICE.port,
+        },
+      },
     ]),
     TypeOrmModule.forFeature([Review, Like, View, Rating, Comment]),
 

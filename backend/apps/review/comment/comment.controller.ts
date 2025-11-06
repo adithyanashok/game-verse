@@ -17,8 +17,10 @@ export class CommentController {
   ) {}
 
   @MessagePattern(MessagePatterns.COMMENT_REVIEWS)
-  public async addComment(@Payload() payload: CreateCommentDto) {
-    return this.commentService.createComment(payload);
+  public async addComment(
+    @Payload() payload: { dto: CreateCommentDto; userId: number },
+  ) {
+    return this.commentService.createComment(payload.dto, payload.userId);
   }
 
   // Get Comments
@@ -29,8 +31,10 @@ export class CommentController {
 
   // Update Comment
   @MessagePattern(MessagePatterns.UPDATE_COMMENT)
-  public async updateComment(@Payload() payload: UpdateCommentDto) {
-    return this.commentService.updateComment(payload);
+  public async updateComment(
+    @Payload() payload: { dto: UpdateCommentDto; userId: number },
+  ) {
+    return this.commentService.updateComment(payload.dto, payload.userId);
   }
 
   // Delete Comment

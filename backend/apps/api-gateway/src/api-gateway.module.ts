@@ -7,6 +7,10 @@ import { GameController } from '../game/game.controller';
 import { MICROSERVICE_CONFIG } from 'libs/common/src/constants/microservice.constants';
 import { ReviewController } from '../review/review.controller';
 import { AuthController } from '../auth/auth.controller';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { RoleGuard } from './guards/role.guard';
+import { APP_GUARD } from '@nestjs/core';
+import { UserController } from '../user/user.controller';
 
 @Module({
   imports: [
@@ -35,6 +39,14 @@ import { AuthController } from '../auth/auth.controller';
           port: MICROSERVICE_CONFIG.AUTH_SERVICE.port,
         },
       },
+      {
+        name: ServiceName.USER,
+        transport: Transport.TCP,
+        options: {
+          host: MICROSERVICE_CONFIG.USER_SERVICE.host,
+          port: MICROSERVICE_CONFIG.USER_SERVICE.port,
+        },
+      },
     ]),
   ],
   controllers: [
@@ -42,7 +54,16 @@ import { AuthController } from '../auth/auth.controller';
     GameController,
     ReviewController,
     AuthController,
+    UserController,
   ],
-  providers: [ApiGatewayService],
+  providers: [
+    ApiGatewayService,
+    JwtAuthGuard,
+    RoleGuard,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class ApiGatewayModule {}

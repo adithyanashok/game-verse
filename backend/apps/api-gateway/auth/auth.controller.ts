@@ -7,19 +7,27 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { CreateUserDto, MessagePatterns } from 'libs/common/src';
+import {
+  CreateUserDto,
+  LoginUserDto,
+  MessagePatterns,
+  ServiceName,
+} from 'libs/common/src';
 import { firstValueFrom } from 'rxjs';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Public } from '../src/decorators/public.decorator';
 
-@Controller()
+@ApiTags('auth')
+@Controller('auth')
 export class AuthController {
   constructor(
-    @Inject('AUTH_SERVICE') private readonly authClient: ClientProxy,
+    @Inject(ServiceName.AUTH) private readonly authClient: ClientProxy,
   ) {}
 
   /**
    * Signup
    */
+  @Public()
   @ApiOperation({
     summary: 'Api for Signup',
   })
@@ -30,16 +38,25 @@ export class AuthController {
         this.authClient.send(MessagePatterns.AUTH_SIGNUP, createUserDto),
       );
     } catch (error) {
-      throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
-  // @Post('login')
-  // async login(@Body() dto: LoginUserDto) {
-  //   const user = await this.userClient
-  //     .send('get_user_by_email', dto.email)
-  //     .toPromise();
-
-  //   return this.authService.validateUserAndLogin(user, dto.password);
-  // }
+  /**
+   * Login
+   */
+  @Public()
+  @ApiOperation({
+    summary: 'Api for Login',
+  })
+  @Post('login')
+  public async login(@Body() loginUserDto: LoginUserDto): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.authClient.send(MessagePatterns.AUTH_SIGNIN, loginUserDto),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNAUTHORIZED);
+    }
+  }
 }

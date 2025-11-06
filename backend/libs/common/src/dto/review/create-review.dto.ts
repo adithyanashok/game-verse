@@ -15,10 +15,6 @@ export class CreateReviewDto {
   @IsString()
   comment: string;
 
-  @ApiProperty({ example: 1, description: 'Id of the user', default: 1 })
-  @IsNumber()
-  userId: number;
-
   @ApiProperty({ example: 1, description: 'Id of the game' })
   @IsNumber()
   gameId: number;

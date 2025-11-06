@@ -3,18 +3,20 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Inject,
   ParseIntPipe,
   Patch,
   Post,
   Query,
+  Req,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   CreateCommentDto,
   CreateReviewDto,
-  LikeReviewDto,
   MessagePatterns,
   SearchDto,
   ServiceName,
@@ -22,7 +24,9 @@ import {
   UpdateReviewDto,
 } from 'libs/common/src';
 import { firstValueFrom } from 'rxjs';
-
+import { CurrentUser } from '../src/decorators/current-user.decorator';
+import type { User } from '../src/guards/jwt-auth.guard';
+@ApiBearerAuth()
 @Controller()
 export class ReviewController {
   constructor(
@@ -42,14 +46,18 @@ export class ReviewController {
   })
   @Post('create-review')
   public async createReview(
+    @CurrentUser() user: User,
     @Body() createReviewDto: CreateReviewDto,
   ): Promise<any> {
     try {
       return await firstValueFrom(
-        this.reviewClient.send(MessagePatterns.CREATE_REVIEW, createReviewDto),
+        this.reviewClient.send(MessagePatterns.CREATE_REVIEW, {
+          dto: createReviewDto,
+          userId: user.id,
+        }),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -70,7 +78,7 @@ export class ReviewController {
         this.reviewClient.send(MessagePatterns.GET_REVIEW, id),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -85,13 +93,20 @@ export class ReviewController {
     description: 'Review liked successfully',
   })
   @Post('like-review')
-  public async likeReview(@Body() likeReviewDto: LikeReviewDto): Promise<any> {
+  public async likeReview(
+    @Req() user: User,
+
+    @Query('reviewId', ParseIntPipe) reviewId: number,
+  ): Promise<any> {
     try {
       return await firstValueFrom(
-        this.reviewClient.send(MessagePatterns.LIKE_REVIEW, likeReviewDto),
+        this.reviewClient.send(MessagePatterns.LIKE_REVIEW, {
+          reviewId,
+          userId: user.id,
+        }),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -106,15 +121,20 @@ export class ReviewController {
     description: 'View Updated Successfully',
   })
   @Post('update-view')
-  public async updateReviews(
-    @Body() likeReviewDto: LikeReviewDto,
+  public async updateView(
+    @Req() user: User,
+
+    @Query('reviewId', ParseIntPipe) reviewId: number,
   ): Promise<any> {
     try {
       return await firstValueFrom(
-        this.reviewClient.send(MessagePatterns.INCREASE_VIEWS, likeReviewDto),
+        this.reviewClient.send(MessagePatterns.INCREASE_VIEWS, {
+          reviewId,
+          userId: user.id,
+        }),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -135,7 +155,7 @@ export class ReviewController {
         this.reviewClient.send(MessagePatterns.TRENDING_REVIEWS, {}),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -156,7 +176,7 @@ export class ReviewController {
         this.reviewClient.send(MessagePatterns.RECENT_REVIEWS, {}),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -177,7 +197,7 @@ export class ReviewController {
         this.reviewClient.send(MessagePatterns.SEARCH_REVIEWS, searchDto),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -193,14 +213,18 @@ export class ReviewController {
   })
   @Patch('update-review')
   public async updateReview(
+    @CurrentUser() user: User,
     @Body() updateReviewDto: UpdateReviewDto,
   ): Promise<any> {
     try {
       return await firstValueFrom(
-        this.reviewClient.send(MessagePatterns.UPDATE_REVIEWS, updateReviewDto),
+        this.reviewClient.send(MessagePatterns.UPDATE_REVIEWS, {
+          dto: updateReviewDto,
+          userId: user.id,
+        }),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -216,14 +240,18 @@ export class ReviewController {
   })
   @Delete('delete-review')
   public async deleteReview(
-    @Body() likeReviewDto: LikeReviewDto,
+    @CurrentUser() user: User,
+    @Query('reviewId', ParseIntPipe) reviewId: number,
   ): Promise<any> {
     try {
       return await firstValueFrom(
-        this.reviewClient.send(MessagePatterns.DELETE_REVIEWS, likeReviewDto),
+        this.reviewClient.send(MessagePatterns.DELETE_REVIEWS, {
+          reviewId,
+          userId: user.id,
+        }),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -239,17 +267,19 @@ export class ReviewController {
   })
   @Post('add-comment')
   public async addComment(
+    @CurrentUser() user: User,
     @Body() createCommentDto: CreateCommentDto,
   ): Promise<any> {
     try {
+      console.log('REQUEST PARAMETER');
       return await firstValueFrom(
-        this.reviewClient.send(
-          MessagePatterns.COMMENT_REVIEWS,
-          createCommentDto,
-        ),
+        this.reviewClient.send(MessagePatterns.COMMENT_REVIEWS, {
+          dto: createCommentDto,
+          userId: user.id,
+        }),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -272,7 +302,7 @@ export class ReviewController {
         this.reviewClient.send(MessagePatterns.GET_COMMENT, reviewId),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -288,17 +318,18 @@ export class ReviewController {
   })
   @Patch('update-comment')
   public async updateComment(
+    @CurrentUser() user: User,
     @Body() updateCommentDto: UpdateCommentDto,
   ): Promise<any> {
     try {
       return await firstValueFrom(
-        this.reviewClient.send(
-          MessagePatterns.UPDATE_COMMENT,
-          updateCommentDto,
-        ),
+        this.reviewClient.send(MessagePatterns.UPDATE_COMMENT, {
+          dto: updateCommentDto,
+          userId: user?.id,
+        }),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -314,17 +345,18 @@ export class ReviewController {
   })
   @Delete('delete-comment')
   public async deleteComment(
+    @CurrentUser() user: User,
     @Query('reviewId', ParseIntPipe) commentId: number,
   ): Promise<any> {
     try {
       return await firstValueFrom(
         this.reviewClient.send(MessagePatterns.DELETE_COMMENT, {
-          userId: 8,
+          userId: user.id,
           commentId,
         }),
       );
     } catch (error) {
-      return error;
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 }

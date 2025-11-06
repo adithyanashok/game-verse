@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { ApiResponse, CreateUserDto } from 'libs/common/src';
+import { ApiResponse, CreateUserDto, UpdateUserDto } from 'libs/common/src';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -50,6 +50,64 @@ export class UserService {
       }
 
       return user;
+    } catch (error) {
+      console.log(error);
+
+      throw error;
+    }
+  }
+
+  public async getUserById(id: number) {
+    try {
+      const user = await this.userRepository.findOneBy({ id });
+
+      if (!user) {
+        throw new RpcException(`User with id "${id}" does not exist`);
+      }
+
+      return user;
+    } catch (error) {
+      console.log(error);
+
+      throw error;
+    }
+  }
+
+  public async updateUser(updateUserDto: UpdateUserDto, userId: number) {
+    try {
+      const user = await this.userRepository.findOneBy({ id: userId });
+
+      if (!user) {
+        throw new RpcException(`User with id "${userId}" does not exist`);
+      }
+
+      user.bio = updateUserDto.bio ?? user.bio;
+      user.name = updateUserDto.name ?? user.name;
+
+      const updatedUser = await this.userRepository.save(user);
+
+      return new ApiResponse(true, 'User updated', updatedUser);
+    } catch (error) {
+      console.log(error);
+
+      throw error;
+    }
+  }
+
+  public async getUserProfile(id: number) {
+    try {
+      const user = await this.userRepository.findOneBy({ id });
+      console.log(user);
+      if (!user) {
+        throw new RpcException(`User with id "${id}" does not exist`);
+      }
+
+      return new ApiResponse(true, 'User profile fetched', {
+        name: user.name,
+        email: user.email,
+        bio: user.bio,
+        id: user.id,
+      });
     } catch (error) {
       console.log(error);
 

@@ -14,3 +14,5 @@ export * from './dto/review/create-comment.dto';
 export * from './dto/review/update-comment.dto';
 export * from './dto/user/create-user.dto';
 export * from './dto/user/login-user.dto';
+export * from './dto/user/update-user.dto';
+export * from './interface/user.interface';

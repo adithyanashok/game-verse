@@ -27,9 +27,12 @@ export class CommentService {
   ) {}
 
   // Create Comment
-  public async createComment(createCommentDto: CreateCommentDto) {
+  public async createComment(
+    createCommentDto: CreateCommentDto,
+    userId: number,
+  ) {
     try {
-      const { reviewId, comment, userId } = createCommentDto;
+      const { reviewId, comment } = createCommentDto;
       const review = await this.reviewRepo.findOneBy({ id: reviewId });
       console.log(review);
 
@@ -69,9 +72,9 @@ export class CommentService {
   }
 
   // Edit Comment
-  public async updateComment(updateComment: UpdateCommentDto) {
+  public async updateComment(updateComment: UpdateCommentDto, userId: number) {
     try {
-      const { reviewId, comment, userId, commentId } = updateComment;
+      const { reviewId, comment, commentId } = updateComment;
 
       const dbComment = await this.commentRepo.findOne({
         where: { review: { id: reviewId }, userId, id: commentId },

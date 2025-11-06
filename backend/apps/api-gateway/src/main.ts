@@ -9,6 +9,7 @@ async function bootstrap() {
     .setTitle('Gateway Service')
     .setDescription('Gateway API documentation')
     .setVersion('1.0')
+    .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' })
     .addTag('gateway')
     .build();
 

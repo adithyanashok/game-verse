@@ -1,11 +1,16 @@
-import { Controller, Post, Body, Inject } from '@nestjs/common';
+import { Controller, Body, Inject } from '@nestjs/common';
 import {
   ClientProxy,
   MessagePattern,
   RpcException,
 } from '@nestjs/microservices';
 import { AuthService } from './auth.service';
-import { ApiResponse, CreateUserDto, MessagePatterns } from 'libs/common/src';
+import {
+  ApiResponse,
+  CreateUserDto,
+  LoginUserDto,
+  MessagePatterns,
+} from 'libs/common/src';
 import { lastValueFrom } from 'rxjs';
 import { User } from './interfaces/user.interface';
 
@@ -23,18 +28,61 @@ export class AuthController {
         this.userClient.send<User>(MessagePatterns.AUTH_SIGNUP, dto),
       );
       const accessToken = await this.authService.generateToken(user);
+
       return new ApiResponse(true, 'Account Created', { user, accessToken });
     } catch (error) {
-      throw new RpcException(error?.message || 'Signup failed');
+      throw new RpcException(
+        error instanceof Error ? error.message : 'Signup failed',
+      );
     }
   }
 
-  // @Post('login')
-  // async login(@Body() dto: LoginUserDto) {
-  //   const user = await this.userClient
-  //     .send('get_user_by_email', dto.email)
-  //     .toPromise();
+  @MessagePattern(MessagePatterns.AUTH_SIGNIN)
+  async login(@Body() dto: LoginUserDto) {
+    try {
+      const user = await this.authService.validateUser(dto.email, dto.password);
+      if (!user) {
+        throw new RpcException({
+          status: 401,
+          message: 'Invalid credentials',
+        });
+      }
+      const accessToken = await this.authService.generateToken(user);
+      return new ApiResponse(true, 'Login Successful', {
+        user,
+        accessToken,
+      });
+    } catch (error) {
+      throw new RpcException(
+        error instanceof RpcException
+          ? error.getError()
+          : { status: 401, message: 'Login failed' },
+      );
+    }
+  }
 
-  //   return this.authService.validateUserAndLogin(user, dto.password);
-  // }
+  @MessagePattern(MessagePatterns.AUTH_VALIDATE)
+  async validate(
+    @Body() payload: { sub: string | number; email: string; role?: string },
+  ) {
+    try {
+      const user = await this.authService.validateJwtPayload(payload);
+      if (!user) {
+        throw new RpcException({
+          status: 401,
+          message: 'Invalid token',
+        });
+      }
+      if (!user.role && payload.role) {
+        user.role = payload.role;
+      }
+      return user;
+    } catch (error) {
+      throw new RpcException(
+        error instanceof RpcException
+          ? error.getError()
+          : { status: 401, message: 'Validation failed' },
+      );
+    }
+  }
 }

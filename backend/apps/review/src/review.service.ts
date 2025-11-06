@@ -10,6 +10,7 @@ import {
   MessagePatterns,
   ServiceName,
   UpdateReviewDto,
+  User,
 } from 'libs/common/src';
 import { CreateReviewDto } from 'libs/common/src/dto/review/create-review.dto';
 import { lastValueFrom } from 'rxjs';
@@ -33,12 +34,25 @@ export class ReviewService {
 
     @Inject(ServiceName.GAME)
     private client: ClientProxy,
+
+    @Inject(ServiceName.USER)
+    private userClient: ClientProxy,
   ) {}
 
   // Create Review
-  public async createReview(createReviewDto: CreateReviewDto) {
+  public async createReview(createReviewDto: CreateReviewDto, userId: number) {
     try {
+      const existingUser: User = await lastValueFrom(
+        this.userClient.send(MessagePatterns.USER_FIND_BY_ID, userId),
+      );
+      if (!existingUser) {
+        throw new RpcException({
+          status: 404,
+          message: 'User Not Found',
+        });
+      }
       const rating = createReviewDto.rating;
+      console.log('review ceated', createReviewDto, userId);
 
       const game: GameResponse = await lastValueFrom(
         this.client.send(MessagePatterns.FIND_ONE_GAME, {
@@ -59,7 +73,7 @@ export class ReviewService {
       const review = this.repo.create({
         title: createReviewDto.title,
         text: createReviewDto.comment,
-        userId: createReviewDto.userId,
+        userId: existingUser.id,
         gameId: createReviewDto.gameId,
       });
 
@@ -74,9 +88,9 @@ export class ReviewService {
         review: savedReview,
       });
 
+      savedReview.rating = ratingEntity;
       await this.ratingRepo.save(ratingEntity);
 
-      savedReview.rating = ratingEntity;
       return new ApiResponse(true, 'Review Created Successfully', {
         savedReview,
       });
@@ -284,9 +298,9 @@ export class ReviewService {
   }
 
   // Update Reviews
-  public async updateReview(updateReviewDto: UpdateReviewDto) {
+  public async updateReview(updateReviewDto: UpdateReviewDto, userId: number) {
     try {
-      const { id, userId, comment, title } = updateReviewDto;
+      const { id, comment, title } = updateReviewDto;
       const review = await this.repo.findOne({
         where: { id, userId },
       });
