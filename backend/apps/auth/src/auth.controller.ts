@@ -27,9 +27,9 @@ export class AuthController {
       const user = await lastValueFrom(
         this.userClient.send<User>(MessagePatterns.AUTH_SIGNUP, dto),
       );
-      const accessToken = await this.authService.generateToken(user);
+      const tokens = await this.authService.generateTokens(user);
 
-      return new ApiResponse(true, 'Account Created', { user, accessToken });
+      return new ApiResponse(true, 'Account Created', { user, ...tokens });
     } catch (error) {
       throw new RpcException(
         error instanceof Error ? error.message : 'Signup failed',
@@ -47,10 +47,10 @@ export class AuthController {
           message: 'Invalid credentials',
         });
       }
-      const accessToken = await this.authService.generateToken(user);
+      const tokens = await this.authService.generateTokens(user);
       return new ApiResponse(true, 'Login Successful', {
         user,
-        accessToken,
+        ...tokens,
       });
     } catch (error) {
       throw new RpcException(
@@ -78,11 +78,30 @@ export class AuthController {
       }
       return user;
     } catch (error) {
-      throw new RpcException(
-        error instanceof RpcException
-          ? error.getError()
-          : { status: 401, message: 'Validation failed' },
-      );
+      throw new RpcException(error);
+    }
+  }
+
+  @MessagePattern(MessagePatterns.AUTH_REFRESH)
+  async refresh(@Body() body: { refreshToken: string }) {
+    try {
+      if (!body?.refreshToken) {
+        throw new RpcException({
+          status: 400,
+          message: 'refreshToken required',
+        });
+      }
+      const user = await this.authService.verifyRefreshToken(body.refreshToken);
+      if (!user) {
+        throw new RpcException({
+          status: 401,
+          message: 'Invalid refresh token',
+        });
+      }
+      const tokens = await this.authService.generateTokens(user);
+      return new ApiResponse(true, 'Token refreshed', tokens);
+    } catch (error) {
+      throw new RpcException(error);
     }
   }
 }

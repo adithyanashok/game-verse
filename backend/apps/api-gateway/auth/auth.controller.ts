@@ -16,6 +16,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '../src/decorators/public.decorator';
+import { RefreshTokenDto } from '../src/dto/refreshToken.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -54,6 +55,24 @@ export class AuthController {
     try {
       return await firstValueFrom(
         this.authClient.send(MessagePatterns.AUTH_SIGNIN, loginUserDto),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  /**
+   * Refresh token
+   */
+  @Public()
+  @ApiOperation({
+    summary: 'Api for Refreshing Access Token',
+  })
+  @Post('refresh')
+  public async refresh(@Body() body: RefreshTokenDto): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.authClient.send(MessagePatterns.AUTH_REFRESH, body),
       );
     } catch (error) {
       throw new HttpException(error, HttpStatus.UNAUTHORIZED);

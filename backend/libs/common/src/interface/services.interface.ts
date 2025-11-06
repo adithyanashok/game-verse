@@ -10,6 +10,7 @@ export enum MessagePatterns {
   AUTH_SIGNUP = 'auth.signup',
   AUTH_SIGNIN = 'auth.signin',
   AUTH_VALIDATE = 'auth.validate',
+  AUTH_REFRESH = 'auth.refresh',
   // User
   USER_CREATE = 'user.create',
   USER_FIND_BY_ID = 'user.findById',

@@ -5,12 +5,16 @@ import { User } from './interfaces/user.interface';
 import { RpcException, ClientProxy } from '@nestjs/microservices';
 import { ServiceName, MessagePatterns } from 'libs/common/src';
 import { lastValueFrom } from 'rxjs';
+import type { ConfigType } from '@nestjs/config';
+import jwtConfig from './config/jwt.config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     @Inject(ServiceName.USER) private readonly userClient: ClientProxy,
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
   ) {}
 
   async validateUser(email: string, password: string): Promise<User | null> {
@@ -31,10 +35,10 @@ export class AuthService {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       throw new RpcException('Invalid credentials');
     }
-    return this.generateToken(user);
+    return this.generateTokens(user);
   }
 
-  async generateToken(user: User) {
+  async generateTokens(user: User) {
     const role: string = user.role ?? 'user';
     const payload: {
       sub: string | number;
@@ -46,8 +50,16 @@ export class AuthService {
       role,
     };
     const accessToken = await this.jwtService.signAsync(payload);
+    const refreshExpiresIn = process.env.JWT_REFRESH_EXPIRES_IN
+      ? Number(process.env.JWT_REFRESH_EXPIRES_IN)
+      : 60 * 60 * 24 * 7;
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret:
+        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'secret',
+      expiresIn: refreshExpiresIn,
+    } as any);
 
-    return accessToken;
+    return { accessToken, refreshToken };
   }
 
   async validateJwtPayload(payload: {
@@ -63,6 +75,22 @@ export class AuthService {
         ),
       );
       return user;
+    } catch {
+      return null;
+    }
+  }
+
+  async verifyRefreshToken(refreshToken: string): Promise<User | null> {
+    try {
+      const payload = await this.jwtService.verifyAsync<{
+        sub: string | number;
+        email: string;
+        role?: string;
+      }>(refreshToken, {
+        secret: process.env.JWT_REFRESH_SECRET,
+      });
+
+      return await this.validateJwtPayload(payload);
     } catch {
       return null;
     }
