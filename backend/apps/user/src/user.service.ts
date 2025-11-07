@@ -33,7 +33,7 @@ export class UserService {
       const newUser = this.userRepository.create(user);
 
       const savedUser = await this.userRepository.save(newUser);
-
+      delete savedUser.password;
       return savedUser;
     } catch (error) {
       console.log(error);

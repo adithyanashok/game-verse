@@ -10,6 +10,7 @@ async function bootstrap() {
     .setDescription('Gateway API documentation')
     .setVersion('1.0')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' })
+    .addServer('/api')
     .addTag('gateway')
     .build();
 
@@ -23,6 +24,12 @@ async function bootstrap() {
     }),
   );
   SwaggerModule.setup('api/docs', app, document);
+  app.enableCors({
+    origin: 'http://localhost:5173',
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true,
+  });
+  app.setGlobalPrefix('api');
   await app.listen(3000);
 }
 bootstrap();

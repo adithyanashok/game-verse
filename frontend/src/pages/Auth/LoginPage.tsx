@@ -1,12 +1,35 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
+
+import { loginUser } from "../../features/auth/authSlice";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import type { RootState } from "../../store";
 
 export default function LoginPage() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const { loading, error, accessToken } = useAppSelector(
+    (state: RootState) => state.auth
+  );
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    if (accessToken) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [accessToken, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Login submitted");
+    const resultAction = await dispatch(loginUser({ email, password }));
+
+    if (loginUser.fulfilled.match(resultAction)) {
+      setEmail("");
+      setPassword("");
+      navigate("/dashboard", { replace: true });
+    }
   };
 
   const handleGoogleLogin = () => {
@@ -54,22 +77,32 @@ export default function LoginPage() {
 
           {/* Forgot Password Link */}
           <div className="text-right pt-4 pb-6">
-            <a
-              href="#"
+            <button
+              type="button"
               className="text-[#a855f7] hover:text-[#9333ea] text-sm font-medium transition-colors"
+              onClick={() => console.log("Forgot password clicked")}
             >
               Forgot your password?
-            </a>
+            </button>
           </div>
 
           {/* Login Button */}
           <button
             type="submit"
-            className="w-full bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold py-4 rounded-lg transition-colors duration-200"
+            disabled={loading}
+            className={`w-full bg-[#7c3aed] hover:bg-[#6d28d9] text-white font-semibold py-4 rounded-lg transition-colors duration-200 ${
+              loading ? "opacity-70 cursor-not-allowed" : ""
+            }`}
           >
-            Log In
+            {loading ? "Logging In..." : "Log In"}
           </button>
         </form>
+
+        {error && (
+          <div className="mt-4 rounded-md border border-red-500 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
+        )}
 
         {/* Divider */}
         <div className="relative my-8">
@@ -100,12 +133,12 @@ export default function LoginPage() {
         {/* Sign Up Link */}
         <div className="text-center mt-8">
           <span className="text-gray-400">Don't have an account? </span>
-          <a
-            href="#"
+          <Link
+            to="/signup"
             className="text-[#a855f7] hover:text-[#9333ea] font-medium transition-colors"
           >
             Sign up
-          </a>
+          </Link>
         </div>
       </div>
     </div>

@@ -1,11 +1,15 @@
 import controller from "../../../assets/images/controller.png";
 import { Link, useLocation } from "react-router";
+import { useAppSelector } from "../../../store/hooks";
+import type { RootState } from "../../../store";
+import { dummy } from "../../../data";
 
 function DesktopNavbar() {
   const location = useLocation();
   const activePath = location.pathname;
 
-  console.log(location);
+  const { accessToken } = useAppSelector((state: RootState) => state.auth);
+
   return (
     <>
       <div className="flex justify-between bg-primary items-center primary text-primary h-[80px]">
@@ -35,27 +39,45 @@ function DesktopNavbar() {
             <li>
               <Link to={"/dashboard"}>Dashboard</Link>
             </li>
-            <li>
-              <Link to={"/profile"}>Profile</Link>
-            </li>
           </ul>
         </div>
-        <div className="hidden lg:flex  gap-x-2 mr-3">
-          <div className=" bg-dark-purple px-5 py-1 rounded-full">
-            <Link to={"/signup"}>
+        {accessToken && (
+          <Link
+            to={"/profile"}
+            className="bg-dark-purple px-2 py-1 rounded-full mr-3"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div className="w-10 h-10">
+                <img
+                  src={dummy[0].image}
+                  alt={"User"}
+                  className="w-full h-full object-cover rounded-full"
+                />
+              </div>
               <p className="text-center text-purple font-semibold text-[14px]">
-                Sign Up
+                {"Adithyan"}
               </p>
-            </Link>
+            </div>
+          </Link>
+        )}
+        {!accessToken && (
+          <div className="hidden lg:flex  gap-x-2 mr-3">
+            <div className=" bg-dark-purple px-5 py-1 rounded-full">
+              <Link to={"/signup"}>
+                <p className="text-center text-purple font-semibold text-[14px]">
+                  Sign Up
+                </p>
+              </Link>
+            </div>
+            <div className="primary border-2 border-[var(--color-purple)] px-5 py-1 rounded-full">
+              <Link to={"/login"}>
+                <p className="text-center text-purple font-semibold text-[14px]">
+                  Login
+                </p>
+              </Link>
+            </div>
           </div>
-          <div className="primary border-2 border-[var(--color-purple)] px-5 py-1 rounded-full">
-            <Link to={"/login"}>
-              <p className="text-center text-purple font-semibold text-[14px]">
-                Login
-              </p>
-            </Link>
-          </div>
-        </div>
+        )}
       </div>
       <hr className="hr" />
     </>

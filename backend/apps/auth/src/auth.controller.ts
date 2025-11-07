@@ -78,7 +78,11 @@ export class AuthController {
       }
       return user;
     } catch (error) {
-      throw new RpcException(error);
+      throw new RpcException(
+        error instanceof RpcException
+          ? error.getError()
+          : { status: 401, message: 'Validation failed' },
+      );
     }
   }
 
@@ -101,7 +105,7 @@ export class AuthController {
       const tokens = await this.authService.generateTokens(user);
       return new ApiResponse(true, 'Token refreshed', tokens);
     } catch (error) {
-      throw new RpcException(error);
+      throw new RpcException(error.message);
     }
   }
 }

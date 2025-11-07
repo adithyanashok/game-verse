@@ -16,7 +16,6 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '../src/decorators/public.decorator';
-import { RefreshTokenDto } from '../src/dto/refreshToken.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -69,7 +68,7 @@ export class AuthController {
     summary: 'Api for Refreshing Access Token',
   })
   @Post('refresh')
-  public async refresh(@Body() body: RefreshTokenDto): Promise<any> {
+  public async refresh(@Body() body: { refreshToken: string }): Promise<any> {
     try {
       return await firstValueFrom(
         this.authClient.send(MessagePatterns.AUTH_REFRESH, body),

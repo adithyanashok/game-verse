@@ -5,16 +5,12 @@ import { User } from './interfaces/user.interface';
 import { RpcException, ClientProxy } from '@nestjs/microservices';
 import { ServiceName, MessagePatterns } from 'libs/common/src';
 import { lastValueFrom } from 'rxjs';
-import type { ConfigType } from '@nestjs/config';
-import jwtConfig from './config/jwt.config';
 
 @Injectable()
 export class AuthService {
   constructor(
     private jwtService: JwtService,
     @Inject(ServiceName.USER) private readonly userClient: ClientProxy,
-    @Inject(jwtConfig.KEY)
-    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
   ) {}
 
   async validateUser(email: string, password: string): Promise<User | null> {
@@ -87,7 +83,8 @@ export class AuthService {
         email: string;
         role?: string;
       }>(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret:
+          process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'secret',
       });
 
       return await this.validateJwtPayload(payload);
