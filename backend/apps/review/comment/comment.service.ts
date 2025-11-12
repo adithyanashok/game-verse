@@ -32,7 +32,7 @@ export class CommentService {
     userId: number,
   ) {
     try {
-      const { reviewId, comment } = createCommentDto;
+      const { reviewId, comment, parentCommentId } = createCommentDto;
       const review = await this.reviewRepo.findOneBy({ id: reviewId });
       console.log(review);
 
@@ -43,10 +43,23 @@ export class CommentService {
         });
       }
 
+      if (parentCommentId) {
+        const parent = await this.commentRepo.findOne({
+          where: { id: parentCommentId, review: { id: reviewId } },
+        });
+        if (!parent) {
+          throw new RpcException({
+            status: 404,
+            message: `Parent comment with ID ${parentCommentId} not found`,
+          });
+        }
+      }
+
       const newComment = this.commentRepo.create({
         comment,
         userId,
         review,
+        parentCommentId: parentCommentId ?? null,
       });
 
       const savedComment = await this.commentRepo.save(newComment);
@@ -62,6 +75,7 @@ export class CommentService {
     try {
       const dbComment = await this.commentRepo.find({
         where: { review: { id: reviewId } },
+        order: { createdAt: 'DESC' },
       });
 
       return new ApiResponse(true, 'Comment Fetched', dbComment);

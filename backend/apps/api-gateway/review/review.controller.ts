@@ -10,13 +10,13 @@ import {
   Patch,
   Post,
   Query,
-  Req,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   CreateCommentDto,
   CreateReviewDto,
+  GetByGameIdDto,
   MessagePatterns,
   SearchDto,
   ServiceName,
@@ -27,7 +27,7 @@ import { firstValueFrom } from 'rxjs';
 import { CurrentUser } from '../src/decorators/current-user.decorator';
 import type { User } from '../src/guards/jwt-auth.guard';
 @ApiBearerAuth()
-@Controller()
+@Controller('review')
 export class ReviewController {
   constructor(
     @Inject(ServiceName.REVIEW)
@@ -94,7 +94,7 @@ export class ReviewController {
   })
   @Post('like-review')
   public async likeReview(
-    @Req() user: User,
+    @CurrentUser() user: User,
 
     @Query('reviewId', ParseIntPipe) reviewId: number,
   ): Promise<any> {
@@ -122,7 +122,7 @@ export class ReviewController {
   })
   @Post('update-view')
   public async updateView(
-    @Req() user: User,
+    @CurrentUser() user: User,
 
     @Query('reviewId', ParseIntPipe) reviewId: number,
   ): Promise<any> {
@@ -195,6 +195,32 @@ export class ReviewController {
     try {
       return await firstValueFrom(
         this.reviewClient.send(MessagePatterns.SEARCH_REVIEWS, searchDto),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Get Reviews By GameId
+   */
+  @ApiOperation({
+    summary: 'Api For Get Reviews By GameId',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reviews Fetched Successfully',
+  })
+  @Get('get-by-gameid')
+  public async getReviewsByGameId(
+    @Query() getByGameDto: GetByGameIdDto,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.reviewClient.send(
+          MessagePatterns.GET_REVIEW_BY_GAMEID,
+          getByGameDto,
+        ),
       );
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);

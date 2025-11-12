@@ -1,10 +1,19 @@
-import { Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Inject, Injectable } from '@nestjs/common';
+import { In, Repository } from 'typeorm';
 import { Game } from './entities/game.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ApiResponse, CreateGameDto, EditGameDto } from 'libs/common/src';
-import { RpcException } from '@nestjs/microservices';
+import {
+  ApiResponse,
+  CreateGameDto,
+  EditGameDto,
+  MessagePatterns,
+  ServiceName,
+} from 'libs/common/src';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
+import { GenreService } from './genre/genre.service';
+import { firstValueFrom } from 'rxjs';
+import { RatingInterface } from './interfaces/rating.interfaces';
 
 @Injectable()
 export class GameService {
@@ -15,13 +24,24 @@ export class GameService {
     @InjectRepository(Game)
     private readonly gameRepo: Repository<Game>,
 
+    /**
+     * Injecting GenreService
+     */
+    private readonly genreService: GenreService,
+
     private readonly configService: ConfigService,
+
+    @Inject(ServiceName.REVIEW)
+    private readonly reviewClient: ClientProxy,
   ) {}
 
   // Create Game
   public async addGame(createGameDto: CreateGameDto) {
     try {
-      const game = this.gameRepo.create(createGameDto);
+      const genres = await this.genreService.findMultipleGenres(
+        createGameDto.genre,
+      );
+      const game = this.gameRepo.create({ ...createGameDto, genre: genres });
 
       const newGame = await this.gameRepo.save(game);
 
@@ -35,7 +55,10 @@ export class GameService {
   // Get Game
   public async getGame(id: number) {
     try {
-      const game = await this.gameRepo.findOneBy({ id });
+      const game = await this.gameRepo.findOne({
+        where: { id },
+        relations: ['genre'],
+      });
 
       if (!game) {
         throw new RpcException({
@@ -44,9 +67,28 @@ export class GameService {
         });
       }
 
+      const rating = await firstValueFrom<RatingInterface>(
+        this.reviewClient.send(MessagePatterns.GET_OVERALL_RATING, {
+          gameId: game.id,
+        }),
+      );
+
       return new ApiResponse(true, 'Game Fetched Successfully', {
-        game,
+        ...game,
+        rating,
       });
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  // Get Games
+  public async getGames() {
+    try {
+      const games = await this.gameRepo.find({ relations: ['genre'] });
+
+      return new ApiResponse(true, 'Games Fetched Successfully', games);
     } catch (error) {
       console.log(error);
       throw error;
@@ -108,5 +150,28 @@ export class GameService {
 
     console.log(game);
     return game;
+  }
+  // Get Popular Games
+  public async getTopRatedGames() {
+    try {
+      console.log('getPopularGames');
+      const topRatedGameIds = await firstValueFrom<number[]>(
+        this.reviewClient.send(MessagePatterns.GET_TOP_RATED_GAME_IDS, {}),
+      );
+      const topRatedGames = await this.gameRepo.find({
+        where: { id: In(topRatedGameIds) },
+      });
+      return new ApiResponse(
+        true,
+        'Top Rated Games Fetched Successfully',
+        topRatedGames,
+      );
+    } catch (error) {
+      console.log(error);
+      throw new RpcException({
+        status: 500,
+        message: 'Failed to fetch top rated games',
+      });
+    }
   }
 }

@@ -1,6 +1,4 @@
-import React from "react";
 import GameSection from "./Components/GameSection";
-import Footer from "../../components/common/footer/component/Footer";
 import ResponsiveNavbar from "../../components/common/Navbar/ResponsiveNavbar";
 
 const GamesPage = () => {
@@ -12,9 +10,6 @@ const GamesPage = () => {
         {/* Game Section */}
         <GameSection />
       </div>
-
-      {/* Footer */}
-      <Footer />
     </>
   );
 };

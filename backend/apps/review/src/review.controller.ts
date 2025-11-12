@@ -1,7 +1,12 @@
 import { Controller } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from 'libs/common/src/dto/review/create-review.dto';
-import { MessagePatterns, SearchDto, UpdateReviewDto } from 'libs/common/src';
+import {
+  GetByGameIdDto,
+  MessagePatterns,
+  SearchDto,
+  UpdateReviewDto,
+} from 'libs/common/src';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 
 @Controller()
@@ -19,7 +24,6 @@ export class ReviewController {
   // Get Review
   @MessagePattern(MessagePatterns.GET_REVIEW)
   public async getReview(@Payload() payload: number) {
-    console.log(payload);
     return await this.reviewService.getReview(payload);
   }
 
@@ -67,6 +71,16 @@ export class ReviewController {
     );
   }
 
+  // Get Reviews By GameId
+  @MessagePattern(MessagePatterns.GET_REVIEW_BY_GAMEID)
+  public async getReviewsByGameId(@Payload() paylod: GetByGameIdDto) {
+    return await this.reviewService.getReviewsByGameId(
+      paylod.gameId,
+      paylod.page,
+      paylod.limit,
+    );
+  }
+
   // Update Review
   @MessagePattern(MessagePatterns.UPDATE_REVIEWS)
   public async updateReview(
@@ -84,5 +98,17 @@ export class ReviewController {
       paylod.reviewId,
       paylod.userId,
     );
+  }
+
+  // Get Overall Rating
+  @MessagePattern(MessagePatterns.GET_OVERALL_RATING)
+  public async getOverallRating(@Payload() paylod: { gameId: number }) {
+    return await this.reviewService.getRatingOfGame(paylod.gameId);
+  }
+
+  // Get Review
+  @MessagePattern(MessagePatterns.GET_TOP_RATED_GAME_IDS)
+  public async getPopularGameIds() {
+    return await this.reviewService.getPopularGameIds();
   }
 }

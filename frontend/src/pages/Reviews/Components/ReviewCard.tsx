@@ -1,0 +1,68 @@
+import { Link } from "react-router";
+import { AiFillStar } from "react-icons/ai";
+
+import type { ReviewSummary } from "../../../features/reviews/types";
+
+interface ReviewCardProps {
+  review: ReviewSummary;
+}
+
+const formatDate = (value: string) => {
+  if (!value) {
+    return "";
+  }
+  const date = new Date(value);
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+const ReviewCard = ({ review }: ReviewCardProps) => {
+  return (
+    <Link to={`/review/${review.id}`} className="block">
+      <div className="w-[250px] bg-dark rounded-2xl overflow-hidden border border-[#3d2f5a] hover:border-[var(--color-purple)] transition-colors duration-200 max-w-xs">
+        {review.imageUrl ? (
+          <img
+            src={review.imageUrl}
+            alt={review.title}
+            className="w-full h-32 object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div className="bg-gradient-to-br from-[#331b57] to-[#1f1630] h-32 flex items-center justify-center">
+            <span className="text-[var(--color-purple)] text-lg font-semibold">
+              {review.title.slice(0, 2).toUpperCase()}
+            </span>
+          </div>
+        )}
+        <div className="px-4 py-3">
+          <h3 className="text-white font-semibold text-lg line-clamp-2">
+            {review.title}
+          </h3>
+          <p className="text-gray-400 text-sm line-clamp-3 min-h-[10px]">
+            {review.userName}
+          </p>
+          <div className="flex items-center gap-1.5 my-2">
+            <AiFillStar className="text-[#6711bf]" size={18} />
+            <span className="text-white text-sm font-medium">
+              {review.rating?.overall !== undefined
+                ? review.rating.overall.toFixed(1)
+                : 0.0}
+            </span>
+          </div>
+          {/* <div className="flex items-center justify-between text-xs text-gray-400">
+            <span>{`Likes: ${review.likeCount ?? 0}`}</span>
+            <span>{`Views: ${review.viewCount ?? 0}`}</span>
+          </div> */}
+          <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+            {formatDate(review.createdAt)}
+          </p>
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+export default ReviewCard;

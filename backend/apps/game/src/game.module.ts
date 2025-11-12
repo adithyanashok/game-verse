@@ -5,12 +5,28 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import database from './config/database';
 import { Game } from './entities/game.entity';
+import { Genre } from './entities/genre.entity';
+import { GenreService } from './genre/genre.service';
+import { ClientsModule, Transport } from '@nestjs/microservices';
+import { MICROSERVICE_CONFIG, ServiceName } from 'libs/common/src';
 
 const ENV = process.env.NODE_ENV;
 console.log(ENV);
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Game]),
+    TypeOrmModule.forFeature([Game, Genre]),
+    ClientsModule.register({
+      clients: [
+        {
+          name: ServiceName.REVIEW,
+          transport: Transport.TCP,
+          options: {
+            host: MICROSERVICE_CONFIG.REVIEW_SERVICE.host,
+            port: MICROSERVICE_CONFIG.REVIEW_SERVICE.port,
+          },
+        },
+      ],
+    }),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: !ENV ? 'apps/game/.env' : `apps/game/.env.${ENV}`,
@@ -26,13 +42,13 @@ console.log(ENV);
         username: config.get<string>('database.username'),
         password: config.get<string>('database.password'),
         database: config.get<string>('database.name'),
-        entities: [Game],
+        entities: [Game, Genre],
         // autoLoadEntities: config.get<boolean>('database.autoLoadEntities'),
         synchronize: config.get<boolean>('database.synchronize'),
       }),
     }),
   ],
   controllers: [GameController],
-  providers: [GameService],
+  providers: [GameService, GenreService],
 })
 export class GameModule {}

@@ -1,11 +1,3 @@
-import React, { useState } from "react";
-import { BiSearch } from "react-icons/bi";
-import DropDown from "../../components/DropDown/DropDown";
-import Dropdown from "../../components/DropDown/DropDown";
-import { dummy } from "../../data";
-import MobileNavbar from "../../components/common/Navbar/MobileNavbar";
-import DesktopNavbar from "../../components/common/Navbar/DesktopNavbar";
-import Footer from "../../components/common/footer/component/Footer";
 import ReviewSection from "./Components/ReviewSection";
 import TrendingGenres from "./Components/TrendingGenres";
 import TopReviewers from "./Components/TopReviewers";

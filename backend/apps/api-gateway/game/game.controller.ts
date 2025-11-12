@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Inject,
   ParseIntPipe,
   Patch,
@@ -19,6 +21,7 @@ import {
 } from '@nestjs/swagger';
 import {
   CreateGameDto,
+  CreateGenreDto,
   EditGameDto,
   MessagePatterns,
   ServiceName,
@@ -117,6 +120,70 @@ export class GameController {
       );
     } catch (error) {
       return error;
+    }
+  }
+
+  /**
+   * Get Games
+   */
+  @ApiOperation({
+    summary: 'Get Games',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Games Fetched successfully',
+  })
+  @Get('get-games')
+  public async getGames(): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.gameClient.send(MessagePatterns.GET_GAMES, {}),
+      );
+    } catch (error) {
+      return error;
+    }
+  }
+
+  /**
+   * Create Genre
+   */
+  @ApiOperation({
+    summary: 'Create Genre',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Genre Created Successfully',
+  })
+  @Post('create-genre')
+  @Roles(Role.Admin, Role.User)
+  @UseGuards(RoleGuard)
+  public async createGenre(
+    @Body() createGenreDto: CreateGenreDto,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.gameClient.send(MessagePatterns.CREATE_GENRE, createGenreDto),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @ApiOperation({
+    summary: 'Get Top Rated Games',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Top Rated Games Fetched Successfully',
+  })
+  @Get('get-top-rated-games')
+  public async getTopRatedGames(): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.gameClient.send(MessagePatterns.GET_TOP_RATED_GAMES, {}),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
 }

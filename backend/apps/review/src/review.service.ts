@@ -75,6 +75,8 @@ export class ReviewService {
         text: createReviewDto.comment,
         userId: existingUser.id,
         gameId: createReviewDto.gameId,
+        imageUrl: game.imgUrl,
+        userName: existingUser.name,
       });
 
       const savedReview = await this.repo.save(review);
@@ -86,6 +88,7 @@ export class ReviewService {
         sound: rating.sound,
         overall,
         review: savedReview,
+        gameId: createReviewDto.gameId,
       });
 
       savedReview.rating = ratingEntity;
@@ -103,8 +106,12 @@ export class ReviewService {
   // Get Review
   public async getReview(reviewId: number) {
     try {
-      console.log(reviewId);
-      const review = await this.repo.findOne({ where: { id: reviewId } });
+      const review = await this.repo.findOne({
+        where: { id: reviewId },
+        relations: ['rating'],
+      });
+      console.log(review);
+
       if (!review) {
         throw new RpcException({
           status: 404,
@@ -121,7 +128,9 @@ export class ReviewService {
 
   public async likeReview(reviewId: number, userId: number) {
     try {
-      const review = await this.repo.findOneBy({ id: reviewId });
+      const review = await this.repo.findOne({
+        where: { id: reviewId },
+      });
 
       if (!review) {
         throw new RpcException({
@@ -129,53 +138,43 @@ export class ReviewService {
           message: 'Review Not Found',
         });
       }
-
-      const existingLike = await this.likeRepo.findOneBy({
-        review: { id: reviewId },
-        userId,
+      const alreadyLiked = await this.likeRepo.findOne({
+        where: { reviewId, userId },
       });
 
-      if (existingLike) {
-        await this.repo
-          .createQueryBuilder()
-          .relation(Review, 'like')
-          .of(reviewId)
-          .remove(existingLike.id);
-
-        await this.likeRepo.remove(existingLike);
-
-        review.likeCount = review.likeCount--;
-
-        await this.repo.save(review);
+      if (alreadyLiked) {
+        await this.likeRepo.delete(alreadyLiked.id);
+        review.likeCount = review.likeCount - 1;
+        const savedReview = await this.repo.save(review);
 
         return new ApiResponse(true, 'Review Unliked Successfully', {
           liked: false,
           reviewId,
-        });
-      } else {
-        const newLike = this.likeRepo.create({
-          userId,
-        });
-        const savedLike = await this.likeRepo.save(newLike);
-
-        await this.repo
-          .createQueryBuilder()
-          .relation(Review, 'like')
-          .of(reviewId)
-          .add(savedLike.id);
-
-        review.likeCount = review.likeCount++;
-
-        await this.repo.save(review);
-
-        return new ApiResponse(true, 'Review Liked Successfully', {
-          liked: true,
-          reviewId,
+          likeCount: savedReview.likeCount,
         });
       }
+
+      const newLike = this.likeRepo.create({ reviewId, userId });
+      review.likeCount = review.likeCount + 1;
+
+      await this.likeRepo.save(newLike);
+
+      const savedReview = await this.repo.save(review);
+
+      return new ApiResponse(true, 'Review Unliked Successfully', {
+        liked: false,
+        reviewId,
+        likeCount: savedReview.likeCount,
+      });
     } catch (error) {
       console.log(error);
-      throw error;
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw new RpcException({
+        status: 500,
+        message: 'Failed to update like status',
+      });
     }
   }
 
@@ -197,7 +196,9 @@ export class ReviewService {
         });
       }
 
-      const alreadyViewed = await this.viewRepo.findOne({ where: { userId } });
+      const alreadyViewed = await this.viewRepo.findOne({
+        where: { userId, review: { id: reviewId } },
+      });
 
       if (alreadyViewed) {
         return new ApiResponse(true, 'Already Viewed', {
@@ -233,14 +234,15 @@ export class ReviewService {
     try {
       const review = await this.repo
         .createQueryBuilder('review')
-        .leftJoin('review.like', 'like')
         .leftJoin('review.views', 'views')
-        .loadRelationCountAndMap('review.likeCount', 'review.like')
+        .leftJoinAndSelect('review.rating', 'rating')
         .loadRelationCountAndMap('review.viewCount', 'review.views')
         .orderBy('likeCount', 'DESC')
         .addOrderBy('viewCount', 'DESC')
         .limit(10)
         .getMany();
+
+      console.log(review);
 
       return new ApiResponse(
         true,
@@ -267,6 +269,26 @@ export class ReviewService {
         'Recent Reviews Fetched Successfully',
         review,
       );
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  public async getReviewsByGameId(
+    gameId: number,
+    page: number = 1,
+    limit: number = 20,
+  ) {
+    try {
+      const review = await this.repo.find({
+        where: { gameId },
+        skip: (page - 1) * limit,
+        take: limit,
+        relations: ['rating'],
+      });
+
+      return new ApiResponse(true, 'Reviews Fetched Successfully', review);
     } catch (error) {
       console.log(error);
       throw error;
@@ -345,6 +367,69 @@ export class ReviewService {
       const deletedReview = await this.repo.delete(id);
 
       return new ApiResponse(true, 'Deleted Successfully', deletedReview);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
+  // Get Rating of Game
+  public async getRatingOfGame(gameId: number) {
+    try {
+      const result = await this.ratingRepo.findAndCount({
+        where: { gameId },
+      });
+
+      const rating = result[0];
+      const total: number = result[1];
+
+      // Calculate Count of rating
+      const countByRating: Record<number, number> = rating.reduce(
+        (acc: Record<number, number>, rating) => {
+          acc[rating.overall] = (acc[rating.overall] || 0) + 1;
+          return acc;
+        },
+        {},
+      );
+
+      // Calculate percentage
+      const ratings = Object.keys(countByRating)
+        .sort((a, b) => Number(b) - Number(a))
+        .map((rating) => ({
+          rating: Number(rating),
+          percent: Number(((countByRating[rating] / total) * 100).toFixed(0)),
+        }));
+
+      // Calculate Overall Rating
+      const overallRating =
+        ratings.reduce((acc, val) => acc + val.rating, 0) / ratings.length;
+
+      return { overallRating, ratings };
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+  // Get Rating of Game
+  public async getPopularGameIds() {
+    try {
+      console.log('getPopularGames');
+
+      const result = await this.repo
+        .createQueryBuilder('review')
+        .leftJoinAndSelect('review.rating', 'rating')
+        .where('rating.id IS NOT NULL')
+        .getMany();
+
+      const topRatedGames = result.sort(
+        (a, b) => b.rating.overall - a.rating.overall,
+      );
+
+      const topRatedGameIds = topRatedGames.map((game) => {
+        return game.rating.gameId;
+      });
+
+      return topRatedGameIds;
     } catch (error) {
       console.log(error);
       throw error;

@@ -9,7 +9,6 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Like } from './like.entity';
 import { View } from './view.entity';
 import { Rating } from './rating.entity';
 import { Comment } from './comment.entity';
@@ -25,10 +24,13 @@ export class Review {
   @Column()
   userId: number;
 
-  @Column()
+  @Column({ default: 'Adi' })
+  userName: string;
+
+  @Column({ type: 'varchar', length: 255 })
   title: string;
 
-  @Column()
+  @Column({ nullable: false, type: 'longtext' })
   text: string;
 
   @Column({ default: 0 })
@@ -37,11 +39,8 @@ export class Review {
   @Column({ default: 0 })
   viewCount: number;
 
-  @ManyToMany(() => Like, (like) => like.review, {
-    cascade: true,
-  })
-  @JoinTable()
-  like: Like[];
+  @Column({ default: '' })
+  imageUrl: string;
 
   @ManyToMany(() => View, (view) => view.review, {
     cascade: true,
@@ -49,9 +48,7 @@ export class Review {
   @JoinTable()
   views: View[];
 
-  @OneToOne(() => Rating, (rating) => rating.review, {
-    cascade: true,
-  })
+  @OneToOne(() => Rating, (rating) => rating.review, { eager: true })
   // @JoinColumn()
   rating: Rating;
 

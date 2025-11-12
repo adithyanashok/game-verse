@@ -112,8 +112,6 @@ const signupUserPayloadCreator: AsyncThunkPayloadCreator<
       payload
     );
 
-    console.log(response);
-
     if (!response.data.status) {
       return thunkApi.rejectWithValue(response.data.message ?? "Signup failed");
     }

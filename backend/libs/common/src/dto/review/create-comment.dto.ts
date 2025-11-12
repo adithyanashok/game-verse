@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsString } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateCommentDto {
   @ApiProperty({
@@ -12,4 +12,12 @@ export class CreateCommentDto {
   @ApiProperty({ example: 1, description: 'Associated Review ID' })
   @IsNumber()
   reviewId: number;
+
+  @ApiPropertyOptional({
+    example: 10,
+    description: 'If provided, creates a reply to this parent comment',
+  })
+  @IsOptional()
+  @IsNumber()
+  parentCommentId?: number;
 }

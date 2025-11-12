@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { IsNumber, IsString } from 'class-validator';
 
 export class SearchDto {
@@ -8,9 +9,11 @@ export class SearchDto {
 
   @ApiProperty({ example: '1' })
   @IsNumber()
+  @Type(() => Number)
   page: number;
 
   @ApiProperty({ example: '20' })
+  @Type(() => Number)
   @IsNumber()
   limit: number;
 }
