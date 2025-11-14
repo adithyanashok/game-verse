@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router";
 import { HiThumbUp } from "react-icons/hi";
 import { BiBookmark } from "react-icons/bi";
 
@@ -129,6 +129,11 @@ const Review = () => {
               <h1 className="text-white font-bold text-2xl mb-4">
                 {currentReview.title}
               </h1>
+              <Link to={`/profile/${currentReview.userId}`}>
+                <h1 className="text-white font-bold text-[12px] mb-4">
+                  {currentReview.userName}
+                </h1>
+              </Link>
               <div className="flex items-center gap-3 text-sm text-gray-400">
                 <span>{`Review ID: #${currentReview.id}`}</span>
                 <span>•</span>

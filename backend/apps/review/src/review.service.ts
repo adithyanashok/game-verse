@@ -295,6 +295,27 @@ export class ReviewService {
     }
   }
 
+  // Get Reviews by user
+  public async getReviewsByUser(
+    userId: number,
+    page: number = 1,
+    limit: number = 20,
+  ) {
+    try {
+      const review = await this.repo.find({
+        where: { userId },
+        skip: (page - 1) * limit,
+        take: limit,
+        relations: ['rating'],
+      });
+
+      return new ApiResponse(true, 'Reviews Fetched Successfully', review);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
+
   // Search Reviews
   public async searchReviews(
     query: string,

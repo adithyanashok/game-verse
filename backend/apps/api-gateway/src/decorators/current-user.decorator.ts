@@ -9,9 +9,8 @@ import { AuthenticatedRequest } from '../guards/jwt-auth.guard';
 
 export const CurrentUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): User | undefined => {
-    console.log('REQUEST PARAMETER createParamDecorator');
-
     const request = ctx.switchToHttp().getRequest<AuthenticatedRequest>();
+    console.log('REQUEST PARAMETER createParamDecorator', request.user);
     return request.user;
   },
 );

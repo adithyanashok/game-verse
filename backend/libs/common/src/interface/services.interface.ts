@@ -17,6 +17,9 @@ export enum MessagePatterns {
   USER_FIND_BY_EMAIL = 'user.findByEmail',
   UPDATE_USER = 'user.update',
   GET_USER = 'user.get.profile',
+  USER_FOLLOW = 'user.follow',
+  USER_UNFOLLOW = 'user.unfollow',
+  GET_TOP_REVIEWERS = 'user.top.reviewers',
   // Game
   GAME_CREATE = 'game.create',
   GAME_UPDATE = 'game.update',
@@ -38,6 +41,7 @@ export enum MessagePatterns {
   RECENT_REVIEWS = 'review.recent',
   SEARCH_REVIEWS = 'review.search',
   GET_REVIEW_BY_GAMEID = 'review.gameId',
+  GET_REVIEW_BY_USER = 'review.user',
   UPDATE_REVIEWS = 'review.update',
   DELETE_REVIEWS = 'review.delete',
   GET_OVERALL_RATING = 'review.rating',

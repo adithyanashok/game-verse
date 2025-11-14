@@ -11,6 +11,7 @@ import Footer from "./components/common/footer/component/Footer";
 import ResponsiveNavbar from "./components/common/Navbar/ResponsiveNavbar";
 import LoginPage from "./pages/Auth/LoginPage";
 import SignupPage from "./pages/Auth/SignupPage";
+import WriteReviewScreen from "./pages/Reviews/WriteReview";
 
 function App() {
   const router = createBrowserRouter([
@@ -21,8 +22,10 @@ function App() {
     { path: "/games/:id", element: <Game /> },
     { path: "/dashboard", element: <UserDashboard /> },
     { path: "/profile", element: <ProfilePage /> },
+    { path: "/profile/:userId", element: <ProfilePage /> },
     { path: "/login", element: <LoginPage /> },
     { path: "/signup", element: <SignupPage /> },
+    { path: "/write-review/:id", element: <WriteReviewScreen /> },
   ]);
 
   return (

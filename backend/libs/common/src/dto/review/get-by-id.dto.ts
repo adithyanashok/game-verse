@@ -2,11 +2,11 @@ import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsNumber } from 'class-validator';
 
-export class GetByGameIdDto {
+export class GetByIdDto {
   @ApiProperty({ example: 1 })
   @IsNumber()
   @Type(() => Number)
-  gameId: number;
+  id: number;
 
   @ApiProperty({ example: 1 })
   @Type(() => Number)

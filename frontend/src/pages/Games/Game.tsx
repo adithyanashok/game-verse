@@ -21,7 +21,7 @@ const Game = () => {
   useEffect(() => {
     if (id) {
       dispatch(getGame(id));
-      dispatch(getByGameId({ gameId: Number(id), limit: 20, page: 1 }));
+      dispatch(getByGameId({ id: Number(id), limit: 20, page: 1 }));
     }
   }, [dispatch, id]);
   return (

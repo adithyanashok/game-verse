@@ -1,10 +1,12 @@
 import React from "react";
 import Button from "../../../components/common/Button";
 import type { Game } from "../../../features/games/types";
+import { useNavigate } from "react-router";
 interface Props {
   game: Game | null;
 }
 const Banner = (props: Props) => {
+  const navigate = useNavigate();
   console.log(props);
   return (
     <div
@@ -36,6 +38,7 @@ const Banner = (props: Props) => {
             {props.game?.description}
           </p>
           <Button
+            onClick={() => navigate(`/write-review/${props.game?.id}`)}
             label="Write Review"
             variant="primary"
             className="md:p-3 p-2 text-[8px] md:text-[12px] rounded-[5px] bg-purple mt-2 md:mt-5"

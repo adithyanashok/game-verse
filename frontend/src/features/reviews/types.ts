@@ -47,8 +47,8 @@ export interface SearchReviewsPayload {
   limit?: number;
 }
 
-export interface GetReviewsByGameIdPayload {
-  gameId: number;
+export interface GetReviewsByIdPayload {
+  id: number;
   page: number;
   limit: number;
 }

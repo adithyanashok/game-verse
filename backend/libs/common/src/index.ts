@@ -16,5 +16,6 @@ export * from './dto/review/update-comment.dto';
 export * from './dto/user/create-user.dto';
 export * from './dto/user/login-user.dto';
 export * from './dto/user/update-user.dto';
+export * from './dto/user/follow-user.dto';
 export * from './interface/user.interface';
-export * from './dto/review/get-by-gameId.dto';
+export * from './dto/review/get-by-id.dto';

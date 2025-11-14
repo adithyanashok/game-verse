@@ -1,7 +1,12 @@
 import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
-import { CreateUserDto, MessagePatterns, UpdateUserDto } from 'libs/common/src';
+import {
+  CreateUserDto,
+  FollowUserDto,
+  MessagePatterns,
+  UpdateUserDto,
+} from 'libs/common/src';
 
 @Controller()
 export class UserController {
@@ -30,7 +35,31 @@ export class UserController {
   }
 
   @MessagePattern(MessagePatterns.GET_USER)
-  public async getUserProfile(@Payload() payload: { userId: number }) {
-    return this.userService.getUserProfile(payload.userId);
+  public async getUserProfile(
+    @Payload() payload: { userId: number; viewerId: number },
+  ) {
+    return this.userService.getUserProfile(payload.userId, payload.viewerId);
+  }
+
+  @MessagePattern(MessagePatterns.USER_FOLLOW)
+  public async followUser(@Payload() payload: FollowUserDto): Promise<any> {
+    return this.userService.followUser(
+      payload.followerId,
+      payload.targetUserId,
+    );
+  }
+
+  @MessagePattern(MessagePatterns.USER_UNFOLLOW)
+  public async unfollowUser(@Payload() payload: FollowUserDto) {
+    return this.userService.unfollowUser(
+      payload.followerId,
+      payload.targetUserId,
+    );
+  }
+
+  @MessagePattern(MessagePatterns.GET_TOP_REVIEWERS)
+  public async getTopReviewers() {
+    console.log('getTopReviewers');
+    return this.userService.getTopReviewers();
   }
 }

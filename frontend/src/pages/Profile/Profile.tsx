@@ -1,82 +1,176 @@
-import React, { useState } from "react";
+import { useEffect, useMemo } from "react";
+import { useParams } from "react-router";
 import ResponsiveNavbar from "../../components/common/Navbar/ResponsiveNavbar";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import {
+  fetchUserProfile,
+  followUser,
+  unfollowUser,
+} from "../../features/user/userSlice";
+import { getByUserId } from "../../features/reviews/reviewsSlice";
 
 const ProfilePage = () => {
-  const [activeTab, setActiveTab] = useState("Reviews");
+  const { userId: userIdParam } = useParams();
+  const dispatch = useAppDispatch();
 
-  const tabs = ["Reviews", "Bookmarks", "Activity"];
-  const games = [
-    { title: "Cyberpunk 2077", img: "https://i.imgur.com/0ZQXzYb.jpeg" },
-    { title: "The Witcher 3", img: "https://i.imgur.com/x5BqkGz.jpeg" },
-    { title: "Red Dead 2", img: "https://i.imgur.com/W0v2HhP.jpeg" },
-    { title: "GTA V", img: "https://i.imgur.com/y4r1aU5.jpeg" },
-    { title: "The Last of Us II", img: "https://i.imgur.com/Vq8MzoQ.jpeg" },
-    { title: "AC: Valhalla", img: "https://i.imgur.com/xygBNBf.jpeg" },
-  ];
+  const authUser = useAppSelector((state) => state.auth.user);
+  const { profile, loading, error, followLoading, followError } =
+    useAppSelector((state) => state.user);
+
+  const { userReviews, errors } = useAppSelector((state) => state.reviews);
+
+  const targetUserId = useMemo(() => {
+    if (userIdParam) {
+      const parsed = Number(userIdParam);
+      return Number.isNaN(parsed) ? undefined : parsed;
+    }
+
+    return authUser?.id;
+  }, [userIdParam, authUser?.id]);
+
+  useEffect(() => {
+    if (typeof targetUserId === "number") {
+      void dispatch(fetchUserProfile(targetUserId));
+      void dispatch(getByUserId({ id: targetUserId, limit: 20, page: 1 }));
+    }
+  }, [dispatch, targetUserId]);
+
+  const isOwnProfile = authUser?.id === profile?.id;
+  const canFollow = !isOwnProfile && typeof targetUserId === "number";
+
+  const handleFollowToggle = () => {
+    if (!canFollow || typeof targetUserId !== "number") {
+      return;
+    }
+
+    if (profile?.isFollowing) {
+      void dispatch(unfollowUser(targetUserId));
+    } else {
+      void dispatch(followUser(targetUserId));
+    }
+  };
+
+  const renderActionButton = () => {
+    if (!authUser) {
+      return null;
+    }
+
+    if (!canFollow) {
+      return (
+        <span className="mt-5 px-6 py-2 rounded-full bg-[#1f1233] text-gray-300 font-medium shadow-md">
+          This is your profile
+        </span>
+      );
+    }
+
+    console.log(profile);
+
+    return (
+      <button
+        onClick={handleFollowToggle}
+        disabled={followLoading}
+        className={`mt-5 px-6 py-2 rounded-full transition font-medium shadow-md ${
+          profile?.isFollowing
+            ? "bg-gray-700 hover:bg-gray-600"
+            : "bg-[#6a0dad] hover:bg-[#7b26e4]"
+        } ${followLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+      >
+        {followLoading
+          ? "Loading..."
+          : profile?.isFollowing
+          ? "Following"
+          : "Follow"}
+      </button>
+    );
+  };
 
   return (
     <>
       <ResponsiveNavbar />
       <div className="min-h-screen bg-primary text-white flex flex-col items-center py-10 px-4">
-        {/* Profile Section */}
-        <div className="flex flex-col items-center text-center">
-          <img
-            src="https://i.imgur.com/8Km9tLL.png"
-            alt="Profile"
-            className="w-24 h-24 rounded-full border-4 border-[#2a1b45] shadow-lg"
-          />
-          <h2 className="text-2xl font-semibold mt-4">Alex Ryder</h2>
-          <p className="text-gray-400 text-sm max-w-md mt-2">
-            Avid gamer and tech enthusiast. Sharing my thoughts on the latest
-            releases and hidden gems.
+        {!authUser && (
+          <p className="mb-6 text-sm text-red-400">
+            Sign in to view profiles and manage follow status.
           </p>
-          <div className="flex items-center gap-2 mt-3 text-gray-400 text-sm">
-            <span className="font-semibold text-white">1,234</span> followers ·{" "}
-            <span className="font-semibold text-white">567</span> reviews
+        )}
+
+        {typeof targetUserId !== "number" && (
+          <div className="text-center text-gray-400">
+            Unable to determine which profile to load.
           </div>
-          <button className="mt-5 px-6 py-2 rounded-full bg-[#6a0dad] hover:bg-[#7b26e4] transition font-medium shadow-md">
-            Follow
-          </button>
-        </div>
+        )}
 
-        {/* Tabs */}
-        <div className="flex mt-10 border-b border-gray-700 w-full max-w-3xl justify-center">
-          {tabs.map((tab) => (
-            <button
-              key={tab}
-              className={`px-4 py-2 text-sm font-medium transition relative ${
-                activeTab === tab
-                  ? "text-[#b072ff]" // active tab color
-                  : "text-gray-400 hover:text-white"
-              }`}
-              onClick={() => setActiveTab(tab)}
-            >
-              {tab}
-              {activeTab === tab && (
-                <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#b072ff]"></span>
-              )}
-            </button>
-          ))}
-        </div>
+        {loading && (
+          <div className="text-center text-gray-400 mt-10">Loading...</div>
+        )}
 
-        {/* Game Cards */}
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 w-full max-w-5xl">
-          {games.map((game, index) => (
-            <div
-              key={index}
-              className="bg-[#1a102d] rounded-xl p-2 hover:scale-105 transition transform cursor-pointer shadow-lg"
-            >
+        {error && !loading && (
+          <div className="text-center text-red-500 mt-10">{error}</div>
+        )}
+
+        {!loading && !error && profile && (
+          <>
+            <div className="flex flex-col items-center text-center">
               <img
-                src={game.img}
-                alt={game.title}
-                className="rounded-lg w-full h-44 object-cover"
+                src="https://i.imgur.com/8Km9tLL.png"
+                alt="Profile"
+                className="w-24 h-24 rounded-full border-4 border-[#2a1b45] shadow-lg"
               />
-              <p className="mt-2 text-center text-sm text-gray-300">
-                {game.title}
+              <h2 className="text-2xl font-semibold mt-4">
+                {profile.name || "Unnamed Gamer"}
+              </h2>
+              <p className="text-gray-400 text-sm mt-1">{profile.email}</p>
+              <p className="text-gray-400 text-sm max-w-md mt-2">
+                {profile.bio || "No bio added yet."}
               </p>
+              <div className="flex items-center gap-2 mt-3 text-gray-400 text-sm">
+                <span className="font-semibold text-white">
+                  {profile.followersCount}
+                </span>{" "}
+                followers ·{" "}
+                <span className="font-semibold text-white">
+                  {profile.followingCount}
+                </span>{" "}
+                following
+              </div>
+              {renderActionButton()}
+              {followError && (
+                <p className="mt-2 text-sm text-red-400">{followError}</p>
+              )}
             </div>
-          ))}
-        </div>
+
+            {/* Tabs */}
+            <div className="flex mt-10 border-b border-gray-700 w-full max-w-3xl justify-center">
+              <button
+                className={
+                  "px-4 py-2 text-sm font-medium transition relative text-[#b072ff] hover:text-white"
+                }
+                // onClick={}
+              >
+                Reviews
+              </button>
+            </div>
+
+            {/* Placeholder Game Cards */}
+            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 w-full max-w-5xl">
+              {userReviews.map((review, index) => (
+                <div
+                  key={index}
+                  className="bg-[#1a102d] rounded-xl p-2 hover:scale-105 transition transform cursor-pointer shadow-lg"
+                >
+                  <img
+                    src={review.imageUrl}
+                    alt={review.title}
+                    className="rounded-lg w-full h-44 object-cover"
+                  />
+                  <p className="mt-2 text-center text-sm text-gray-300">
+                    {review.title}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </>
   );

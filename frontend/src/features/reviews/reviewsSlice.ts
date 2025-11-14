@@ -10,7 +10,7 @@ import type { RootState } from "../../store";
 import {
   type ApiResponse,
   type CreateReviewPayload,
-  type GetReviewsByGameIdPayload,
+  type GetReviewsByIdPayload,
   type ReviewDetails,
   type ReviewComment,
   type ReviewLikeResponse,
@@ -33,6 +33,7 @@ type ReviewOperation =
   | "search"
   | "update"
   | "fetchByGame"
+  | "fetchByUser"
   | "delete"
   | "fetchComments"
   | "addComment"
@@ -57,6 +58,7 @@ const createOperationState = (value: boolean): OperationState => ({
   addComment: value,
   updateComment: value,
   deleteComment: value,
+  fetchByUser: value,
 });
 
 const createErrorState = (value: string | null): OperationErrorState => ({
@@ -74,6 +76,7 @@ const createErrorState = (value: string | null): OperationErrorState => ({
   addComment: value,
   updateComment: value,
   deleteComment: value,
+  fetchByUser: value,
 });
 
 const extractErrorMessage = (error: unknown, fallback: string): string => {
@@ -108,6 +111,7 @@ export interface ReviewsState {
   trending: ReviewSummary[];
   reviews: ReviewSummary[];
   recent: ReviewSummary[];
+  userReviews: ReviewSummary[];
   searchResults: ReviewSummary[];
   currentReview: ReviewDetails | null;
   createdReview: ReviewDetails | null;
@@ -121,6 +125,7 @@ const initialState: ReviewsState = {
   trending: [],
   reviews: [],
   recent: [],
+  userReviews: [],
   searchResults: [],
   currentReview: null,
   createdReview: null,
@@ -152,7 +157,7 @@ export const createReview = createAsyncThunk<
   try {
     const response = await apiClient.post<
       ApiResponse<{ savedReview: ReviewDetails }>
-    >(buildUrl("/create-review"), payload);
+    >(buildUrl(API.REVIEWS.CREATE_REVIEW), payload);
 
     if (!response.data.status) {
       return thunkApi.rejectWithValue(
@@ -323,13 +328,13 @@ export const searchReviews = createAsyncThunk<
 
 export const getByGameId = createAsyncThunk<
   ReviewSummary[],
-  GetReviewsByGameIdPayload,
+  GetReviewsByIdPayload,
   { rejectValue: string }
->("reviews/getByGameId", async ({ gameId, page, limit }, thunkApi) => {
+>("reviews/getByGameId", async ({ id, page, limit }, thunkApi) => {
   try {
     const response = await apiClient.get<ApiResponse<ReviewSummary[]>>(
       buildUrl(API.REVIEWS.GET_BY_GAMEID, {
-        gameId: gameId.toString(),
+        id: id.toString(),
         page: page?.toString() ?? "1",
         limit: limit?.toString() ?? "20",
       })
@@ -345,6 +350,34 @@ export const getByGameId = createAsyncThunk<
   } catch (error: unknown) {
     return thunkApi.rejectWithValue(
       extractErrorMessage(error, "Unable to search reviews")
+    );
+  }
+});
+
+export const getByUserId = createAsyncThunk<
+  ReviewSummary[],
+  GetReviewsByIdPayload,
+  { rejectValue: string }
+>("reviews/getByUserId", async ({ id, page, limit }, thunkApi) => {
+  try {
+    const response = await apiClient.get<ApiResponse<ReviewSummary[]>>(
+      buildUrl(API.REVIEWS.GET_BY_USERID, {
+        id: id.toString(),
+        page: page?.toString() ?? "1",
+        limit: limit?.toString() ?? "20",
+      })
+    );
+
+    console.log(response.data);
+
+    if (!response.data.status) {
+      return thunkApi.rejectWithValue(response.data.message ?? "Fetch failed");
+    }
+
+    return response.data.data ?? [];
+  } catch (error: unknown) {
+    return thunkApi.rejectWithValue(
+      extractErrorMessage(error, "Unable to fetch reviews")
     );
   }
 });
@@ -639,6 +672,20 @@ const reviewsSlice = createSlice({
       .addCase(getByGameId.rejected, (state, action) => {
         state.loading.fetchByGame = false;
         state.errors.fetchByGame = action.payload ?? "Search failed";
+      })
+
+      // Get reviews By UserId
+      .addCase(getByUserId.pending, (state) => {
+        state.loading.fetchByUser = true;
+        state.errors.fetchByUser = null;
+      })
+      .addCase(getByUserId.fulfilled, (state, action) => {
+        state.loading.fetchByUser = false;
+        state.userReviews = action.payload;
+      })
+      .addCase(getByUserId.rejected, (state, action) => {
+        state.loading.fetchByUser = false;
+        state.errors.fetchByUser = action.payload ?? "Fetch failed";
       })
 
       // Update review

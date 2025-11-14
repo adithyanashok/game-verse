@@ -1,5 +1,11 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 export enum Role {
   User = 'user',
@@ -31,4 +37,28 @@ export class User {
     nullable: false,
   })
   role: Role;
+
+  @Column({ default: 0 })
+  followerCount: number;
+
+  @ManyToMany(() => User, (user) => user.followers, {
+    cascade: false,
+  })
+  @JoinTable({
+    name: 'user_followers',
+    joinColumn: {
+      name: 'follower_id',
+      referencedColumnName: 'id',
+    },
+    inverseJoinColumn: {
+      name: 'following_id',
+      referencedColumnName: 'id',
+    },
+  })
+  following: User[];
+
+  @ManyToMany(() => User, (user) => user.following, {
+    cascade: false,
+  })
+  followers: User[];
 }

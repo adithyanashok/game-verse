@@ -2,7 +2,7 @@ import { Controller } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from 'libs/common/src/dto/review/create-review.dto';
 import {
-  GetByGameIdDto,
+  GetByIdDto,
   MessagePatterns,
   SearchDto,
   UpdateReviewDto,
@@ -71,11 +71,21 @@ export class ReviewController {
     );
   }
 
+  // Get Reviews By User
+  @MessagePattern(MessagePatterns.GET_REVIEW_BY_USER)
+  public async getReviewsByUser(@Payload() paylod: GetByIdDto) {
+    return await this.reviewService.getReviewsByUser(
+      paylod.id,
+      paylod.page,
+      paylod.limit,
+    );
+  }
+
   // Get Reviews By GameId
   @MessagePattern(MessagePatterns.GET_REVIEW_BY_GAMEID)
-  public async getReviewsByGameId(@Payload() paylod: GetByGameIdDto) {
+  public async getReviewsByGameId(@Payload() paylod: GetByIdDto) {
     return await this.reviewService.getReviewsByGameId(
-      paylod.gameId,
+      paylod.id,
       paylod.page,
       paylod.limit,
     );

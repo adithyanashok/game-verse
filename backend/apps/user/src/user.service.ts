@@ -94,24 +94,142 @@ export class UserService {
     }
   }
 
-  public async getUserProfile(id: number) {
+  public async getUserProfile(id: number, viewerId?: number) {
     try {
-      const user = await this.userRepository.findOneBy({ id });
-      console.log(user);
+      const user = await this.userRepository.findOne({
+        where: { id },
+        relations: ['followers', 'following'],
+      });
       if (!user) {
         throw new RpcException(`User with id "${id}" does not exist`);
       }
+
+      const followersCount = user.followers?.length ?? 0;
+      const followingCount = user.following?.length ?? 0;
+      const isFollowing =
+        user.followers?.some((follower) => {
+          return follower.id === viewerId;
+        }) ?? false;
 
       return new ApiResponse(true, 'User profile fetched', {
         name: user.name,
         email: user.email,
         bio: user.bio,
         id: user.id,
+        followersCount,
+        followingCount,
+        isFollowing,
       });
     } catch (error) {
       console.log(error);
 
       throw error;
+    }
+  }
+
+  public async followUser(followerId: number, targetUserId: number) {
+    try {
+      if (followerId === targetUserId) {
+        throw new RpcException({
+          status: 400,
+          message: 'Users cannot follow themselves',
+        });
+      }
+
+      const follower = await this.userRepository.findOne({
+        where: { id: followerId },
+        relations: ['following'],
+      });
+      if (!follower) {
+        throw new RpcException(`User with id "${followerId}" does not exist`);
+      }
+
+      const targetUser = await this.userRepository.findOneBy({
+        id: targetUserId,
+      });
+      if (!targetUser) {
+        throw new RpcException(`User with id "${targetUserId}" does not exist`);
+      }
+
+      const alreadyFollowing = follower.following?.some(
+        (user) => user.id === targetUserId,
+      );
+
+      if (alreadyFollowing) {
+        return new ApiResponse(true, 'Already following this user', {
+          isFollowing: true,
+        });
+      }
+
+      follower.following = [...(follower.following ?? []), targetUser];
+      await this.userRepository.save(follower);
+
+      return new ApiResponse(true, 'User followed successfully', {
+        isFollowing: true,
+      });
+    } catch (error) {
+      console.log(error);
+
+      throw error;
+    }
+  }
+
+  public async unfollowUser(followerId: number, targetUserId: number) {
+    try {
+      const follower = await this.userRepository.findOne({
+        where: { id: followerId },
+        relations: ['following'],
+      });
+      if (!follower) {
+        throw new RpcException(`User with id "${followerId}" does not exist`);
+      }
+
+      const targetUser = await this.userRepository.findOneBy({
+        id: targetUserId,
+      });
+      if (!targetUser) {
+        throw new RpcException(`User with id "${targetUserId}" does not exist`);
+      }
+
+      const isFollowing = follower.following?.some(
+        (user) => user.id === targetUserId,
+      );
+
+      if (!isFollowing) {
+        return new ApiResponse(true, 'User is not being followed', {
+          isFollowing: false,
+        });
+      }
+
+      follower.following = follower.following.filter(
+        (user) => user.id !== targetUserId,
+      );
+      await this.userRepository.save(follower);
+
+      return new ApiResponse(true, 'User unfollowed successfully', {
+        isFollowing: false,
+      });
+    } catch (error) {
+      console.log(error);
+
+      throw error;
+    }
+  }
+
+  // Get Top Reviewers
+  public async getTopReviewers() {
+    try {
+      const users = await this.userRepository
+        .createQueryBuilder('user')
+        .leftJoin('user.followers', 'followers')
+        .loadRelationCountAndMap('user.followerCount', 'user.followers')
+        .orderBy('user.followerCount', 'DESC')
+        .getMany();
+
+      return new ApiResponse(true, 'Users Fetched successfully', users);
+    } catch (error) {
+      console.log(error);
+      throw new RpcException(error);
     }
   }
 }

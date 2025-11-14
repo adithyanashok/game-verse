@@ -68,7 +68,6 @@ export class JwtAuthGuard implements CanActivate {
         user.role = payload.role;
       }
 
-      console.log('JWT GUARD', user);
       const extractedUser: User = {
         id: user.id,
         role: user.role,
@@ -76,6 +75,7 @@ export class JwtAuthGuard implements CanActivate {
       };
 
       request.user = extractedUser;
+      console.log('JWT GUARD', request.user);
       return true;
     } catch {
       throw new UnauthorizedException('Invalid or expired token');

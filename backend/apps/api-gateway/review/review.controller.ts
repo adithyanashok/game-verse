@@ -16,7 +16,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   CreateCommentDto,
   CreateReviewDto,
-  GetByGameIdDto,
+  GetByIdDto,
   MessagePatterns,
   SearchDto,
   ServiceName,
@@ -213,12 +213,38 @@ export class ReviewController {
   })
   @Get('get-by-gameid')
   public async getReviewsByGameId(
-    @Query() getByGameDto: GetByGameIdDto,
+    @Query() getByGameDto: GetByIdDto,
   ): Promise<any> {
     try {
       return await firstValueFrom(
         this.reviewClient.send(
           MessagePatterns.GET_REVIEW_BY_GAMEID,
+          getByGameDto,
+        ),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Get Reviews By User
+   */
+  @ApiOperation({
+    summary: 'Api For Get Reviews By User',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Reviews Fetched Successfully',
+  })
+  @Get('get-by-user')
+  public async getReviewsByUser(
+    @Query() getByGameDto: GetByIdDto,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.reviewClient.send(
+          MessagePatterns.GET_REVIEW_BY_USER,
           getByGameDto,
         ),
       );

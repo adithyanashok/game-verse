@@ -56,7 +56,7 @@ const ReviewSection = () => {
   };
 
   return (
-    <div className="md:w-[95%] p-2 md:p-10 space-y-10">
+    <div className="md:w-[83%] p-2 md:p-10 space-y-10">
       <div className="md:border rounded-[16px] md:bg-dark md:border-[#989fab1e] md:p-5">
         <form
           onSubmit={handleSearch}

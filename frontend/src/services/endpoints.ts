@@ -7,6 +7,9 @@ export const API = {
   USER: {
     FETCH_ALL: "/users",
     FETCH_ONE: (id: string | number) => `/users/${id}`,
+    FOLLOW: (id: string | number) => `/users/${id}/follow`,
+    PROFILE: "/users/get-user-profile",
+    GET_TOP_REVIEWERS: "users/get-top-reviewers/",
   },
   GAME: {
     GET_TOP_RATED_GAMES: "game/get-top-rated-games",
@@ -16,7 +19,9 @@ export const API = {
     GET_GAMES: "/game/get-games",
   },
   REVIEWS: {
+    CREATE_REVIEW: "review/create-review",
     GET_BY_GAMEID: "/review/get-by-gameid",
+    GET_BY_USERID: "/review/get-by-user",
     RECENT_REVIEW: "/review/recent-review",
     TRENDING_REVIEW: "/review/trending-review",
     GET_REVIEW: "/review/get-review",
