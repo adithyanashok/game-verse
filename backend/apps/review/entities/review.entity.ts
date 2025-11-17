@@ -48,7 +48,9 @@ export class Review {
   @JoinTable()
   views: View[];
 
-  @OneToOne(() => Rating, (rating) => rating.review, { eager: true })
+  @OneToOne(() => Rating, (rating) => rating.review, {
+    eager: true,
+  })
   // @JoinColumn()
   rating: Rating;
 

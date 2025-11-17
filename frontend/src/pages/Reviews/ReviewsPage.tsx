@@ -1,5 +1,4 @@
 import ReviewSection from "./Components/ReviewSection";
-import TrendingGenres from "./Components/TrendingGenres";
 import TopReviewers from "./Components/TopReviewers";
 import ResponsiveNavbar from "../../components/common/Navbar/ResponsiveNavbar";
 

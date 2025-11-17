@@ -104,13 +104,12 @@ export class ReviewService {
   }
 
   // Get Review
-  public async getReview(reviewId: number) {
+  public async getReview(reviewId: number, userId: number) {
     try {
       const review = await this.repo.findOne({
         where: { id: reviewId },
         relations: ['rating'],
       });
-      console.log(review);
 
       if (!review) {
         throw new RpcException({
@@ -119,7 +118,14 @@ export class ReviewService {
         });
       }
 
-      return new ApiResponse(true, 'Review Fetched Successfully', review);
+      const liked = await this.likeRepo.findOne({
+        where: { reviewId, userId },
+      });
+
+      return new ApiResponse(true, 'Review Fetched Successfully', {
+        ...review,
+        isLiked: liked ? true : false,
+      });
     } catch (error) {
       console.log(error);
       throw error;
@@ -148,7 +154,7 @@ export class ReviewService {
         const savedReview = await this.repo.save(review);
 
         return new ApiResponse(true, 'Review Unliked Successfully', {
-          liked: false,
+          isLiked: false,
           reviewId,
           likeCount: savedReview.likeCount,
         });
@@ -157,12 +163,12 @@ export class ReviewService {
       const newLike = this.likeRepo.create({ reviewId, userId });
       review.likeCount = review.likeCount + 1;
 
-      await this.likeRepo.save(newLike);
+      const like = await this.likeRepo.save(newLike);
 
       const savedReview = await this.repo.save(review);
 
-      return new ApiResponse(true, 'Review Unliked Successfully', {
-        liked: false,
+      return new ApiResponse(true, 'Review liked Successfully', {
+        isLiked: userId === like.userId,
         reviewId,
         likeCount: savedReview.likeCount,
       });
@@ -239,7 +245,7 @@ export class ReviewService {
         .loadRelationCountAndMap('review.viewCount', 'review.views')
         .orderBy('likeCount', 'DESC')
         .addOrderBy('viewCount', 'DESC')
-        .limit(10)
+        .limit(20)
         .getMany();
 
       console.log(review);
@@ -260,7 +266,7 @@ export class ReviewService {
     try {
       const review = await this.repo.find({
         order: { createdAt: 'DESC' },
-        take: 10,
+        take: 20,
         relations: ['rating'],
       });
 
@@ -345,13 +351,20 @@ export class ReviewService {
     try {
       const { id, comment, title } = updateReviewDto;
       const review = await this.repo.findOne({
-        where: { id, userId },
+        where: { id },
       });
 
       if (!review) {
         throw new RpcException({
           status: 404,
           message: 'Review not found',
+        });
+      }
+
+      if (userId !== review.userId) {
+        throw new RpcException({
+          status: 400,
+          message: 'Unauthorized',
         });
       }
 
@@ -375,13 +388,19 @@ export class ReviewService {
   public async deleteReview(id: number, userId: number) {
     try {
       const review = await this.repo.findOne({
-        where: { id, userId },
+        where: { id },
       });
 
       if (!review) {
         throw new RpcException({
           status: 404,
           message: 'Review not found',
+        });
+      }
+      if (userId !== review.userId) {
+        throw new RpcException({
+          status: 400,
+          message: 'Unauthorized',
         });
       }
 

@@ -42,12 +42,6 @@ function HomePage() {
                 Discover what the community is talking about
               </p>
             </div>
-            <button
-              onClick={() => navigate("/reviews")}
-              className="hidden md:block px-6 py-2.5 rounded-full bg-[var(--color-purple)] text-white text-sm font-semibold hover:bg-[#7c1dd1] transition-all duration-200"
-            >
-              View All
-            </button>
           </div>
           <Trending />
         </div>
@@ -65,12 +59,6 @@ function HomePage() {
                 Explore the most reviewed games
               </p>
             </div>
-            <button
-              onClick={() => navigate("/games")}
-              className="hidden md:block px-6 py-2.5 rounded-full bg-[var(--color-purple)] text-white text-sm font-semibold hover:bg-[#7c1dd1] transition-all duration-200"
-            >
-              Browse All
-            </button>
           </div>
           <PopularGames />
         </div>
@@ -105,12 +93,6 @@ function HomePage() {
                 Latest insights from our community
               </p>
             </div>
-            <button
-              onClick={() => navigate("/reviews")}
-              className="hidden md:block px-6 py-2.5 rounded-full border-2 border-[var(--color-purple)] text-[var(--color-purple)] text-sm font-semibold hover:bg-[var(--color-purple)] hover:text-white transition-all duration-200"
-            >
-              See More
-            </button>
           </div>
           <RecentReviews />
         </div>

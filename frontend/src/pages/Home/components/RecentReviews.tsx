@@ -3,6 +3,7 @@ import HorizontalCard from "./HorizontalCard";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import { fetchRecentReviews } from "../../../features/reviews/reviewsSlice";
+import { Link } from "react-router";
 
 const RecentReviews = () => {
   const dispatch = useAppDispatch();
@@ -34,7 +35,11 @@ const RecentReviews = () => {
   return (
     <div className="scroll-row gap-6">
       {recent.map((review) => {
-        return <HorizontalCard key={review.id} review={review} />;
+        return (
+          <Link to={`/review/${review.id}`}>
+            <HorizontalCard key={review.id} review={review} />;
+          </Link>
+        );
       })}
     </div>
   );

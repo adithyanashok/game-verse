@@ -14,7 +14,9 @@ export class Rating {
   id: number;
 
   // @Exclude()
-  @OneToOne(() => Review, (review) => review.rating)
+  @OneToOne(() => Review, (review) => review.rating, {
+    onDelete: 'CASCADE',
+  })
   @JoinColumn()
   review: Review;
 

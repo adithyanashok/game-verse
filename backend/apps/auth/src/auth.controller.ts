@@ -41,7 +41,6 @@ export class AuthController {
   async login(@Body() dto: LoginUserDto) {
     try {
       const user = await this.authService.validateUser(dto.email, dto.password);
-      console.log('login: ', user);
       if (!user) {
         throw new RpcException({
           status: 401,

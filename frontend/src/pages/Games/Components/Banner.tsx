@@ -4,10 +4,10 @@ import type { Game } from "../../../features/games/types";
 import { useNavigate } from "react-router";
 interface Props {
   game: Game | null;
+  showWriteButton: boolean;
 }
 const Banner = (props: Props) => {
   const navigate = useNavigate();
-  console.log(props);
   return (
     <div
       className="relative rounded-2xl  bg-cover bg-center h-[200px] md:h-[450px] lg:h-[350px] overflow-hidden"
@@ -37,12 +37,18 @@ const Banner = (props: Props) => {
           <p className="text-[8px] md:text-[14px] text-[#c3c7ce] max-w-xl">
             {props.game?.description}
           </p>
-          <Button
-            onClick={() => navigate(`/write-review/${props.game?.id}`)}
-            label="Write Review"
-            variant="primary"
-            className="md:p-3 p-2 text-[8px] md:text-[12px] rounded-[5px] bg-purple mt-2 md:mt-5"
-          />
+          {props.showWriteButton && (
+            <Button
+              onClick={() =>
+                navigate(`/write-review/${props.game?.id}`, {
+                  state: { game: props.game },
+                })
+              }
+              label="Write Review"
+              variant="primary"
+              className="md:p-3 p-2 text-[8px] md:text-[12px] rounded-[5px] bg-purple mt-2 md:mt-5"
+            />
+          )}
         </div>
       </div>
     </div>

@@ -28,7 +28,7 @@ const Game = () => {
     <>
       <ResponsiveNavbar />
       <div className="py-10 px-2 sm:px-10 lg:px-10">
-        <Banner game={currentGame} />
+        <Banner game={currentGame} showWriteButton={true} />
         {/* Rating Stats */}
         {currentGame?.rating.overallRating && <ReviewStats />}
 

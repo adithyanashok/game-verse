@@ -23,8 +23,10 @@ export class ReviewController {
 
   // Get Review
   @MessagePattern(MessagePatterns.GET_REVIEW)
-  public async getReview(@Payload() payload: number) {
-    return await this.reviewService.getReview(payload);
+  public async getReview(
+    @Payload() payload: { reviewId: number; userId: number },
+  ) {
+    return await this.reviewService.getReview(payload.reviewId, payload.userId);
   }
 
   // Like Review

@@ -63,7 +63,10 @@ export class CommentService {
       });
 
       const savedComment = await this.commentRepo.save(newComment);
-      return new ApiResponse(true, 'Comment Created', savedComment);
+      return new ApiResponse(true, 'Comment Created', {
+        ...savedComment,
+        isYourComment: userId === savedComment.userId,
+      });
     } catch (error) {
       console.log(error);
       throw error;
@@ -71,14 +74,23 @@ export class CommentService {
   }
 
   // Get Comments
-  public async getComments(reviewId: number) {
+  public async getComments(reviewId: number, userId: number) {
     try {
       const dbComment = await this.commentRepo.find({
         where: { review: { id: reviewId } },
         order: { createdAt: 'DESC' },
       });
 
-      return new ApiResponse(true, 'Comment Fetched', dbComment);
+      console.log(userId);
+
+      const newComments = dbComment.map((val: Comment) => {
+        const isYourComment = val.userId === userId;
+        return {
+          ...val,
+          isYourComment,
+        };
+      });
+      return new ApiResponse(true, 'Comment Fetched', newComments);
     } catch (error) {
       console.log(error);
       throw error;
@@ -112,8 +124,19 @@ export class CommentService {
   }
 
   // Delete Comment
-  public async deleteComment(userId: number, commentId: number) {
+  public async deleteComment(
+    reviewId: number,
+    userId: number,
+    commentId: number,
+  ) {
     try {
+      const review = await this.reviewRepo.findOneBy({ id: reviewId });
+      if (!review) {
+        throw new RpcException({
+          status: 404,
+          message: `Review with ID ${reviewId} not found`,
+        });
+      }
       const dbComment = await this.commentRepo.findOne({
         where: { userId, id: commentId },
       });
@@ -127,7 +150,7 @@ export class CommentService {
 
       await this.commentRepo.delete(commentId);
 
-      return new ApiResponse(true, 'Comment Deleted');
+      return new ApiResponse(true, 'Comment Deleted', { reviewId, commentId });
     } catch (error) {
       console.log(error);
       throw error;

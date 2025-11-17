@@ -88,7 +88,7 @@ const Banner = () => {
                 </button>
 
                 <button
-                  onClick={() => navigate("/reviews/create")}
+                  onClick={() => navigate("/reviews")}
                   className="group px-8 py-4 rounded-full border-2 border-[var(--color-blue)] text-[var(--color-blue)] font-semibold text-sm md:text-base bg-transparent hover:bg-[var(--color-blue)] hover:text-white transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-[var(--color-blue)]/30"
                 >
                   <span className="flex items-center justify-center gap-2">
@@ -105,7 +105,7 @@ const Banner = () => {
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                       />
                     </svg>
-                    Write a Review
+                    Browse Reviews
                   </span>
                 </button>
               </div>

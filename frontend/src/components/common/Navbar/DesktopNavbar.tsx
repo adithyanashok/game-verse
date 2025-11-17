@@ -19,19 +19,19 @@ function DesktopNavbar() {
         </div>
         <div className="lg:block hidden">
           <ul className="flex md:gap-x-10 sm:gap-x-3 font-light">
-            <li className={activePath === "/" ? "text-purple font-medium" : ""}>
+            <li className={activePath === "/" ? "text-purple font-bold" : ""}>
               <Link to="/">Home</Link>
             </li>
             <li
               className={
-                activePath.includes("review") ? "text-purple font-medium" : ""
+                activePath.includes("review") ? "text-purple font-bold" : ""
               }
             >
               <Link to="/reviews">Reviews</Link>
             </li>
             <li
               className={
-                activePath.includes("game") ? "text-purple font-medium" : ""
+                activePath.includes("game") ? "text-purple font-bold" : ""
               }
             >
               <Link to={"/games"}>Games</Link>

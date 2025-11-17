@@ -28,6 +28,8 @@ export const API = {
     UPDATE_REVIEW_VIEW: "/review/update-view",
     LIKE_REVIEW: "/review/like-review",
     SEARCH_REVIEW: "/review/search-review",
+    DELETE_REVIEW: "/review/delete-review",
+    UPDATE_REVIEW: "/review/update-review",
     ADD_COMMENT: "/review/add-comment",
     GET_COMMENTS: "/review/get-comments",
     UPDATE_COMMENT: "/review/update-comment",

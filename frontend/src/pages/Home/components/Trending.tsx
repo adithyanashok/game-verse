@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { fetchTrendingReviews } from "../../../features/reviews/reviewsSlice";
 import type { RootState } from "../../../store";
 import CustomCard from "../../../components/common/ScrollableRow";
+import { Link } from "react-router";
 
 const Trending = () => {
   const dispatch = useAppDispatch();
@@ -37,21 +38,23 @@ const Trending = () => {
   return (
     <div className="scroll-row flex gap-4 overflow-x-auto p-2">
       {trending.map((review) => (
-        <CustomCard
-          key={review.id}
-          subtitle={`By ${review.userName}`}
-          image={
-            <img
-              className="card-image object-cover w-[350px] h-45 rounded-lg"
-              src={review.imageUrl}
-              alt={review.title || "Trending Review"}
-              loading="lazy"
-            />
-          }
-          title={review.title}
-          showSubtitle
-          rating={review.rating?.overall}
-        />
+        <Link to={`/review/${review.id}`}>
+          <CustomCard
+            key={review.id}
+            subtitle={`By ${review.userName}`}
+            image={
+              <img
+                className="card-image object-cover w-[350px] h-45 rounded-lg"
+                src={review.imageUrl}
+                alt={review.title || "Trending Review"}
+                loading="lazy"
+              />
+            }
+            title={review.title}
+            showSubtitle
+            rating={review.rating?.overall}
+          />
+        </Link>
       ))}
     </div>
   );

@@ -383,20 +383,20 @@ export const getByUserId = createAsyncThunk<
 });
 
 export const updateReview = createAsyncThunk<
-  ReviewDetails,
+  ReviewSummary,
   UpdateReviewPayload,
   { rejectValue: string }
 >("reviews/update", async (payload, thunkApi) => {
   try {
-    const response = await apiClient.patch<ApiResponse<ReviewDetails>>(
-      buildUrl("/update-review"),
+    console.log(payload);
+    const response = await apiClient.patch<ApiResponse<ReviewSummary>>(
+      buildUrl(API.REVIEWS.UPDATE_REVIEW),
       payload
     );
 
     if (!response.data.status) {
       return thunkApi.rejectWithValue(response.data.message ?? "Update failed");
     }
-
     return response.data.data;
   } catch (error: unknown) {
     return thunkApi.rejectWithValue(
@@ -412,7 +412,7 @@ export const deleteReview = createAsyncThunk<
 >("reviews/delete", async (reviewId, thunkApi) => {
   try {
     const response = await apiClient.delete<ApiResponse<unknown>>(
-      buildUrl("/delete-review", { reviewId: reviewId.toString() })
+      buildUrl(API.REVIEWS.DELETE_REVIEW, { reviewId: reviewId.toString() })
     );
 
     if (!response.data.status) {
@@ -512,7 +512,10 @@ export const deleteComment = createAsyncThunk<
 >("reviews/deleteComment", async ({ reviewId, commentId }, thunkApi) => {
   try {
     const response = await apiClient.delete<ApiResponse<unknown>>(
-      buildUrl(API.REVIEWS.DELETE_COMMENT, { reviewId: commentId.toString() })
+      buildUrl(API.REVIEWS.DELETE_COMMENT, {
+        reviewId: reviewId.toString(),
+        commentId: commentId.toString(),
+      })
     );
 
     if (!response.data.status) {
@@ -586,13 +589,14 @@ const reviewsSlice = createSlice({
       })
       .addCase(likeReview.fulfilled, (state, action) => {
         state.loading.like = false;
-        state.likedReviews[action.payload.reviewId] = action.payload.liked;
+        state.likedReviews[action.payload.reviewId] = action.payload.isLiked;
         console.log(action.payload.likeCount);
 
         if (
           state.currentReview &&
           state.currentReview.id === action.payload.reviewId
         ) {
+          state.currentReview.isLiked = action.payload.isLiked;
           state.currentReview.likeCount = action.payload.likeCount;
         }
       })

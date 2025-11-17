@@ -3,6 +3,7 @@ import CustomCard from "../../../components/common/ScrollableRow";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import { getTopRatedGames } from "../../../features/games/gamesSlice";
+import { Link } from "react-router";
 
 const PopularGames = () => {
   const dispatch = useAppDispatch();
@@ -31,14 +32,16 @@ const PopularGames = () => {
     <div className="scroll-row">
       {topRatedGames.map((game) => {
         return (
-          <CustomCard
-            key={game.id}
-            subtitle={game.description}
-            image={<img className="card-image" src={game.imgUrl} alt="" />}
-            title={game.name}
-            showSubtitle={false}
-            rating={game.rating?.overallRating}
-          />
+          <Link to={`/games/${game.id}`}>
+            <CustomCard
+              key={game.id}
+              subtitle={game.description}
+              image={<img className="card-image" src={game.imgUrl} alt="" />}
+              title={game.name}
+              showSubtitle={false}
+              rating={game.rating?.overallRating}
+            />
+          </Link>
         );
       })}
     </div>

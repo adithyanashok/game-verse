@@ -15,6 +15,7 @@ export interface ReviewSummary {
   gameId: number;
   likeCount: number;
   viewCount: number;
+  isLiked: boolean;
   imageUrl: string;
   createdAt: string;
   updatedAt: string;
@@ -39,6 +40,12 @@ export interface UpdateReviewPayload {
   id: number;
   title?: string;
   comment?: string;
+  rating?: {
+    graphics: number;
+    gameplay: number;
+    story: number;
+    sound: number;
+  };
 }
 
 export interface SearchReviewsPayload {
@@ -54,7 +61,7 @@ export interface GetReviewsByIdPayload {
 }
 
 export interface ReviewLikeResponse {
-  liked: boolean;
+  isLiked: boolean;
   reviewId: number;
   likeCount: number;
 }
@@ -77,6 +84,7 @@ export interface ReviewComment {
   parentCommentId?: number | null;
   createdAt: string;
   updatedAt: string;
+  isYourComment: boolean;
 }
 
 export interface CreateCommentPayload {

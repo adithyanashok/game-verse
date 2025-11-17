@@ -18,7 +18,6 @@ export class AuthService {
       const user = await lastValueFrom(
         this.userClient.send<User>(MessagePatterns.USER_FIND_BY_EMAIL, email),
       );
-      console.log(user, password, user.password);
       if (!user || !(await bcrypt.compare(password, user.password))) {
         return null;
       }

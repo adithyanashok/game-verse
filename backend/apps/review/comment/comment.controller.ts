@@ -25,8 +25,10 @@ export class CommentController {
 
   // Get Comments
   @MessagePattern(MessagePatterns.GET_COMMENT)
-  public async getComments(@Payload() payload: number) {
-    return this.commentService.getComments(payload);
+  public async getComments(
+    @Payload() payload: { reviewId: number; userId: number },
+  ) {
+    return this.commentService.getComments(payload.reviewId, payload.userId);
   }
 
   // Update Comment
@@ -40,8 +42,12 @@ export class CommentController {
   // Delete Comment
   @MessagePattern(MessagePatterns.DELETE_COMMENT)
   public async deleteComment(
-    @Payload() payload: { userId: number; commentId: number },
+    @Payload() payload: { reviewId: number; userId: number; commentId: number },
   ) {
-    return this.commentService.deleteComment(payload.userId, payload.commentId);
+    return this.commentService.deleteComment(
+      payload.reviewId,
+      payload.userId,
+      payload.commentId,
+    );
   }
 }

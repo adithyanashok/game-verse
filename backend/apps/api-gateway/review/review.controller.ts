@@ -72,10 +72,16 @@ export class ReviewController {
     description: 'Review Fetched successfully',
   })
   @Get('get-review')
-  public async getReview(@Query('id', ParseIntPipe) id: number): Promise<any> {
+  public async getReview(
+    @CurrentUser() user: User,
+    @Query('id', ParseIntPipe) id: number,
+  ): Promise<any> {
     try {
       return await firstValueFrom(
-        this.reviewClient.send(MessagePatterns.GET_REVIEW, id),
+        this.reviewClient.send(MessagePatterns.GET_REVIEW, {
+          reviewId: id,
+          userId: user.id,
+        }),
       );
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
@@ -268,6 +274,7 @@ export class ReviewController {
     @CurrentUser() user: User,
     @Body() updateReviewDto: UpdateReviewDto,
   ): Promise<any> {
+    console.log(user, updateReviewDto);
     try {
       return await firstValueFrom(
         this.reviewClient.send(MessagePatterns.UPDATE_REVIEWS, {
@@ -276,6 +283,7 @@ export class ReviewController {
         }),
       );
     } catch (error) {
+      console.log(error);
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
@@ -323,7 +331,6 @@ export class ReviewController {
     @Body() createCommentDto: CreateCommentDto,
   ): Promise<any> {
     try {
-      console.log('REQUEST PARAMETER');
       return await firstValueFrom(
         this.reviewClient.send(MessagePatterns.COMMENT_REVIEWS, {
           dto: createCommentDto,
@@ -347,11 +354,16 @@ export class ReviewController {
   })
   @Get('get-comments')
   public async getComments(
+    @CurrentUser() user: User,
     @Query('reviewId', ParseIntPipe) reviewId: number,
   ): Promise<any> {
     try {
+      console.log(user);
       return await firstValueFrom(
-        this.reviewClient.send(MessagePatterns.GET_COMMENT, reviewId),
+        this.reviewClient.send(MessagePatterns.GET_COMMENT, {
+          reviewId,
+          userId: user.id,
+        }),
       );
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
@@ -398,11 +410,13 @@ export class ReviewController {
   @Delete('delete-comment')
   public async deleteComment(
     @CurrentUser() user: User,
-    @Query('reviewId', ParseIntPipe) commentId: number,
+    @Query('reviewId', ParseIntPipe) reviewId: number,
+    @Query('commentId', ParseIntPipe) commentId: number,
   ): Promise<any> {
     try {
       return await firstValueFrom(
         this.reviewClient.send(MessagePatterns.DELETE_COMMENT, {
+          reviewId,
           userId: user.id,
           commentId,
         }),

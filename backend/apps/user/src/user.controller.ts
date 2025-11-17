@@ -1,4 +1,8 @@
-import { Controller } from '@nestjs/common';
+import {
+  ClassSerializerInterceptor,
+  Controller,
+  UseInterceptors,
+} from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { UserService } from './user.service';
 import {
@@ -13,6 +17,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @MessagePattern(MessagePatterns.AUTH_SIGNUP)
+  @UseInterceptors(ClassSerializerInterceptor)
   public async createUser(@Payload() createUserDto: CreateUserDto) {
     return this.userService.create(createUserDto);
   }
@@ -28,6 +33,7 @@ export class UserController {
   }
 
   @MessagePattern(MessagePatterns.UPDATE_USER)
+  @UseInterceptors(ClassSerializerInterceptor)
   public async updateUser(
     @Payload() payload: { dto: UpdateUserDto; userId: number },
   ) {
@@ -35,6 +41,7 @@ export class UserController {
   }
 
   @MessagePattern(MessagePatterns.GET_USER)
+  @UseInterceptors(ClassSerializerInterceptor)
   public async getUserProfile(
     @Payload() payload: { userId: number; viewerId: number },
   ) {
