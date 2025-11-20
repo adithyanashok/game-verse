@@ -19,6 +19,7 @@ import type { RootState } from "../../../store";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import ReviewHeader from "./Components/ReviewHeader";
 import ReviewActions from "./Components/ReviewActions";
+import ViewCountChart from "../Components/Chart";
 
 const Review = () => {
   const { id } = useParams<{ id: string }>();
@@ -160,6 +161,7 @@ const Review = () => {
                   })
                 }
               />
+              {user?.id === currentReview.userId && <ViewCountChart />}
             </div>
 
             {/* Comments */}

@@ -156,4 +156,15 @@ export class CommentService {
       throw error;
     }
   }
+
+  public async getCommentCount(userId: number): Promise<number> {
+    try {
+      const review = await this.reviewRepo.countBy({ userId });
+
+      return review;
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 }

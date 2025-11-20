@@ -2,14 +2,11 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinTable,
-  ManyToMany,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { View } from './view.entity';
 import { Rating } from './rating.entity';
 import { Comment } from './comment.entity';
 
@@ -41,12 +38,6 @@ export class Review {
 
   @Column({ default: '' })
   imageUrl: string;
-
-  @ManyToMany(() => View, (view) => view.review, {
-    cascade: true,
-  })
-  @JoinTable()
-  views: View[];
 
   @OneToOne(() => Rating, (rating) => rating.review, {
     eager: true,

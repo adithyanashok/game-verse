@@ -6,6 +6,7 @@ import { Rating } from '../entities/rating.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
 import {
+  AnalyticsRange,
   ApiResponse,
   MessagePatterns,
   ServiceName,
@@ -17,6 +18,8 @@ import { lastValueFrom } from 'rxjs';
 import { GameResponse } from '@app/contract';
 import { View } from '../entities/view.entity';
 import { Like as SearchLike } from 'typeorm';
+import { subDays } from 'date-fns';
+import { CommentService } from '../comment/comment.service';
 @Injectable()
 export class ReviewService {
   constructor(
@@ -31,6 +34,8 @@ export class ReviewService {
 
     @InjectRepository(Rating)
     private readonly ratingRepo: Repository<Rating>,
+
+    private readonly commentService: CommentService,
 
     @Inject(ServiceName.GAME)
     private client: ClientProxy,
@@ -187,12 +192,8 @@ export class ReviewService {
   // Update Views
   public async updateViews(reviewId: number, userId: number) {
     try {
-      console.log('reviewId: ', reviewId);
-      console.log('userId ', userId);
-
       const review = await this.repo.findOne({
         where: { id: reviewId },
-        relations: ['views'],
       });
 
       if (!review) {
@@ -201,37 +202,39 @@ export class ReviewService {
           message: 'Review Not Found',
         });
       }
-
       const alreadyViewed = await this.viewRepo.findOne({
-        where: { userId, review: { id: reviewId } },
+        where: { reviewId, userId },
       });
 
       if (alreadyViewed) {
-        return new ApiResponse(true, 'Already Viewed', {
-          viewed: true,
-          alreadyViewed,
-        });
-      } else {
-        const newView = this.viewRepo.create({
-          userId,
-        });
-        const savedSavedView = await this.viewRepo.save(newView);
-        review.viewCount = review.viewCount + 1;
-
-        await this.repo.save(review);
-        await this.repo
-          .createQueryBuilder()
-          .relation(Review, 'views')
-          .of(reviewId)
-          .add(savedSavedView.id);
-
-        return new ApiResponse(true, 'View Updated Successfully', {
-          viewed: true,
-        });
+        return new ApiResponse(true, 'Already Viewed');
       }
+
+      const newView = this.viewRepo.create({
+        reviewId,
+        userId,
+        reviewOwnerId: review.userId,
+      });
+      review.viewCount = review.viewCount + 1;
+
+      const view = await this.viewRepo.save(newView);
+
+      const savedReview = await this.repo.save(review);
+
+      return new ApiResponse(true, 'Review viewd Successfully', {
+        isViewed: userId === view.userId,
+        reviewId,
+        viewCount: savedReview.viewCount,
+      });
     } catch (error) {
       console.log(error);
-      throw error;
+      if (error instanceof RpcException) {
+        throw error;
+      }
+      throw new RpcException({
+        status: 500,
+        message: 'Failed to update like status',
+      });
     }
   }
 
@@ -240,9 +243,7 @@ export class ReviewService {
     try {
       const review = await this.repo
         .createQueryBuilder('review')
-        .leftJoin('review.views', 'views')
         .leftJoinAndSelect('review.rating', 'rating')
-        .loadRelationCountAndMap('review.viewCount', 'review.views')
         .orderBy('likeCount', 'DESC')
         .addOrderBy('viewCount', 'DESC')
         .limit(20)
@@ -308,6 +309,8 @@ export class ReviewService {
     limit: number = 20,
   ) {
     try {
+      const newDate = new Date();
+      console.log(newDate, subDays(newDate, 7));
       const review = await this.repo.find({
         where: { userId },
         skip: (page - 1) * limit,
@@ -472,6 +475,182 @@ export class ReviewService {
       return topRatedGameIds;
     } catch (error) {
       console.log(error);
+      throw error;
+    }
+  }
+
+  // Analytics of Review
+  public async getAnalyticsOfReview(reviewId: number, range: AnalyticsRange) {
+    try {
+      const review = await this.repo.findOne({ where: { id: reviewId } });
+      if (!review) {
+        throw new RpcException({ status: 404, message: 'Review not found' });
+      }
+
+      const endDate = new Date();
+      const startDate = subDays(endDate, range);
+      const pastStartDate = subDays(startDate, range);
+
+      const likeCount = await this.likeRepo
+        .createQueryBuilder('like')
+        .where('like.reviewId = :reviewId', { reviewId })
+        .andWhere('like.createdAt BETWEEN :start AND :end', {
+          start: startDate,
+          end: endDate,
+        })
+        .getCount();
+
+      const viewGroups: { date: string; count: string }[] = await this.viewRepo
+        .createQueryBuilder('view')
+        .select('DATE(view.createdAt)', 'date')
+        .addSelect('COUNT(*)', 'count')
+        .where('view.reviewId = :reviewId', { reviewId })
+        .andWhere('view.createdAt BETWEEN :start AND :end', {
+          start: startDate,
+          end: endDate,
+        })
+        .groupBy('DATE(view.createdAt)')
+        .orderBy('DATE(view.createdAt)', 'ASC')
+        .getRawMany();
+
+      const chartData = viewGroups.map((v) => ({
+        date: v.date,
+        count: Number(v.count),
+      }));
+
+      const currentViews = chartData.reduce((sum, item) => sum + item.count, 0);
+
+      const pastViews = await this.viewRepo
+        .createQueryBuilder('view')
+        .where('view.reviewId = :reviewId', { reviewId })
+        .andWhere('view.createdAt BETWEEN :pastStart AND :start', {
+          pastStart: pastStartDate,
+          start: startDate,
+        })
+        .getCount();
+
+      const trend =
+        currentViews === 0
+          ? 0
+          : ((currentViews - pastViews) / currentViews) * 100;
+
+      return new ApiResponse(true, 'Fetched Successfully', {
+        chartData,
+        likeCount,
+        viewCount: currentViews,
+        trend,
+      });
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
+  }
+
+  // Analytics Overview
+  public async getAnalyticsOverview(userId: number, range: AnalyticsRange) {
+    try {
+      const review = await this.repo.find({ where: { userId } });
+
+      const totalLikes = review.reduce((acc: number, curr) => {
+        return acc + (curr.likeCount ?? 0);
+      }, 0);
+
+      const totalViews = review.reduce((acc: number, curr) => {
+        return acc + (curr.viewCount ?? 0);
+      }, 0);
+
+      const totalComment = await this.commentService.getCommentCount(userId);
+
+      const topReviews = await this.repo
+        .createQueryBuilder('review')
+        .where('review.userId = :userId', { userId })
+        .leftJoinAndSelect('review.rating', 'rating')
+        .orderBy('likeCount', 'DESC')
+        .addOrderBy('viewCount', 'DESC')
+        .limit(5)
+        .getMany();
+
+      const endDate = new Date();
+      const startDate = subDays(endDate, range);
+      const pastStartDate = subDays(startDate, range);
+
+      const currentViews = await this.viewRepo
+        .createQueryBuilder('view')
+        .where('view.reviewOwnerId = :reviewOwnerId', { reviewOwnerId: userId })
+        .andWhere('view.createdAt BETWEEN :start AND :end', {
+          start: startDate,
+          end: endDate,
+        })
+        .getManyAndCount();
+
+      const viewGroups: { date: string; count: string }[] = await this.viewRepo
+        .createQueryBuilder('view')
+        .select('DATE(view.createdAt)', 'date')
+        .addSelect('COUNT(*)', 'count')
+        .where('view.reviewOwnerId = :reviewOwnerId', { reviewOwnerId: userId })
+        .andWhere('view.createdAt BETWEEN :start AND :end', {
+          start: startDate,
+          end: endDate,
+        })
+        .groupBy('DATE(view.createdAt)')
+        .orderBy('DATE(view.createdAt)', 'ASC')
+        .getRawMany();
+
+      const chartData = viewGroups.map((v) => ({
+        date: v.date,
+        count: Number(v.count),
+      }));
+
+      const pastViews = await this.viewRepo
+        .createQueryBuilder('view')
+        .where('view.reviewOwnerId = :reviewOwnerId', { reviewOwnerId: userId })
+        .andWhere('view.createdAt BETWEEN :pastStart AND :start', {
+          pastStart: pastStartDate,
+          start: startDate,
+        })
+        .getCount();
+
+      // Like
+
+      const currentLikes = await this.likeRepo
+        .createQueryBuilder('like')
+        .where('like.reviewOwnerId = :reviewOwnerId', { reviewOwnerId: userId })
+        .andWhere('like.createdAt BETWEEN :start AND :end', {
+          start: startDate,
+          end: endDate,
+        })
+        .getCount();
+      const pastLikes = await this.likeRepo
+        .createQueryBuilder('like')
+        .where('like.reviewOwnerId = :reviewOwnerId', { reviewOwnerId: userId })
+        .andWhere('like.createdAt BETWEEN :pastStart AND :start', {
+          pastStart: pastStartDate,
+          start: startDate,
+        })
+        .getCount();
+
+      // Trends
+      const viewsTrend =
+        currentViews[1] === 0
+          ? 0
+          : ((currentViews[1] - pastViews) / currentViews[1]) * 100;
+
+      const likeTrend =
+        currentLikes === 0
+          ? 0
+          : ((currentLikes - pastLikes) / currentLikes) * 100;
+
+      return new ApiResponse(true, 'Fetched Successfully', {
+        topReviews,
+        totalComment,
+        totalLikes,
+        totalViews,
+        chartData,
+        likes: { pastLikes, currentLikes, likeTrend },
+        views: { pastViews, currentViews: currentViews[1], viewsTrend },
+      });
+    } catch (error) {
+      console.error(error);
       throw error;
     }
   }

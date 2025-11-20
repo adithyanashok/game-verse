@@ -16,6 +16,9 @@ export class Like {
   @Column()
   userId: number;
 
+  @Column()
+  reviewOwnerId: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

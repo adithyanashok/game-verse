@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router";
 import ResponsiveNavbar from "../../components/common/Navbar/ResponsiveNavbar";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -8,16 +8,18 @@ import {
   unfollowUser,
 } from "../../features/user/userSlice";
 import { getByUserId } from "../../features/reviews/reviewsSlice";
+import AnalyticsDashboard from "./Components/AnalyticsDashboard";
 
 const ProfilePage = () => {
   const { userId: userIdParam } = useParams();
   const dispatch = useAppDispatch();
-
+  const [activeTab, setActiveTab] = useState("Reviews");
+  const tabs = ["Reviews", "Analytics"];
   const authUser = useAppSelector((state) => state.auth.user);
   const { profile, loading, error, followLoading, followError } =
     useAppSelector((state) => state.user);
 
-  const { userReviews, errors } = useAppSelector((state) => state.reviews);
+  const { userReviews } = useAppSelector((state) => state.reviews);
 
   const targetUserId = useMemo(() => {
     if (userIdParam) {
@@ -58,7 +60,7 @@ const ProfilePage = () => {
     if (!canFollow) {
       return (
         <span className="mt-5 px-6 py-2 rounded-full bg-[#1f1233] text-gray-300 font-medium shadow-md">
-          This is your profile
+          Edit
         </span>
       );
     }
@@ -125,7 +127,7 @@ const ProfilePage = () => {
               </p>
               <div className="flex items-center gap-2 mt-3 text-gray-400 text-sm">
                 <span className="font-semibold text-white">
-                  {profile.followersCount}
+                  {profile.followerCount}
                 </span>{" "}
                 followers ·{" "}
                 <span className="font-semibold text-white">
@@ -140,35 +142,48 @@ const ProfilePage = () => {
             </div>
 
             {/* Tabs */}
+
             <div className="flex mt-10 border-b border-gray-700 w-full max-w-3xl justify-center">
-              <button
-                className={
-                  "px-4 py-2 text-sm font-medium transition relative text-[#b072ff] hover:text-white"
-                }
-                // onClick={}
-              >
-                Reviews
-              </button>
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  className={`px-4 py-2 text-sm font-medium transition relative ${
+                    activeTab === tab
+                      ? "text-[#b072ff]" // active tab color
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab}
+
+                  {activeTab === tab && (
+                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#b072ff]"></span>
+                  )}
+                </button>
+              ))}
             </div>
 
             {/* Placeholder Game Cards */}
-            <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 w-full max-w-5xl">
-              {userReviews.map((review, index) => (
-                <div
-                  key={index}
-                  className="bg-[#1a102d] rounded-xl p-2 hover:scale-105 transition transform cursor-pointer shadow-lg"
-                >
-                  <img
-                    src={review.imageUrl}
-                    alt={review.title}
-                    className="rounded-lg w-full h-44 object-cover"
-                  />
-                  <p className="mt-2 text-center text-sm text-gray-300">
-                    {review.title}
-                  </p>
-                </div>
-              ))}
-            </div>
+            {activeTab === "Reviews" && (
+              <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 w-full max-w-5xl">
+                {userReviews.map((review, index) => (
+                  <div
+                    key={index}
+                    className="bg-[#1a102d] rounded-xl p-2 hover:scale-105 transition transform cursor-pointer shadow-lg"
+                  >
+                    <img
+                      src={review.imageUrl}
+                      alt={review.title}
+                      className="rounded-lg w-full h-44 object-cover"
+                    />
+                    <p className="mt-2 text-center text-sm text-gray-300">
+                      {review.title}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+            {activeTab === "Analytics" && <AnalyticsDashboard />}
           </>
         )}
       </div>

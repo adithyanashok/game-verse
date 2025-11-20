@@ -88,7 +88,19 @@ export class GameService {
     try {
       const games = await this.gameRepo.find({ relations: ['genre'] });
 
-      return new ApiResponse(true, 'Games Fetched Successfully', games);
+      const results = await Promise.all(
+        games.map(async (game) => {
+          const rating = await firstValueFrom<RatingInterface>(
+            this.reviewClient.send(MessagePatterns.GET_OVERALL_RATING, {
+              gameId: game.id,
+            }),
+          );
+
+          return { ...game, overallRating: rating.overallRating };
+        }),
+      );
+
+      return new ApiResponse(true, 'Games Fetched Successfully', results);
     } catch (error) {
       console.log(error);
       throw error;

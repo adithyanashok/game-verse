@@ -2,6 +2,7 @@ import { Controller } from '@nestjs/common';
 import { ReviewService } from './review.service';
 import { CreateReviewDto } from 'libs/common/src/dto/review/create-review.dto';
 import {
+  AnalyticsRange,
   GetByIdDto,
   MessagePatterns,
   SearchDto,
@@ -122,5 +123,26 @@ export class ReviewController {
   @MessagePattern(MessagePatterns.GET_TOP_RATED_GAME_IDS)
   public async getPopularGameIds() {
     return await this.reviewService.getPopularGameIds();
+  }
+
+  // Get Analytics Review
+  @MessagePattern(MessagePatterns.GET_REVIEW_ANALYTICS)
+  public async getAnalyticsOfReview(
+    @Payload() paylod: { reviewId: number; range: AnalyticsRange },
+  ) {
+    return await this.reviewService.getAnalyticsOfReview(
+      paylod.reviewId,
+      paylod.range,
+    );
+  }
+
+  @MessagePattern(MessagePatterns.GET_ANALYTICS_OVERVIEW)
+  public async getAnalyticsOverview(
+    @Payload() paylod: { userId: number; range: AnalyticsRange },
+  ) {
+    return await this.reviewService.getAnalyticsOverview(
+      paylod.userId,
+      paylod.range,
+    );
   }
 }

@@ -34,6 +34,8 @@ export const API = {
     GET_COMMENTS: "/review/get-comments",
     UPDATE_COMMENT: "/review/update-comment",
     DELETE_COMMENT: "/review/delete-comment",
+    GET_REVIEW_ANALYTICS: "/review/get-review-analytics",
+    GET_ANALYTICS_OVERVIEW: "/review/get-analytics-overview",
   },
   GENRE: {
     CREATE: "/genre/create",

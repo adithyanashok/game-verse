@@ -20,6 +20,9 @@ import {
   type UpdateReviewPayload,
   type CreateCommentPayload,
   type UpdateCommentPayload,
+  type ReviewAnalytics,
+  type ReviewAnalyticsPayload,
+  type AnalyticsOverview,
 } from "./types";
 import { API } from "../../services/endpoints";
 
@@ -34,6 +37,8 @@ type ReviewOperation =
   | "update"
   | "fetchByGame"
   | "fetchByUser"
+  | "getAnalytics"
+  | "getAnalyticsOverview"
   | "delete"
   | "fetchComments"
   | "addComment"
@@ -59,6 +64,8 @@ const createOperationState = (value: boolean): OperationState => ({
   updateComment: value,
   deleteComment: value,
   fetchByUser: value,
+  getAnalytics: value,
+  getAnalyticsOverview: value,
 });
 
 const createErrorState = (value: string | null): OperationErrorState => ({
@@ -77,6 +84,8 @@ const createErrorState = (value: string | null): OperationErrorState => ({
   updateComment: value,
   deleteComment: value,
   fetchByUser: value,
+  getAnalytics: value,
+  getAnalyticsOverview: value,
 });
 
 const extractErrorMessage = (error: unknown, fallback: string): string => {
@@ -113,6 +122,8 @@ export interface ReviewsState {
   recent: ReviewSummary[];
   userReviews: ReviewSummary[];
   searchResults: ReviewSummary[];
+  reviewAnalytics: ReviewAnalytics | null;
+  analyticsOverview: AnalyticsOverview | null;
   currentReview: ReviewDetails | null;
   createdReview: ReviewDetails | null;
   likedReviews: Record<number, boolean>;
@@ -127,6 +138,8 @@ const initialState: ReviewsState = {
   recent: [],
   userReviews: [],
   searchResults: [],
+  reviewAnalytics: null,
+  analyticsOverview: null,
   currentReview: null,
   createdReview: null,
   likedReviews: {},
@@ -423,6 +436,59 @@ export const deleteReview = createAsyncThunk<
   } catch (error: unknown) {
     return thunkApi.rejectWithValue(
       extractErrorMessage(error, "Unable to delete review")
+    );
+  }
+});
+
+export const getAnalytics = createAsyncThunk<
+  ReviewAnalytics,
+  ReviewAnalyticsPayload,
+  { rejectValue: string }
+>("reviews/getAnalytics", async ({ reviewId, range }, thunkApi) => {
+  try {
+    const response = await apiClient.get<ApiResponse<ReviewAnalytics>>(
+      buildUrl(API.REVIEWS.GET_REVIEW_ANALYTICS, {
+        range: range,
+        reviewId: reviewId.toString(),
+      })
+    );
+
+    if (!response.data.status) {
+      return thunkApi.rejectWithValue(
+        response.data.message ?? "Failed to load analytics"
+      );
+    }
+
+    return response.data.data;
+  } catch (error: unknown) {
+    return thunkApi.rejectWithValue(
+      extractErrorMessage(error, "Unable to load analytics")
+    );
+  }
+});
+
+export const getAnalyticsOverview = createAsyncThunk<
+  AnalyticsOverview,
+  ReviewAnalyticsPayload,
+  { rejectValue: string }
+>("reviews/getAnalyticsOverview", async ({ range }, thunkApi) => {
+  try {
+    const response = await apiClient.get<ApiResponse<AnalyticsOverview>>(
+      buildUrl(API.REVIEWS.GET_ANALYTICS_OVERVIEW, {
+        range: range,
+      })
+    );
+
+    if (!response.data.status) {
+      return thunkApi.rejectWithValue(
+        response.data.message ?? "Failed to load analytics"
+      );
+    }
+
+    return response.data.data;
+  } catch (error: unknown) {
+    return thunkApi.rejectWithValue(
+      extractErrorMessage(error, "Unable to load analytics")
     );
   }
 });
@@ -742,6 +808,36 @@ const reviewsSlice = createSlice({
       .addCase(deleteReview.rejected, (state, action) => {
         state.loading.delete = false;
         state.errors.delete = action.payload ?? "Failed to delete review";
+      })
+
+      // Get Analytics
+      .addCase(getAnalytics.pending, (state) => {
+        state.loading.getAnalytics = true;
+        state.errors.getAnalytics = null;
+      })
+      .addCase(getAnalytics.fulfilled, (state, action) => {
+        state.loading.getAnalytics = false;
+        state.reviewAnalytics = action.payload;
+      })
+      .addCase(getAnalytics.rejected, (state, action) => {
+        state.loading.getAnalytics = false;
+        state.errors.getAnalytics =
+          action.payload ?? "Failed to load analytics";
+      })
+
+      // Get Analytics Overview
+      .addCase(getAnalyticsOverview.pending, (state) => {
+        state.loading.getAnalyticsOverview = true;
+        state.errors.getAnalyticsOverview = null;
+      })
+      .addCase(getAnalyticsOverview.fulfilled, (state, action) => {
+        state.loading.getAnalyticsOverview = false;
+        state.analyticsOverview = action.payload;
+      })
+      .addCase(getAnalyticsOverview.rejected, (state, action) => {
+        state.loading.getAnalyticsOverview = false;
+        state.errors.getAnalyticsOverview =
+          action.payload ?? "Failed to load analytics";
       })
 
       // Fetch comments

@@ -6,6 +6,7 @@ export interface Game {
   genre: Genre[];
   rating: Rating;
   releaseDate: string;
+  overallRating:number;
 }
 export interface Rating {
   overallRating: number;

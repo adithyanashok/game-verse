@@ -19,3 +19,6 @@ export * from './dto/user/update-user.dto';
 export * from './dto/user/follow-user.dto';
 export * from './interface/user.interface';
 export * from './dto/review/get-by-id.dto';
+export * from './enums/analytics_range.enum';
+export * from './dto/review/get-review-analytics';
+export * from './dto/review/get-analytics-overview.dto';

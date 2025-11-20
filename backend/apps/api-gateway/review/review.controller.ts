@@ -16,7 +16,9 @@ import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import {
   CreateCommentDto,
   CreateReviewDto,
+  GetAnalyticsOverviewDto,
   GetByIdDto,
+  GetReviewAnalyticsDto,
   MessagePatterns,
   SearchDto,
   ServiceName,
@@ -26,6 +28,7 @@ import {
 import { firstValueFrom } from 'rxjs';
 import { CurrentUser } from '../src/decorators/current-user.decorator';
 import type { User } from '../src/guards/jwt-auth.guard';
+import { Public } from '../src/decorators/public.decorator';
 @ApiBearerAuth()
 @Controller('review')
 export class ReviewController {
@@ -419,6 +422,62 @@ export class ReviewController {
           reviewId,
           userId: user.id,
           commentId,
+        }),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Get Analytics Review
+   */
+  @ApiOperation({
+    summary: 'Api For Get Analytics Review',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Fetched Successfully',
+  })
+  @Get('get-review-analytics')
+  public async getAnalyticsOfReview(
+    @CurrentUser() user: User,
+    @Query() dto: GetReviewAnalyticsDto,
+  ): Promise<any> {
+    try {
+      console.log(dto.range);
+      return await firstValueFrom(
+        this.reviewClient.send(MessagePatterns.GET_REVIEW_ANALYTICS, {
+          reviewId: dto.reviewId,
+          range: dto.range,
+        }),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Get Analytics Overview
+   */
+  @ApiOperation({
+    summary: 'Api For Get Analytics Overview',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Fetched Successfully',
+  })
+  @Get('get-analytics-overview')
+  public async getAnalyticsOverview(
+    @CurrentUser() user: User,
+    @Query() dto: GetAnalyticsOverviewDto,
+  ): Promise<any> {
+    try {
+      console.log(dto.range);
+      return await firstValueFrom(
+        this.reviewClient.send(MessagePatterns.GET_ANALYTICS_OVERVIEW, {
+          userId: user.id,
+          range: dto.range,
         }),
       );
     } catch (error) {

@@ -22,7 +22,52 @@ export interface ReviewSummary {
   rating?: RatingBreakdown;
 }
 
+export interface ReviewAnalytics {
+  likeCount: number;
+  viewCount: number;
+  trend: number;
+  chartData: ChartData[];
+}
+
+export interface ChartData {
+  date: string;
+  count: number;
+}
+
 export type ReviewDetails = ReviewSummary;
+
+export enum AnalyticsRange {
+  past_7_days = "past_7_days",
+  past_14_days = "past_14_days",
+  past_28_days = "past_28_days",
+  past_90_days = "past_90_days",
+}
+export interface ReviewAnalyticsPayload {
+  reviewId: number;
+  range: AnalyticsRange;
+}
+
+export interface AnalyticsOverview {
+  topReviews: ReviewSummary[];
+  totalComment: number;
+  totalLikes: number;
+  totalViews: number;
+  chartData: ChartData[];
+  likes: LikesData;
+  views: ViewsData;
+}
+
+export interface LikesData {
+  pastLikes: number;
+  currentLikes: number;
+  likeTrend: number;
+}
+
+export interface ViewsData {
+  pastViews: number;
+  currentViews: number;
+  viewsTrend: number;
+}
 
 export interface CreateReviewPayload {
   title: string;
