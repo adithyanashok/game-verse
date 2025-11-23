@@ -8,6 +8,7 @@ import {
   MessagePatterns,
 } from 'libs/common/src';
 import { GenreService } from './genre/genre.service';
+import { Content } from './providers/interface/content.interface';
 
 @Controller()
 export class GameController {
@@ -60,5 +61,20 @@ export class GameController {
   @MessagePattern(MessagePatterns.GET_TOP_RATED_GAMES)
   public async getTopRatedGame() {
     return await this.gameService.getTopRatedGames();
+  }
+
+  @MessagePattern(MessagePatterns.GET_AI_OVERVIEW)
+  public async getAiOverview(@Payload() payload: { gameId: number }) {
+    return await this.gameService.getAiOverview(payload.gameId);
+  }
+
+  @MessagePattern(MessagePatterns.GENERATE_AI_OVERVIEW)
+  public async generateOverview(
+    @Payload() payload: { gameId: number; review: Content },
+  ) {
+    return await this.gameService.generateAiOverview(
+      payload.gameId,
+      payload.review,
+    );
   }
 }

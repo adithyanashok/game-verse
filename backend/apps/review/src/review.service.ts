@@ -99,6 +99,15 @@ export class ReviewService {
       savedReview.rating = ratingEntity;
       await this.ratingRepo.save(ratingEntity);
 
+      this.client
+        .send(MessagePatterns.GENERATE_AI_OVERVIEW, {
+          gameId: createReviewDto.gameId,
+          savedReview,
+        })
+        .subscribe({
+          error: (err) => console.error('AI Overview Error:', err),
+        });
+
       return new ApiResponse(true, 'Review Created Successfully', {
         savedReview,
       });
@@ -450,7 +459,10 @@ export class ReviewService {
       return { overallRating, ratings };
     } catch (error) {
       console.log(error);
-      throw error;
+      throw new RpcException({
+        status: 500,
+        message: error instanceof Error ? error.message : String(error),
+      });
     }
   }
   // Get Rating of Game
@@ -475,7 +487,10 @@ export class ReviewService {
       return topRatedGameIds;
     } catch (error) {
       console.log(error);
-      throw error;
+      throw new RpcException({
+        status: 500,
+        message: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -542,7 +557,10 @@ export class ReviewService {
       });
     } catch (error) {
       console.error(error);
-      throw error;
+      throw new RpcException({
+        status: 500,
+        message: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 
@@ -651,7 +669,38 @@ export class ReviewService {
       });
     } catch (error) {
       console.error(error);
-      throw error;
+      throw new RpcException({
+        status: 500,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  // Get Review Title and Review
+  public async getReviewAndTitle(gameId: number) {
+    try {
+      const ratings = [5, 4, 3, 1];
+
+      const promises = ratings.map((rating) =>
+        this.repo
+          .createQueryBuilder('review')
+          .innerJoinAndSelect('review.rating', 'rating')
+          .where('review.gameId = :gameId', { gameId })
+          .andWhere('rating.overall = :rating', { rating })
+          .take(10)
+          .orderBy('review.id', 'DESC')
+          .getMany(),
+      );
+
+      const [rating5, rating4, rating3, rating1] = await Promise.all(promises);
+
+      return { ...rating5, ...rating4, ...rating3, ...rating1 };
+    } catch (error) {
+      console.log(error);
+      throw new RpcException({
+        status: 500,
+        message: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 }

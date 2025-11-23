@@ -9,12 +9,14 @@ import { Genre } from './entities/genre.entity';
 import { GenreService } from './genre/genre.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MICROSERVICE_CONFIG, ServiceName } from 'libs/common/src';
+import { AiProvider } from './providers/ai.provider';
+import { Overview } from './entities/overview.entity';
 
 const ENV = process.env.NODE_ENV;
 console.log(ENV);
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Game, Genre]),
+    TypeOrmModule.forFeature([Game, Genre, Overview]),
     ClientsModule.register({
       clients: [
         {
@@ -42,13 +44,13 @@ console.log(ENV);
         username: config.get<string>('database.username'),
         password: config.get<string>('database.password'),
         database: config.get<string>('database.name'),
-        entities: [Game, Genre],
+        entities: [Game, Genre, Overview],
         // autoLoadEntities: config.get<boolean>('database.autoLoadEntities'),
         synchronize: config.get<boolean>('database.synchronize'),
       }),
     }),
   ],
   controllers: [GameController],
-  providers: [GameService, GenreService],
+  providers: [GameService, GenreService, AiProvider],
 })
 export class GameModule {}

@@ -1,15 +1,12 @@
 import React, { useEffect } from "react";
 import ResponsiveNavbar from "../../components/common/Navbar/ResponsiveNavbar";
 import Banner from "./Components/Banner";
-import { dummy } from "../../data";
 import GameReview from "./Components/Review";
-import Footer from "../../components/common/footer/component/Footer";
-import RatingStats from "./Components/ReviewStats";
 import ReviewStats from "./Components/ReviewStats";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import type { RootState } from "../../store";
 import { getGame } from "../../features/games/gamesSlice";
-import { Link, useParams, useSearchParams } from "react-router";
+import { Link, useParams } from "react-router";
 import { getByGameId } from "../../features/reviews/reviewsSlice";
 const Game = () => {
   const dispatch = useAppDispatch();
@@ -31,6 +28,12 @@ const Game = () => {
         <Banner game={currentGame} showWriteButton={true} />
         {/* Rating Stats */}
         {currentGame?.rating.overallRating && <ReviewStats />}
+        {currentGame?.overview && (
+          <div className="bg-dark p-5 justify-center items-center gap-6 rounded-2xl mt-10 text-white">
+            <h1 className="font-bold">AI Overview</h1>
+            <p>{currentGame?.overview.overview.replace(/\*\s?/g, "")}</p>
+          </div>
+        )}
 
         {/* Reviews */}
         <div className="mt-10">

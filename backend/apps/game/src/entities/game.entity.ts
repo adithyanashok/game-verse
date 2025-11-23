@@ -3,9 +3,11 @@ import {
   Entity,
   JoinTable,
   ManyToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Genre } from './genre.entity';
+import { Overview } from './overview.entity';
 
 @Entity()
 export class Game {
@@ -27,4 +29,7 @@ export class Game {
   @ManyToMany(() => Genre, (tag) => tag.games)
   @JoinTable()
   genre: Genre[];
+
+  @OneToOne(() => Overview, (overview) => overview.game)
+  overview: Overview;
 }

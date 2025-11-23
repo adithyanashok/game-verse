@@ -145,4 +145,9 @@ export class ReviewController {
       paylod.range,
     );
   }
+
+  @MessagePattern(MessagePatterns.GET_REVIEWS_BY_GAMEID)
+  public async getReviewAndTitle(@Payload() paylod: { gameId: number }) {
+    return await this.reviewService.getReviewAndTitle(paylod.gameId);
+  }
 }

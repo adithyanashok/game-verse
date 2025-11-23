@@ -186,4 +186,24 @@ export class GameController {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
   }
+
+  @ApiOperation({
+    summary: 'Get AI Overview',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Fetched Successfully',
+  })
+  @Get('get-ai-overview')
+  public async getAiOverview(
+    @Query('gameId', ParseIntPipe) gameId: number,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.gameClient.send(MessagePatterns.GET_AI_OVERVIEW, { gameId }),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
 }

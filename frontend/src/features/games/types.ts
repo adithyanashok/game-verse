@@ -6,12 +6,18 @@ export interface Game {
   genre: Genre[];
   rating: Rating;
   releaseDate: string;
-  overallRating:number;
+  overallRating: number;
+  overview: Overview;
+}
+export interface Overview {
+  id: number;
+  overview: string;
 }
 export interface Rating {
   overallRating: number;
   ratings: Ratings[];
 }
+
 export interface Ratings {
   rating: number;
   percent: number;

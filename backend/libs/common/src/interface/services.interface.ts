@@ -27,6 +27,8 @@ export enum MessagePatterns {
   GAME_GET = 'game.get',
   GET_GAMES = 'games.get',
   FIND_ONE_GAME = 'game.findone',
+  GET_AI_OVERVIEW = 'game.ai.overview',
+  GENERATE_AI_OVERVIEW = 'game.genereate.overview',
 
   CREATE_GENRE = 'game.genre',
   DELETE_GENRE = 'game.genre.delete',
@@ -47,6 +49,7 @@ export enum MessagePatterns {
   GET_OVERALL_RATING = 'review.rating',
   GET_REVIEW_ANALYTICS = 'review.analytics',
   GET_ANALYTICS_OVERVIEW = 'review.analytics.overview',
+  GET_REVIEWS_BY_GAMEID = 'review.game.gameId',
   // Comment
   COMMENT_REVIEWS = 'review.comment',
   GET_COMMENT = 'comment.get',

@@ -14,6 +14,9 @@ import { ConfigService } from '@nestjs/config';
 import { GenreService } from './genre/genre.service';
 import { firstValueFrom } from 'rxjs';
 import { RatingInterface } from './interfaces/rating.interfaces';
+import { AiProvider } from './providers/ai.provider';
+import { Content } from './providers/interface/content.interface';
+import { Overview } from './entities/overview.entity';
 
 @Injectable()
 export class GameService {
@@ -25,11 +28,19 @@ export class GameService {
     private readonly gameRepo: Repository<Game>,
 
     /**
+     * Injecting overviewRepo
+     */
+    @InjectRepository(Overview)
+    private readonly overviewRepo: Repository<Overview>,
+
+    /**
      * Injecting GenreService
      */
     private readonly genreService: GenreService,
 
     private readonly configService: ConfigService,
+
+    private readonly aiProvider: AiProvider,
 
     @Inject(ServiceName.REVIEW)
     private readonly reviewClient: ClientProxy,
@@ -73,8 +84,11 @@ export class GameService {
         }),
       );
 
+      const overview = await this.getAiOverview(id);
+
       return new ApiResponse(true, 'Game Fetched Successfully', {
         ...game,
+        overview,
         rating,
       });
     } catch (error) {
@@ -163,6 +177,7 @@ export class GameService {
     console.log(game);
     return game;
   }
+
   // Get Popular Games
   public async getTopRatedGames() {
     try {
@@ -183,6 +198,71 @@ export class GameService {
       throw new RpcException({
         status: 500,
         message: 'Failed to fetch top rated games',
+      });
+    }
+  }
+
+  // Genereate AI Overview
+  public async generateAiOverview(gameId: number, review: Content | null) {
+    try {
+      const game = await this.gameRepo.findOne({ where: { id: gameId } });
+      if (!game) {
+        throw new RpcException({
+          status: 404,
+          message: 'Game not found',
+        });
+      }
+      const reviews = await firstValueFrom<Content[]>(
+        this.reviewClient.send(MessagePatterns.GET_REVIEWS_BY_GAMEID, {
+          gameId,
+        }),
+      );
+
+      const existingOverview = await this.overviewRepo.findOneBy({
+        game: { id: gameId },
+      });
+
+      let savedOverview: Overview;
+
+      const overview = await this.aiProvider.aiOverview(reviews, review);
+      if (existingOverview) {
+        existingOverview.overview = overview ?? existingOverview.overview;
+        savedOverview = await this.overviewRepo.save(existingOverview);
+      } else {
+        const newOverview = this.overviewRepo.create({ overview, game });
+        savedOverview = await this.overviewRepo.save(newOverview);
+      }
+
+      return new ApiResponse(true, 'Overview saved', savedOverview);
+    } catch (error) {
+      console.log(error);
+      throw new RpcException({
+        status: 500,
+        message: 'Failed to save',
+      });
+    }
+  }
+
+  // Get AI Overview
+  public async getAiOverview(gameId: number) {
+    try {
+      const game = await this.gameRepo.findOne({ where: { id: gameId } });
+      if (!game) {
+        throw new RpcException({
+          status: 404,
+          message: 'Game not found',
+        });
+      }
+      const overview = await this.overviewRepo.findOne({
+        where: { game: { id: gameId } },
+      });
+
+      return overview;
+    } catch (error) {
+      console.log(error);
+      throw new RpcException({
+        status: 500,
+        message: 'Failed to fetch',
       });
     }
   }
