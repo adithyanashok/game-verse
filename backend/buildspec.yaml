@@ -1,32 +1,44 @@
 version: 0.2
 
 phases:
-  pre_builds:
+  pre_build:
     commands:
+      - echo Logging into Amazon ECR...
+      - aws --version
       - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 167714011259.dkr.ecr.us-east-1.amazonaws.com
 
   build:
     commands:
+      - echo Entering backend directory
       - cd backend
-      - docker build -t user -f ./apps/user/Dockerfile .
+
+      - echo Building user service
+      - docker build -t user -f apps/user/Dockerfile .
       - docker tag user:latest 167714011259.dkr.ecr.us-east-1.amazonaws.com/user:latest
 
-      - docker build -t auth -f ./apps/auth/Dockerfile .
+      - echo Building auth service
+      - docker build -t auth -f apps/auth/Dockerfile .
       - docker tag auth:latest 167714011259.dkr.ecr.us-east-1.amazonaws.com/auth:latest
 
-      - docker build -t game -f ./apps/game/Dockerfile .
+      - echo Building game service
+      - docker build -t game -f apps/game/Dockerfile .
       - docker tag game:latest 167714011259.dkr.ecr.us-east-1.amazonaws.com/game:latest
 
-      - docker build -t review -f ./apps/review/Dockerfile .
+      - echo Building review service
+      - docker build -t review -f apps/review/Dockerfile .
       - docker tag review:latest 167714011259.dkr.ecr.us-east-1.amazonaws.com/review:latest
 
-      - docker build -t api-gateway -f ./apps/api-gateway/Dockerfile .
+      - echo Building api-gateway service
+      - docker build -t api-gateway -f apps/api-gateway/Dockerfile .
       - docker tag api-gateway:latest 167714011259.dkr.ecr.us-east-1.amazonaws.com/api-gateway:latest
 
   post_build:
     commands:
+      - echo Pushing images...
       - docker push 167714011259.dkr.ecr.us-east-1.amazonaws.com/user:latest
       - docker push 167714011259.dkr.ecr.us-east-1.amazonaws.com/auth:latest
       - docker push 167714011259.dkr.ecr.us-east-1.amazonaws.com/game:latest
       - docker push 167714011259.dkr.ecr.us-east-1.amazonaws.com/review:latest
       - docker push 167714011259.dkr.ecr.us-east-1.amazonaws.com/api-gateway:latest
+
+      - echo Build and upload complete.
