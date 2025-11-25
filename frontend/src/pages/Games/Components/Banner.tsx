@@ -1,4 +1,3 @@
-import React from "react";
 import Button from "../../../components/common/Button";
 import type { Game } from "../../../features/games/types";
 import { useNavigate } from "react-router";

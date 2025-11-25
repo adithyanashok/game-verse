@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import CustomCard from "../../../components/common/ScrollableRow";
 import { dummy } from "../../../data";
 import type { AppDispatch, RootState } from "../../../store";
@@ -11,8 +11,8 @@ const TopReviewers = () => {
 
   // Select data from the store
   const reviewers = useSelector((state: RootState) => state.user.topReviewers);
-  const loading = useSelector((state: RootState) => state.user.loading);
-  const error = useSelector((state: RootState) => state.user.error);
+  // const loading = useSelector((state: RootState) => state.user.loading);
+  // const error = useSelector((state: RootState) => state.user.error);
 
   useEffect(() => {
     dispatch(getTopReviewers());

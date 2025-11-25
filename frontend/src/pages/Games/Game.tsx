@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import ResponsiveNavbar from "../../components/common/Navbar/ResponsiveNavbar";
 import Banner from "./Components/Banner";
 import GameReview from "./Components/Review";
@@ -11,9 +11,7 @@ import { getByGameId } from "../../features/reviews/reviewsSlice";
 const Game = () => {
   const dispatch = useAppDispatch();
   const { id } = useParams();
-  const { currentGame, errors, loading } = useAppSelector(
-    (state: RootState) => state.game
-  );
+  const { currentGame } = useAppSelector((state: RootState) => state.game);
   const { reviews } = useAppSelector((state: RootState) => state.reviews);
   useEffect(() => {
     if (id) {

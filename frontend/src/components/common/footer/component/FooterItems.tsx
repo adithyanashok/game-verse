@@ -1,4 +1,3 @@
-import React from "react";
 type Props = {
   items: string[];
   title: string;

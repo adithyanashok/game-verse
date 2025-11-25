@@ -167,7 +167,9 @@ const Review = () => {
             {/* Comments */}
             <section className="px-5 md:px-10">
               <CommentsSection
-                onEditComment={(commentId, updatedText) => {}}
+                onEditComment={(commentId, updatedText) => {
+                  console.log(commentId, updatedText);
+                }}
                 comments={comments}
                 loading={loading.fetchComments}
                 error={errors.fetchComments}

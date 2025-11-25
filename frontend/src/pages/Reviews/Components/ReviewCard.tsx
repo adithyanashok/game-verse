@@ -1,14 +1,7 @@
-import { useState } from "react";
 import { useNavigate } from "react-router";
 import { AiFillStar } from "react-icons/ai";
-import { BiBasket, BiEdit } from "react-icons/bi";
 
 import type { ReviewSummary } from "../../../features/reviews/types";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import type { RootState } from "../../../store";
-import { deleteReview } from "../../../features/reviews/reviewsSlice";
-import DeleteConfirmModal from "../../../components/common/DeletePopup";
-import { toast } from "react-toastify";
 
 interface ReviewCardProps {
   review: ReviewSummary;

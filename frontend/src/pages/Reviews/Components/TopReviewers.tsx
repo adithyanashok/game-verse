@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getTopReviewers } from "../../../features/user/userSlice";
 import type { AppDispatch, RootState } from "../../../store";
@@ -9,8 +9,8 @@ const TopReviewers = () => {
 
   // Select data from the store
   const reviewers = useSelector((state: RootState) => state.user.topReviewers);
-  const loading = useSelector((state: RootState) => state.user.loading);
-  const error = useSelector((state: RootState) => state.user.error);
+  // const loading = useSelector((state: RootState) => state.user.loading);
+  // const error = useSelector((state: RootState) => state.user.error);
 
   useEffect(() => {
     dispatch(getTopReviewers());
@@ -38,7 +38,7 @@ const TopReviewers = () => {
                   {review.name}
                 </p>{" "}
                 <p className="text-purple text-[14px]">
-                  {review.followerCount} Followers
+                  {review.followersCount} Followers
                 </p>{" "}
               </div>{" "}
             </div>

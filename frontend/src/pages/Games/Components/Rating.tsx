@@ -1,5 +1,5 @@
 import { Rating } from "@mui/material";
-import React from "react";
+
 import { useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 

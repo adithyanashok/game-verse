@@ -3,7 +3,7 @@ export interface UserProfile {
   name: string;
   email: string;
   bio: string;
-  followerCount: number;
+  followersCount: number;
   followingCount: number;
   isFollowing: boolean;
 }

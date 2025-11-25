@@ -1,5 +1,3 @@
-import React from "react";
-
 const NewsLetter = () => {
   return (
     <div className="p-5 md:p-10">

@@ -127,7 +127,7 @@ const ProfilePage = () => {
               </p>
               <div className="flex items-center gap-2 mt-3 text-gray-400 text-sm">
                 <span className="font-semibold text-white">
-                  {profile.followerCount}
+                  {profile.followersCount}
                 </span>{" "}
                 followers ·{" "}
                 <span className="font-semibold text-white">

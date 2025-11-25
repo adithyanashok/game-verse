@@ -1,4 +1,3 @@
-import React from "react";
 import { dummy } from "../../../data";
 
 const Comment = () => {

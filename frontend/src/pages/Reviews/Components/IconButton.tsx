@@ -1,5 +1,4 @@
-import React, { type ReactNode } from "react";
-import { HiThumbUp } from "react-icons/hi";
+import { type ReactNode } from "react";
 type Props = {
   text: string;
   icon: ReactNode;

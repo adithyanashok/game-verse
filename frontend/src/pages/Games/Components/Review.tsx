@@ -1,4 +1,3 @@
-import React from "react";
 import { dummy } from "../../../data";
 import { Rating } from "@mui/material";
 import { HiThumbUp } from "react-icons/hi";

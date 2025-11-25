@@ -1,4 +1,3 @@
-import React from "react";
 import type { AnalyticsOverview } from "../../../features/reviews/types";
 import { BiLike } from "react-icons/bi";
 import { IoEyeOutline } from "react-icons/io5";
