@@ -1,5 +1,4 @@
-# -------- Builder Stage --------
-FROM node:20 AS builder
+FROM public.ecr.aws/docker/library/node:20 AS builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -12,8 +11,7 @@ COPY libs ./libs
 RUN npm install
 RUN npm run build --project game
 
-# -------- Runtime Stage --------
-FROM node:20
+FROM public.ecr.aws/docker/library/node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./

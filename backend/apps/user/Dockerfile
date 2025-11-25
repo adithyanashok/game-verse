@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM public.ecr.aws/docker/library/node:18-alpine AS builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -11,7 +11,7 @@ COPY libs ./libs
 RUN npm install
 RUN npm run build --project user
 
-FROM node:18-alpine
+FROM public.ecr.aws/docker/library/node:18-alpine
 WORKDIR /app
 
 COPY package*.json ./
