@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  api-gateway:
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    ports:
+      - "4005:4000"
+  auth:
+    build:
+      context: .
+      dockerfile: apps/auth/Dockerfile
+    env_file: apps/auth/.env
+    ports:
+      - "4004:4000"
+
+  game:
+    build:
+      context: .
+      dockerfile: apps/game/Dockerfile
+    env_file: apps/game/.env
+    ports:
+      - "4003:4000"
+    depends_on:
+      - game-mysql
+
+  game-mysql:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: game_verse_gamedb
+    
+
+  review:
+    build:
+      context: .
+      dockerfile: apps/review/Dockerfile
+    env_file: apps/review/.env
+    ports:
+      - "4002:4000"
+    depends_on:
+      - review-mysql
+
+  review-mysql:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: game_verse_reviewdb
+    
+
+  user:
+    build:
+      context: .
+      dockerfile: apps/user/Dockerfile
+    env_file:
+      - apps/user/.env
+    ports:
+      - "4001:4000"
+    depends_on:
+      - user-postgres
+
+  user-postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: userdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - user_pg_data:/var/lib/postgresql/data
+
+volumes:
+  user_pg_data:
