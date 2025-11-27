@@ -1,4 +1,4 @@
-FROM public.ecr.aws/docker/library/node:20 AS builder
+FROM node:20 AS builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -11,7 +11,7 @@ COPY libs ./libs
 RUN npm install
 RUN npm run build --project game
 
-FROM public.ecr.aws/docker/library/node:20-alpine
+FROM node:20-alpine
 WORKDIR /app
 
 COPY package*.json ./
