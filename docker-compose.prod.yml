@@ -1,66 +1,94 @@
-version: '3.8'
+version: "3.8"
 
-# This file is used on the EC2 server to run all microservices
 services:
-  # 1. PUBLIC ENTRY POINT (API Gateway)
+  # ---------------------- API Gateway ----------------------
   api-gateway:
-    # IMPORTANT: The image name must match what your CI/CD pushes to Docker Hub
     image: ${DOCKER_USER}/backend-api-gateway:latest
     container_name: api-gateway
-    # Exposes port 80 on the EC2 host, directing traffic to container port 3000
+    restart: always
     ports:
       - "80:3000"
-    # Links to the internal network
     networks:
       - game-net
     environment:
-      - AUTH_SERVICE_URL=http://auth:3000
-      - GAME_SERVICE_URL=http://game:3000
-    depends_on:
-      - auth
-      - game
-      - review
-      - user
+      AUTH_SERVICE_URL=http://auth:3000
+      GAME_SERVICE_URL=http://game:3000
+      REVIEW_SERVICE_URL=http://review:3000
+      USER_SERVICE_URL=http://user:3000
 
-  # 2. INTERNAL SERVICES (Only accessible via the game-net network)
+  # ---------------------- Auth Service ----------------------
   auth:
     image: ${DOCKER_USER}/backend-auth:latest
     container_name: auth
+    restart: always
     networks:
       - game-net
     env_file:
       - ./auth/.env
+
+  # ---------------------- Game Service ----------------------
   game:
     image: ${DOCKER_USER}/backend-game:latest
     container_name: game
+    restart: always
     networks:
       - game-net
     env_file:
       - ./game/.env
-    environment:
-      - NODE_ENV=production
-      
+
+  # ---------------------- Review Service (MySQL) ----------------------
   review:
     image: ${DOCKER_USER}/backend-review:latest
     container_name: review
-    env_file:
-      - ./review/.env
+    restart: always
     networks:
       - game-net
-    environment:
-      - NODE_ENV=production
-      
+    env_file:
+      - ./review/.env
+
+  # ---------------------- User Service (Postgres) ----------------------
   user:
     image: ${DOCKER_USER}/backend-user:latest
     container_name: user
-    env_file:
-      - ./user/.env
+    restart: always
     networks:
       - game-net
-    environment:
-      - NODE_ENV=production
+    env_file:
+      - ./user/.env
 
-# Define the shared network
+  # ---------------------- MySQL ----------------------
+  mysql:
+    image: mysql:8
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: gamedb
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - game-net
+
+  # ---------------------- PostgreSQL ----------------------
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER=postgres
+      POSTGRES_PASSWORD=postgres
+      POSTGRES_DB=userdb
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - game-net
+
+# ---------------------- Shared Network ----------------------
 networks:
   game-net:
     driver: bridge
+
+# ---------------------- Persistent Volumes ----------------------
+volumes:
+  mysql_data:
+  postgres_data:
