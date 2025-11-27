@@ -8,6 +8,7 @@ on:
       - "backend/apps/game/Dockerfile"
       - "backend/libs/**"
       - "docker-compose.prod.yml"
+      - ".github/workflows/deploy-game.yml"
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/backend-game

@@ -8,6 +8,7 @@ on:
       - "backend/apps/api-gateway/Dockerfile"
       - "backend/libs/**"
       - "docker-compose.prod.yml"
+      - ".github/workflows/deploy-api-gateway.yml"
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/backend-api-gateway

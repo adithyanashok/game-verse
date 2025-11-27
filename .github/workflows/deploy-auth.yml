@@ -8,6 +8,7 @@ on:
       - "backend/apps/auth/Dockerfile"
       - "backend/libs/**"
       - "docker-compose.prod.yml"
+      - ".github/workflows/deploy-auth.yml"
 
 env:
   DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/backend-auth
