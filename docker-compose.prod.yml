@@ -28,18 +28,23 @@ services:
     container_name: auth
     networks:
       - game-net
-      
+    env_file:
+      - ./auth/.env
   game:
     image: ${DOCKER_USER}/backend-game:latest
     container_name: game
     networks:
       - game-net
+    env_file:
+      - ./game/.env
     environment:
       - NODE_ENV=production
       
   review:
     image: ${DOCKER_USER}/backend-review:latest
     container_name: review
+    env_file:
+      - ./review/.env
     networks:
       - game-net
     environment:
@@ -48,6 +53,8 @@ services:
   user:
     image: ${DOCKER_USER}/backend-user:latest
     container_name: user
+    env_file:
+      - ./user/.env
     networks:
       - game-net
     environment:
