@@ -1,4 +1,4 @@
-name: Deploy Auth (EC2)
+name: Deploy Review (EC2)
 
 on:
   push:
@@ -64,10 +64,10 @@ jobs:
             export DOCKER_USER=$DOCKER_USER
 
             # Pull the new image
-            docker compose -f docker-compose.prod.yml pull auth
+            docker compose -f docker-compose.prod.yml pull review
 
-            # Restart only the auth service
-            docker compose -f docker-compose.prod.yml up -d --no-deps auth
+            # Restart only the review service
+            docker compose -f docker-compose.prod.yml up -d --no-deps review
 
             # Cleanup
             docker image prune -f
