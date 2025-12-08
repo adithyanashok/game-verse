@@ -26,9 +26,14 @@ export class UserService {
       }
 
       const salt = await bcrypt.genSalt(10);
-
-      const hashed = await bcrypt.hash(dto.password, salt);
-      const user = { ...dto, password: hashed };
+      let hashed: string;
+      let user: CreateUserDto;
+      if (dto.password) {
+        hashed = await bcrypt.hash(dto.password, salt);
+        user = { ...dto, password: hashed };
+      } else {
+        user = { ...dto };
+      }
 
       const newUser = this.userRepository.create(user);
 
@@ -230,6 +235,16 @@ export class UserService {
     } catch (error) {
       console.log(error);
       throw new RpcException(error);
+    }
+  }
+
+  public async findOneByGoogleId(googleId: string) {
+    try {
+      const user = await this.userRepository.findOneBy({ googleId });
+      return user;
+    } catch (error) {
+      console.log(error);
+      throw error;
     }
   }
 }

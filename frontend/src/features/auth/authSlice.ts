@@ -78,6 +78,10 @@ export interface SignupPayload {
   password: string;
 }
 
+export interface GoogleAuthPayload {
+  token: string | undefined;
+}
+
 const loginUserPayloadCreator: AsyncThunkPayloadCreator<
   AuthSuccessPayload,
   LoginPayload,
@@ -149,6 +153,29 @@ const refreshTokensPayloadCreator: AsyncThunkPayloadCreator<
   }
 };
 
+const googleAuthPayloadCreator: AsyncThunkPayloadCreator<
+  AuthSuccessPayload,
+  GoogleAuthPayload,
+  { rejectValue: string }
+> = async (payload, thunkApi) => {
+  try {
+    const response = await apiClient.post<ApiResponse<AuthSuccessPayload>>(
+      "/auth/google-auth",
+      payload
+    );
+
+    if (!response.data.status) {
+      return thunkApi.rejectWithValue(response.data.message ?? "Login failed");
+    }
+
+    return response.data.data;
+  } catch (error: unknown) {
+    return thunkApi.rejectWithValue(
+      extractErrorMessage(error, "Unable to login at this time")
+    );
+  }
+};
+
 export const loginUser = createAsyncThunk<
   AuthSuccessPayload,
   LoginPayload,
@@ -166,6 +193,12 @@ export const refreshTokens = createAsyncThunk<
   { refreshToken: string },
   { rejectValue: string }
 >("auth/refresh", refreshTokensPayloadCreator);
+
+export const googleAuth = createAsyncThunk<
+  AuthSuccessPayload,
+  GoogleAuthPayload,
+  { rejectValue: string }
+>("auth/google-auth", googleAuthPayloadCreator);
 
 const authSlice = createSlice({
   name: "auth",
@@ -250,6 +283,28 @@ const authSlice = createSlice({
         (state: AuthState, action: PayloadAction<string | undefined>) => {
           state.loading = false;
           state.error = action.payload ?? "Unable to refresh session";
+        }
+      )
+      .addCase(googleAuth.pending, (state: AuthState) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        googleAuth.fulfilled,
+        (state: AuthState, action: PayloadAction<AuthSuccessPayload>) => {
+          state.loading = false;
+          state.error = null;
+          state.user = action.payload.user;
+          state.accessToken = action.payload.accessToken;
+          state.refreshToken = action.payload.refreshToken;
+          syncPersistedAuth(state);
+        }
+      )
+      .addCase(
+        googleAuth.rejected,
+        (state: AuthState, action: PayloadAction<string | undefined>) => {
+          state.loading = false;
+          state.error = action.payload ?? "Unable to login at this time";
         }
       );
   },

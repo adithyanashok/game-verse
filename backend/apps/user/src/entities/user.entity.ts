@@ -20,15 +20,18 @@ export class User {
   @Column({ length: 296, nullable: false })
   name: string;
 
-  @Column({ length: 496, nullable: false })
-  bio: string;
+  @Column({ length: 496, nullable: true })
+  bio?: string;
 
   @Column({ length: 296, nullable: false, unique: true })
   email: string;
 
   @Exclude()
-  @Column()
+  @Column({ type: 'varchar', nullable: true })
   password?: string;
+
+  @Column({ type: 'varchar', nullable: true })
+  googleId?: string;
 
   @Column({
     type: 'enum',

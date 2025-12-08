@@ -12,28 +12,86 @@ import LoginPage from "./pages/Auth/LoginPage";
 import SignupPage from "./pages/Auth/SignupPage";
 import ReviewFormScreen from "./pages/Reviews/ReviewFormScreen";
 import { ToastContainer } from "react-toastify";
+import ProtectedRoute from "./utils/ProtectedRoute";
 
 function App() {
   const router = createBrowserRouter([
     { path: "/", element: <HomePage /> },
-    { path: "/reviews", element: <ReviewsPage /> },
-    { path: "/review/:id", element: <Review /> },
-    { path: "/games", element: <GamesPage /> },
-    { path: "/games/:id", element: <Game /> },
-    { path: "/dashboard", element: <UserDashboard /> },
-    { path: "/profile", element: <ProfilePage /> },
-    { path: "/profile/:userId", element: <ProfilePage /> },
+
+    {
+      path: "/dashboard",
+      element: (
+        <ProtectedRoute>
+          <UserDashboard />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/reviews",
+      element: (
+        <ProtectedRoute>
+          <ReviewsPage />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/review/:id",
+      element: (
+        <ProtectedRoute>
+          <Review />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/games",
+      element: (
+        <ProtectedRoute>
+          <GamesPage />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/games/:id",
+      element: (
+        <ProtectedRoute>
+          <Game />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/profile",
+      element: (
+        <ProtectedRoute>
+          <ProfilePage />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/write-review/:id",
+      element: (
+        <ProtectedRoute>
+          <ReviewFormScreen mode="create" />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/edit-review/:id",
+      element: (
+        <ProtectedRoute>
+          <ReviewFormScreen mode="edit" />
+        </ProtectedRoute>
+      ),
+    },
+
+    // Public Auth Routes
     { path: "/login", element: <LoginPage /> },
     { path: "/signup", element: <SignupPage /> },
-    { path: "/write-review/:id", element: <ReviewFormScreen mode="create" /> },
-    { path: "/edit-review/:id", element: <ReviewFormScreen mode="edit" /> },
   ]);
 
   return (
     <>
       <RouterProvider router={router} />
       <ToastContainer hideProgressBar theme="dark" />
-
       <Footer />
     </>
   );

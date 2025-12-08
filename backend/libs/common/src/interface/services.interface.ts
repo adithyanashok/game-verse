@@ -11,6 +11,7 @@ export enum MessagePatterns {
   AUTH_SIGNIN = 'auth.signin',
   AUTH_VALIDATE = 'auth.validate',
   AUTH_REFRESH = 'auth.refresh',
+  GOOGLE_AUTH = 'auth.google',
   // User
   USER_CREATE = 'user.create',
   USER_FIND_BY_ID = 'user.findById',
@@ -20,6 +21,7 @@ export enum MessagePatterns {
   USER_FOLLOW = 'user.follow',
   USER_UNFOLLOW = 'user.unfollow',
   GET_TOP_REVIEWERS = 'user.top.reviewers',
+  USER_FIND_BY_GOOGLE_ID = 'user.findByGoogleId',
   // Game
   GAME_CREATE = 'game.create',
   GAME_UPDATE = 'game.update',

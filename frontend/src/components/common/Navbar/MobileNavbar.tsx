@@ -1,10 +1,19 @@
 import React, { useState } from "react";
 import { MdDehaze } from "react-icons/md";
 import controller from "../../../assets/images/controller.png";
+import { Link, useLocation } from "react-router";
+import { useAppSelector } from "../../../store/hooks";
+import type { RootState } from "../../../store";
+import { dummy } from "../../../data";
+import UserDropdown from "./DropDown";
 
 const navLinks = ["Home", "Reviews", "Games", "Community"];
 
 const MobileNavbar: React.FC = () => {
+  const location = useLocation();
+  const activePath = location.pathname;
+
+  const { accessToken } = useAppSelector((state: RootState) => state.auth);
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
@@ -23,15 +32,23 @@ const MobileNavbar: React.FC = () => {
         </button>
         {/* Logo */}
         <div className="flex items-center gap-2">
-          <img className="w-[35px]" src={controller} alt="GameVerse logo" />
-          <h1 className="font-bold text-[16px]">GameVerse</h1>
+          <img className="w-[38px]" src={controller} alt="GameVerse logo" />
+          <h1 className="font-bold hidden sm:block md:text-[15px] text-[18px]">
+            GameVerse
+          </h1>
         </div>
+
+        {accessToken && (
+          <UserDropdown userImage={dummy[0].image} userName="Adithyan" />
+        )}
         {/* Login Button */}
-        <div className="primary border-2 border-white px-3 py-1 rounded-full">
-          <p className="text-center text-white font-semibold text-[12px]">
-            Login
-          </p>
-        </div>
+        {!accessToken && (
+          <div className="primary border-2 border-white px-3 py-1 rounded-full">
+            <p className="text-center text-white font-semibold text-[12px]">
+              Login
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Dropdown Menu */}

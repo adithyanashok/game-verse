@@ -11,6 +11,8 @@ import { LocalAuthGuard } from './guards/local-auth.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { ConfigModule } from '@nestjs/config';
 import jwtConfig from './config/jwt.config';
+import { GoogleAuthController } from './google-auth.controller';
+import { GoogleAuthService } from './google-auth.service';
 const ENV = process.env.NODE_ENV;
 
 @Module({
@@ -34,13 +36,14 @@ const ENV = process.env.NODE_ENV;
       },
     ]),
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, GoogleAuthController],
   providers: [
     AuthService,
     LocalStrategy,
     JwtStrategy,
     LocalAuthGuard,
     JwtAuthGuard,
+    GoogleAuthService,
   ],
   exports: [AuthService, JwtAuthGuard, LocalAuthGuard],
 })

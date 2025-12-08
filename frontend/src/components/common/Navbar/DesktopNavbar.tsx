@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router";
 import { useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import { dummy } from "../../../data";
+import UserDropdown from "./DropDown";
 
 function DesktopNavbar() {
   const location = useLocation();
@@ -42,23 +43,7 @@ function DesktopNavbar() {
           </ul>
         </div>
         {accessToken && (
-          <Link
-            to={"/profile"}
-            className="bg-dark-purple px-2 py-1 rounded-full mr-3"
-          >
-            <div className="flex items-center justify-between gap-3">
-              <div className="w-10 h-10">
-                <img
-                  src={dummy[0].image}
-                  alt={"User"}
-                  className="w-full h-full object-cover rounded-full"
-                />
-              </div>
-              <p className="text-center text-purple font-semibold text-[14px]">
-                {"Adithyan"}
-              </p>
-            </div>
-          </Link>
+          <UserDropdown userImage={dummy[0].image} userName="Adithyan" />
         )}
         {!accessToken && (
           <div className="hidden lg:flex  gap-x-2 mr-3">

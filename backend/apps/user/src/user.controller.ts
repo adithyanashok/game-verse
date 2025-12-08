@@ -69,4 +69,9 @@ export class UserController {
     console.log('getTopReviewers');
     return this.userService.getTopReviewers();
   }
+
+  @MessagePattern(MessagePatterns.USER_FIND_BY_GOOGLE_ID)
+  public getUserByGoogleId(@Payload() googleId: string) {
+    return this.userService.findOneByGoogleId(googleId);
+  }
 }

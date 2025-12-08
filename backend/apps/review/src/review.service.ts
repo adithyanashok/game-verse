@@ -147,6 +147,7 @@ export class ReviewService {
   }
 
   public async likeReview(reviewId: number, userId: number) {
+    console.log(reviewId, userId);
     try {
       const review = await this.repo.findOne({
         where: { id: reviewId },
@@ -174,7 +175,11 @@ export class ReviewService {
         });
       }
 
-      const newLike = this.likeRepo.create({ reviewId, userId });
+      const newLike = this.likeRepo.create({
+        reviewId,
+        userId,
+        reviewOwnerId: review.userId,
+      });
       review.likeCount = review.likeCount + 1;
 
       const like = await this.likeRepo.save(newLike);

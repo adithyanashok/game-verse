@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
-import { loginUser } from "../../features/auth/authSlice";
+import { googleAuth, loginUser } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import type { RootState } from "../../store";
+import { GoogleLogin } from "@react-oauth/google";
 
 export default function LoginPage() {
   const dispatch = useAppDispatch();
@@ -28,12 +29,8 @@ export default function LoginPage() {
     if (loginUser.fulfilled.match(resultAction)) {
       setEmail("");
       setPassword("");
-      navigate("/dashboard", { replace: true });
+      navigate("/profile", { replace: true });
     }
-  };
-
-  const handleGoogleLogin = () => {
-    console.log("Google login clicked");
   };
 
   return (
@@ -48,7 +45,6 @@ export default function LoginPage() {
             Log in to your GameVerse account
           </p>
         </div>
-
         {/* Login Form */}
         <form onSubmit={handleSubmit} className="space-y-0 mb-6">
           {/* Email Input */}
@@ -97,13 +93,11 @@ export default function LoginPage() {
             {loading ? "Logging In..." : "Log In"}
           </button>
         </form>
-
         {error && (
           <div className="mt-4 rounded-md border border-red-500 bg-red-500/10 px-4 py-3 text-sm text-red-200">
             {error}
           </div>
         )}
-
         {/* Divider */}
         <div className="relative my-8">
           <div className="absolute inset-0 flex items-center">
@@ -115,22 +109,24 @@ export default function LoginPage() {
             </span>
           </div>
         </div>
-
         {/* Google Login Button */}
-        <button
-          onClick={handleGoogleLogin}
-          className="w-full bg-dark hover:bg-[#342847] text-white font-medium py-4 rounded-lg border border-[#3d2f5a] transition-colors duration-200 flex items-center justify-center gap-3"
-        >
-          <svg className="w-5 h-5" viewBox="0 0 24 24">
-            <path
-              fill="currentColor"
-              d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"
-            />
-          </svg>
-          Continue with Google
-        </button>
-
-        {/* Sign Up Link */}
+        <div className="flex items-center justify-center gap-3">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              console.log(credentialResponse);
+              const resultAction = await dispatch(
+                googleAuth({ token: credentialResponse.credential })
+              );
+              if (googleAuth.fulfilled.match(resultAction)) {
+                navigate("/profile", { replace: true });
+              }
+            }}
+            onError={() => {
+              console.log("Login Failed");
+            }}
+          />
+        </div>
+        ;{/* Sign Up Link */}
         <div className="text-center mt-8">
           <span className="text-gray-400">Don't have an account? </span>
           <Link

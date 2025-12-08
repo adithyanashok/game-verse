@@ -9,6 +9,7 @@ import {
 import { ClientProxy } from '@nestjs/microservices';
 import {
   CreateUserDto,
+  GoogleTokenDto,
   LoginUserDto,
   MessagePatterns,
   ServiceName,
@@ -72,6 +73,26 @@ export class AuthController {
     try {
       return await firstValueFrom(
         this.authClient.send(MessagePatterns.AUTH_REFRESH, body),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.UNAUTHORIZED);
+    }
+  }
+
+  /**
+   * Google Auth
+   */
+  @Public()
+  @ApiOperation({
+    summary: 'Api for Google Auth',
+  })
+  @Post('google-auth')
+  public async googleAuth(
+    @Body() googleTokenDto: GoogleTokenDto,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.authClient.send(MessagePatterns.GOOGLE_AUTH, googleTokenDto),
       );
     } catch (error) {
       throw new HttpException(error, HttpStatus.UNAUTHORIZED);

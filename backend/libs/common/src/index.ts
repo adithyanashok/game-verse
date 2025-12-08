@@ -22,3 +22,4 @@ export * from './dto/review/get-by-id.dto';
 export * from './enums/analytics_range.enum';
 export * from './dto/review/get-review-analytics';
 export * from './dto/review/get-analytics-overview.dto';
+export * from './dto/user/google-user.dto';
