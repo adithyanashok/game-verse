@@ -79,7 +79,7 @@ async function bootstrap() {
   //   next();
   // });
 
-  app.setGlobalPrefix('api');
+  // app.setGlobalPrefix('api');
 
   await app.listen(3000, '0.0.0.0');
 }
