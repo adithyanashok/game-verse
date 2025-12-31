@@ -15,7 +15,7 @@ async function bootstrap() {
     .setDescription('Gateway API documentation')
     .setVersion('1.0')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' })
-    // .addServer('/api')
+    .addServer('/api')
     .addTag('gateway')
     .build();
 
@@ -79,7 +79,7 @@ async function bootstrap() {
   //   next();
   // });
 
-  // app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api');
 
   await app.listen(3000, '0.0.0.0');
 }
