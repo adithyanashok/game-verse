@@ -15,7 +15,7 @@ async function bootstrap() {
     .setDescription('Gateway API documentation')
     .setVersion('1.0')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' })
-    .addServer('/api')
+    // .addServer('/api')
     .addTag('gateway')
     .build();
 
