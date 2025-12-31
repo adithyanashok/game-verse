@@ -1,19 +1,4 @@
 services:
-  caddy:
-    image: caddy:2
-    container_name: caddy
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile
-      - caddy_data:/data
-      - caddy_config:/config
-    depends_on:
-      - frontend
-      - api-gateway
-
   # ---------------------- Frontend ----------------------
   frontend:
     build:
@@ -21,7 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: gv-frontend
     ports:
-      - "80"
+      - "5173:5173"
     networks:
       - game-net
     depends_on:
@@ -141,5 +126,3 @@ networks:
 volumes:
   gv_mysql_data:
   gv_postgres_data:
-  caddy_data:
-  caddy_config:
