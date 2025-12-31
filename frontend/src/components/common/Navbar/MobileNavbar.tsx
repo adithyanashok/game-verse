@@ -29,9 +29,9 @@ const MobileNavbar: React.FC = () => {
         {/* Logo */}
         <Link to={"/"}>
           <div className="flex items-center gap-2">
-            <img className="w-[38px]" src={controller} alt="GameVerse logo" />
+            <img className="w-[38px]" src={controller} alt="GameVera logo" />
             <h1 className="font-bold hidden sm:block md:text-[15px] text-[18px]">
-              GameVerse
+              GameVera
             </h1>
           </div>
         </Link>

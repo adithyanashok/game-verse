@@ -1,9 +1,7 @@
-version: "3.8"
-
 services:
   # ---------------------- Frontend ----------------------
   frontend:
-    image: ${DOCKER_USER}/frontend:latest
+    image: adithyan1983/frontend
     container_name: frontend
     restart: always
     ports:
@@ -15,7 +13,7 @@ services:
 
   # ---------------------- API Gateway ----------------------
   api-gateway:
-    image: ${DOCKER_USER}/backend-api-gateway:latest
+    image: adithyan1983/backend-api-gateway
     container_name: api-gateway
     restart: always
     expose:
@@ -37,7 +35,7 @@ services:
 
   # ---------------------- Auth Service ----------------------
   auth:
-    image: ${DOCKER_USER}/backend-auth:latest
+    image: adithyan1983/backend-auth
     container_name: auth
     restart: always
     networks:
@@ -47,7 +45,7 @@ services:
 
   # ---------------------- Game Service ----------------------
   game:
-    image: ${DOCKER_USER}/backend-game:latest
+    image: adithyan1983/backend-game
     container_name: game
     restart: always
     networks:
@@ -57,7 +55,7 @@ services:
 
   # ---------------------- Review Service (MySQL) ----------------------
   review:
-    image: ${DOCKER_USER}/backend-review:latest
+    image: adithyan1983/backend-review
     container_name: review
     restart: always
     networks:
@@ -69,7 +67,7 @@ services:
 
   # ---------------------- User Service (Postgres) ----------------------
   user:
-    image: ${DOCKER_USER}/backend-user:latest
+    image: adithyan1983/backend-user
     container_name: user
     restart: always
     networks:
@@ -81,7 +79,7 @@ services:
 
   # ---------------------- Discussion Service ----------------------
   discussion:
-    image: ${DOCKER_USER}/backend-discussion:latest
+    image: adithyan1983/backend-discussion
     container_name: discussion
     restart: always
     networks:
@@ -91,7 +89,7 @@ services:
 
   # ---------------------- MySQL ----------------------
   mysql:
-    image: mysql:8
+    image: mysql
     container_name: mysql
     restart: always
     environment:
@@ -104,7 +102,7 @@ services:
 
   # ---------------------- PostgreSQL ----------------------
   postgres:
-    image: postgres:15
+    image: postgres
     container_name: postgres
     restart: always
     environment:

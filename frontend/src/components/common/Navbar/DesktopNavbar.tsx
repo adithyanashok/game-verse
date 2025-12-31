@@ -16,7 +16,7 @@ function DesktopNavbar() {
         <Link to={"/"}>
           <div className="flex items-center">
             <img src={controller} alt="Logo" width={80} height={60} />
-            <h1 className="font-bold md:text-[22px] text-[18px]">GameVerse</h1>
+            <h1 className="font-bold md:text-[22px] text-[18px]">GameVera</h1>
           </div>
         </Link>
         <div className="lg:block hidden">
