@@ -1,33 +1,40 @@
+const getHost = (envVar: string, productionFallback: string) => {
+  return (
+    process.env[envVar] ||
+    (process.env.NODE_ENV === 'production' ? productionFallback : 'localhost')
+  );
+};
+
 export const MICROSERVICE_CONFIG = {
-  GAME_SERVICE: {
-    host:
-      process.env.GAME_HOST ||
-      (process.env.NODE_ENV === 'production' ? 'game' : 'localhost'),
-    port: 4000,
+  get GAME_SERVICE() {
+    return {
+      host: getHost('GAME_HOST', 'game'),
+      port: 4000,
+    };
   },
-  REVIEW_SERVICE: {
-    host:
-      process.env.REVIEW_HOST ||
-      (process.env.NODE_ENV === 'production' ? 'review' : 'localhost'),
-    port: 5000,
+  get REVIEW_SERVICE() {
+    return {
+      host: getHost('REVIEW_HOST', 'review'),
+      port: 5000,
+    };
   },
-  AUTH_SERVICE: {
-    host:
-      process.env.AUTH_HOST ||
-      (process.env.NODE_ENV === 'production' ? 'auth' : 'localhost'),
-    port: 6000,
+  get AUTH_SERVICE() {
+    return {
+      host: getHost('AUTH_HOST', 'auth'),
+      port: 6000,
+    };
   },
-  USER_SERVICE: {
-    host:
-      process.env.USER_HOST ||
-      (process.env.NODE_ENV === 'production' ? 'user' : 'localhost'),
-    port: 7000,
+  get USER_SERVICE() {
+    return {
+      host: getHost('USER_HOST', 'user'),
+      port: 7000,
+    };
   },
-  DISCUSSION_SERVICE: {
-    host:
-      process.env.DISCUSSION_HOST ||
-      (process.env.NODE_ENV === 'production' ? 'discussion' : 'localhost'),
-    port: 8000,
+  get DISCUSSION_SERVICE() {
+    return {
+      host: getHost('DISCUSSION_HOST', 'discussion'),
+      port: 8000,
+    };
   },
   API_GATEWAY: {
     port: 3000,
