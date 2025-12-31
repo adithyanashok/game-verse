@@ -1,11 +1,25 @@
 services:
+  caddy:
+    image: caddy:2
+    container_name: caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - frontend
+      - api-gateway
   # ---------------------- Frontend ----------------------
   frontend:
     image: adithyan1983/frontend
     container_name: frontend
     restart: always
     ports:
-      - "80:80"
+      - "80"
     networks:
       - game-net
     depends_on:
@@ -123,3 +137,5 @@ networks:
 volumes:
   mysql_data:
   postgres_data:
+  caddy_data:
+  caddy_config:

@@ -156,6 +156,7 @@ export class ReviewService {
     }
   }
 
+  // Like review
   public async likeReview(reviewId: number, userId: number) {
     try {
       const alreadyLiked = await this.likeRepo.findOne({
