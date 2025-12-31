@@ -23,6 +23,7 @@ services:
     networks:
       - game-net
     environment:
+      - NODE_ENV=production
       - GAME_HOST=game
       - REVIEW_HOST=review
       - AUTH_HOST=auth

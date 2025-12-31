@@ -6,8 +6,16 @@ import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import csurf from 'csurf';
 import { Request, Response, NextFunction } from 'express';
+import { MICROSERVICE_CONFIG } from 'libs/common/src';
 
 async function bootstrap() {
+  console.log('Starting API Gateway...');
+  console.log('Environment REVIEW_HOST:', process.env.REVIEW_HOST);
+  console.log(
+    'Microservice Config:',
+    JSON.stringify(MICROSERVICE_CONFIG, null, 2),
+  );
+
   const app = await NestFactory.create(ApiGatewayModule);
 
   const config = new DocumentBuilder()
