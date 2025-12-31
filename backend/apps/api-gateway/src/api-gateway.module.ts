@@ -20,7 +20,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
         name: ServiceName.GAME,
         transport: Transport.TCP,
         options: {
-          host: MICROSERVICE_CONFIG.GAME_SERVICE.host,
+          host: 'game',
           port: MICROSERVICE_CONFIG.GAME_SERVICE.port,
         },
       },
@@ -28,7 +28,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
         name: ServiceName.REVIEW,
         transport: Transport.TCP,
         options: {
-          host: MICROSERVICE_CONFIG.REVIEW_SERVICE.host,
+          host: 'review',
           port: MICROSERVICE_CONFIG.REVIEW_SERVICE.port,
         },
       },
@@ -36,7 +36,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
         name: ServiceName.AUTH,
         transport: Transport.TCP,
         options: {
-          host: MICROSERVICE_CONFIG.AUTH_SERVICE.host,
+          host: 'auth',
           port: MICROSERVICE_CONFIG.AUTH_SERVICE.port,
         },
       },
@@ -44,7 +44,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
         name: ServiceName.USER,
         transport: Transport.TCP,
         options: {
-          host: MICROSERVICE_CONFIG.USER_SERVICE.host,
+          host: 'user',
           port: MICROSERVICE_CONFIG.USER_SERVICE.port,
         },
       },
@@ -52,7 +52,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
         name: ServiceName.DISCUSSION,
         transport: Transport.TCP,
         options: {
-          host: MICROSERVICE_CONFIG.DISCUSSION_SERVICE.host,
+          host: 'discussion',
           port: MICROSERVICE_CONFIG.DISCUSSION_SERVICE.port,
         },
       },

@@ -24,6 +24,6 @@ async function bootstrap() {
     }),
   );
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
-  await app.listen();
+  await app.listen(5000,0.0.0.0);
 }
 bootstrap();
