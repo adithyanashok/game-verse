@@ -11,7 +11,8 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RoleGuard } from './guards/role.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { UserController } from '../user/user.controller';
-
+import { DiscussionController } from '../discussion/discussion.controller';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 @Module({
   imports: [
     ClientsModule.register([
@@ -47,7 +48,24 @@ import { UserController } from '../user/user.controller';
           port: MICROSERVICE_CONFIG.USER_SERVICE.port,
         },
       },
+      {
+        name: ServiceName.DISCUSSION,
+        transport: Transport.TCP,
+        options: {
+          host: MICROSERVICE_CONFIG.DISCUSSION_SERVICE.host,
+          port: MICROSERVICE_CONFIG.DISCUSSION_SERVICE.port,
+        },
+      },
     ]),
+
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          ttl: 60000,
+          limit: 100,
+        },
+      ],
+    }),
   ],
   controllers: [
     ApiGatewayController,
@@ -55,6 +73,7 @@ import { UserController } from '../user/user.controller';
     ReviewController,
     AuthController,
     UserController,
+    DiscussionController,
   ],
   providers: [
     ApiGatewayService,
@@ -63,6 +82,11 @@ import { UserController } from '../user/user.controller';
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
+    },
+
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })

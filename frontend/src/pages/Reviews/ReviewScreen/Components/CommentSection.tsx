@@ -6,8 +6,14 @@ import React, {
   useCallback,
   type ChangeEvent,
 } from "react";
-import { OptionsMenu } from "../../Components/CommentOption";
+import dayjs from "dayjs";
+import { Virtuoso } from "react-virtuoso";
+import CommentItem from "./CommentItem";
 
+import relativeTime from "dayjs/plugin/relativeTime";
+import type { ReviewComment } from "../../../../features/reviews/types";
+
+dayjs.extend(relativeTime);
 type Comment = {
   id: number;
   userId: number;
@@ -15,10 +21,11 @@ type Comment = {
   createdAt: string;
   parentCommentId?: number | null;
   isYourComment?: boolean;
+  username: string;
 };
 
 interface CommentsSectionProps {
-  comments: Comment[];
+  comments: ReviewComment[];
   loading: boolean;
   error?: string | null;
   reviewId: number;
@@ -41,7 +48,6 @@ const CommentsSection: FC<CommentsSectionProps> = ({
   const [openReplyBox, setOpenReplyBox] = useState<Record<number, boolean>>({});
   const [showReplies, setShowReplies] = useState<Record<number, boolean>>({});
 
-  // EDIT STATES
   const [editing, setEditing] = useState<Record<number, boolean>>({});
   const [editDrafts, setEditDrafts] = useState<Record<number, string>>({});
 
@@ -65,7 +71,7 @@ const CommentsSection: FC<CommentsSectionProps> = ({
   }, [comments]);
 
   const handleCommentChange = useCallback(
-    (e: ChangeEvent<HTMLTextAreaElement>) => {
+    (e: ChangeEvent<HTMLInputElement>) => {
       setCommentText(e.target.value);
     },
     []
@@ -83,13 +89,6 @@ const CommentsSection: FC<CommentsSectionProps> = ({
 
   const toggleReplyBox = useCallback((commentId: number) => {
     setOpenReplyBox((prev) => ({
-      ...prev,
-      [commentId]: !prev[commentId],
-    }));
-  }, []);
-
-  const toggleShowReplies = useCallback((commentId: number) => {
-    setShowReplies((prev) => ({
       ...prev,
       [commentId]: !prev[commentId],
     }));
@@ -115,8 +114,6 @@ const CommentsSection: FC<CommentsSectionProps> = ({
     [onAddComment, replyDrafts]
   );
 
-  // --- EDIT HANDLERS ---------------------
-
   const startEdit = useCallback((commentId: number, currentText: string) => {
     setEditing((prev) => ({ ...prev, [commentId]: true }));
     setEditDrafts((prev) => ({ ...prev, [commentId]: currentText }));
@@ -138,26 +135,25 @@ const CommentsSection: FC<CommentsSectionProps> = ({
     [editDrafts, onEditComment]
   );
 
-  // ---------------------------------------
-
   return (
     <>
-      <h2 className="text-white text-2xl font-bold mb-4">Comments</h2>
+      <h2 className="text-white text-[14px] md:text-[16px] font-medium mb-2 ml-2">
+        Comments
+      </h2>
 
       {/* New comment form */}
-      <form onSubmit={handleCommentSubmit} className="mb-6 space-y-3">
-        <textarea
+      <form onSubmit={handleCommentSubmit} className="mx-2 mb-6 space-y-2">
+        <input
           value={commentText}
           onChange={handleCommentChange}
           placeholder="Add a comment..."
-          className="w-full rounded-xl bg-[#1f1a2e] border border-[#989fab1e] text-white p-3 outline-none focus:border-[var(--color-purple)]"
-          rows={3}
+          className="w-full bg-transparent border-1 border-x-0 border-t-0 border-b-[#989fab1e] text-white text-[12px] sm:[14px] p-3 outline-none focus:border-[var(--color-purple)]"
         />
         <div className="flex justify-end">
           <button
             type="submit"
             disabled={!commentText.trim()}
-            className={`px-4 py-2 rounded-full border transition-colors ${
+            className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-full border transition-colors text-[12px] ${
               commentText.trim()
                 ? "bg-[var(--color-purple)] text-white border-transparent hover:opacity-90"
                 : "border-[#989fab1e] text-gray-400 cursor-not-allowed"
@@ -168,7 +164,6 @@ const CommentsSection: FC<CommentsSectionProps> = ({
         </div>
       </form>
 
-      {/* Status / error */}
       <div className="space-y-4">
         {loading && (
           <p className="text-gray-400 text-sm">Loading comments...</p>
@@ -181,177 +176,35 @@ const CommentsSection: FC<CommentsSectionProps> = ({
         )}
 
         {/* Comments list */}
-        {rootComments.map((c) => (
-          <div key={c.id} className="flex gap-4 px-0 items-start">
-            <div className="shadow-lg p-4 rounded-[12px] border border-[#989fab1e] w-full">
-              <div className="flex justify-between">
-                <p className="text-white font-semibold text-[12px] md:text-[15px]">
-                  User #{c.userId}
-                </p>
-                <div className="flex gap-3 items-center">
-                  <p className="text-[#989fab] text-[11px] md:text-[13px]">
-                    {new Date(c.createdAt).toLocaleString()}
-                  </p>
-                  {c.isYourComment && (
-                    <OptionsMenu
-                      onEdit={() => startEdit(c.id, c.comment)}
-                      onDelete={() => onDeleteComment(c.id)}
-                    />
-                  )}
-                </div>
-              </div>
-
-              {/* COMMENT TEXT OR EDIT TEXTAREA */}
-              {editing[c.id] ? (
-                <div className="mt-2 space-y-2">
-                  <textarea
-                    value={editDrafts[c.id]}
-                    onChange={(e) =>
-                      setEditDrafts((prev) => ({
-                        ...prev,
-                        [c.id]: e.target.value,
-                      }))
-                    }
-                    className="w-full rounded-xl bg-[#1f1a2e] border border-[#989fab1e] text-white p-3 outline-none focus:border-[var(--color-purple)]"
-                    rows={2}
-                  />
-                  <div className="flex gap-2 justify-end">
-                    <button
-                      onClick={() => cancelEdit(c.id)}
-                      className="px-3 py-1.5 text-xs rounded-lg border border-gray-500 text-gray-300 hover:bg-gray-700/40"
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      onClick={() => saveEdit(c.id)}
-                      className="px-3 py-1.5 text-xs rounded-lg bg-[var(--color-purple)] text-white hover:bg-purple-700"
-                    >
-                      Save
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-[#989fab] text-[12px] md:text-[14px] mt-2 whitespace-pre-line">
-                  {c.comment}
-                </p>
-              )}
-
-              {/* Reply box */}
-              {openReplyBox[c.id] && !editing[c.id] && (
-                <div className="mt-3 space-y-2">
-                  <textarea
-                    value={replyDrafts[c.id] ?? ""}
-                    onChange={(e) => handleReplyChange(c.id, e.target.value)}
-                    placeholder="Write a reply..."
-                    className="w-full rounded-xl bg-[#1f1a2e] border border-[#989fab1e] text-white p-3 outline-none focus:border-[var(--color-purple)]"
-                    rows={2}
-                  />
-                  <div className="flex justify-end">
-                    <button
-                      type="button"
-                      onClick={() => handleReplySubmit(c.id)}
-                      disabled={!(replyDrafts[c.id] ?? "").trim()}
-                      className={`px-3 py-1.5 rounded-full border text-sm transition-colors ${
-                        (replyDrafts[c.id] ?? "").trim()
-                          ? "bg-[var(--color-purple)] text-white border-transparent hover:opacity-90"
-                          : "border-[#989fab1e] text-gray-400 cursor-not-allowed"
-                      }`}
-                    >
-                      Post Reply
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Replies toggle */}
-              {(repliesByParentId[c.id]?.length ?? 0) > 0 && (
-                <button
-                  type="button"
-                  onClick={() => toggleShowReplies(c.id)}
-                  className="mt-3 text-[var(--color-purple)] text-xs hover:underline"
-                >
-                  {showReplies[c.id] ? "Hide replies" : "View replies"}
-                </button>
-              )}
-
-              {/* Replies list */}
-              {showReplies[c.id] && (
-                <div className="mt-4 pl-4 border-l border-[#989fab1e] space-y-3">
-                  {(repliesByParentId[c.id] ?? []).map((r) => (
-                    <div key={r.id} className="text-sm">
-                      <div className="flex justify-between">
-                        <p className="text-white font-medium">
-                          User #{r.userId}
-                        </p>
-                        <div className="flex gap-3 items-center">
-                          <p className="text-[#989fab] text-[11px] md:text-[12px]">
-                            {new Date(r.createdAt).toLocaleString()}
-                          </p>
-                          {r.isYourComment && (
-                            <OptionsMenu
-                              onEdit={() => startEdit(r.id, r.comment)}
-                              onDelete={() => onDeleteComment(r.id)}
-                            />
-                          )}
-                        </div>
-                      </div>
-
-                      {/* REPLY EDIT BLOCK */}
-                      {editing[r.id] ? (
-                        <div className="mt-2 space-y-2">
-                          <textarea
-                            value={editDrafts[r.id]}
-                            onChange={(e) =>
-                              setEditDrafts((prev) => ({
-                                ...prev,
-                                [r.id]: e.target.value,
-                              }))
-                            }
-                            className="w-full rounded-xl bg-[#1f1a2e] border border-[#989fab1e] text-white p-3 outline-none focus:border-[var(--color-purple)]"
-                            rows={2}
-                          />
-                          <div className="flex gap-2 justify-end">
-                            <button
-                              onClick={() => cancelEdit(r.id)}
-                              className="px-3 py-1.5 text-xs rounded-lg border border-gray-500 text-gray-300 hover:bg-gray-700/40"
-                            >
-                              Cancel
-                            </button>
-
-                            <button
-                              onClick={() => saveEdit(r.id)}
-                              className="px-3 py-1.5 text-xs rounded-lg bg-[var(--color-purple)] text-white hover:bg-purple-700"
-                            >
-                              Save
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="text-[#989fab] mt-1 whitespace-pre-line">
-                          {r.comment}
-                        </p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {/* Reply toggle */}
-              {!editing[c.id] && (
-                <div className="mt-3 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => toggleReplyBox(c.id)}
-                    className="text-[var(--color-purple)] text-xs hover:underline"
-                  >
-                    {openReplyBox[c.id] ? "Cancel" : "Reply"}
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
+        <Virtuoso
+          style={{ height: "70vh" }}
+          data={rootComments}
+          overscan={200}
+          itemContent={(_, c) => (
+            <CommentItem
+              comment={c}
+              replies={repliesByParentId[c.id] ?? []}
+              showReplies={!!showReplies[c.id]}
+              toggleShowReplies={() =>
+                setShowReplies((p) => ({ ...p, [c.id]: !p[c.id] }))
+              }
+              showReplyBox={!!openReplyBox[c.id]}
+              replyDraft={replyDrafts[c.id] ?? ""}
+              onReplyToggle={() => toggleReplyBox(c.id)}
+              onReplyChange={(v) => handleReplyChange(c.id, v)}
+              onReplySubmit={() => handleReplySubmit(c.id)}
+              isEditing={!!editing[c.id]}
+              editDraft={editDrafts[c.id] ?? ""}
+              onStartEdit={() => startEdit(c.id, c.comment)}
+              onCancelEdit={() => cancelEdit(c.id)}
+              onSaveEdit={() => saveEdit(c.id)}
+              onEditChange={(v) => setEditDrafts((p) => ({ ...p, [c.id]: v }))}
+              onDelete={() => onDeleteComment(c.id)}
+              onEditReply={(id, text) => startEdit(id, text)}
+              onDeleteReply={onDeleteComment}
+            />
+          )}
+        />
       </div>
     </>
   );

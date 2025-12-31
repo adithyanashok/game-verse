@@ -1,14 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
 import { Comment } from '../entities/comment.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   ApiResponse,
   CreateCommentDto,
+  MessagePatterns,
+  ServiceName,
   UpdateCommentDto,
+  User,
 } from 'libs/common/src';
 import { Review } from '../entities/review.entity';
-import { RpcException } from '@nestjs/microservices';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class CommentService {
@@ -24,6 +28,9 @@ export class CommentService {
      */
     @InjectRepository(Review)
     private readonly reviewRepo: Repository<Review>,
+
+    @Inject(ServiceName.USER)
+    private userClient: ClientProxy,
   ) {}
 
   // Create Comment
@@ -34,7 +41,9 @@ export class CommentService {
     try {
       const { reviewId, comment, parentCommentId } = createCommentDto;
       const review = await this.reviewRepo.findOneBy({ id: reviewId });
-      console.log(review);
+      const user = await lastValueFrom<User>(
+        this.userClient.send(MessagePatterns.USER_FIND_BY_ID, userId),
+      );
 
       if (!review) {
         throw new RpcException({
@@ -66,6 +75,7 @@ export class CommentService {
       return new ApiResponse(true, 'Comment Created', {
         ...savedComment,
         isYourComment: userId === savedComment.userId,
+        username: user.name,
       });
     } catch (error) {
       console.log(error);
@@ -81,13 +91,21 @@ export class CommentService {
         order: { createdAt: 'DESC' },
       });
 
-      console.log(userId);
+      const userIds = dbComment.map((comment) => comment.userId);
 
+      const users = await lastValueFrom<User[]>(
+        this.userClient.send(
+          MessagePatterns.USER_FIND_MANY_USERNAME_BY_USER_ID,
+          userIds,
+        ),
+      );
       const newComments = dbComment.map((val: Comment) => {
         const isYourComment = val.userId === userId;
+        const user = users.find((user) => user.id === val.userId);
         return {
           ...val,
           isYourComment,
+          username: user?.name,
         };
       });
       return new ApiResponse(true, 'Comment Fetched', newComments);

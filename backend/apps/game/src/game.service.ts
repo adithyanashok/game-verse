@@ -1,11 +1,14 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { In, Repository } from 'typeorm';
+import { In, Repository, Like, FindOptionsWhere } from 'typeorm';
 import { Game } from './entities/game.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import type { Cache } from 'cache-manager';
+
 import {
   ApiResponse,
   CreateGameDto,
   EditGameDto,
+  FetchGamesDto,
   MessagePatterns,
   ServiceName,
 } from 'libs/common/src';
@@ -13,7 +16,11 @@ import { ClientProxy, RpcException } from '@nestjs/microservices';
 import { ConfigService } from '@nestjs/config';
 import { GenreService } from './genre/genre.service';
 import { firstValueFrom } from 'rxjs';
-import { RatingInterface } from './interfaces/rating.interfaces';
+import {
+  OverallRating,
+  RatingInterface,
+  RatingItem,
+} from './interfaces/rating.interfaces';
 import { AiProvider } from './providers/ai.provider';
 import { Content } from './providers/interface/content.interface';
 import { Overview } from './entities/overview.entity';
@@ -44,6 +51,8 @@ export class GameService {
 
     @Inject(ServiceName.REVIEW)
     private readonly reviewClient: ClientProxy,
+
+    @Inject('CACHE_MANAGER') private cacheManager: Cache,
   ) {}
 
   // Create Game
@@ -64,59 +73,146 @@ export class GameService {
   }
 
   // Get Game
+  // public async getGame(id: number) {
+  //   try {
+  //     const game = await this.gameRepo.findOne({
+  //       where: { id },
+  //       relations: ['genre'],
+  //     });
+
+  //     if (!game) {
+  //       throw new RpcException({
+  //         status: 404,
+  //         message: 'Game not found',
+  //       });
+  //     }
+
+  //     const [rating, overview] = await Promise.all([
+  //       firstValueFrom<RatingInterface>(
+  //         this.reviewClient.send(MessagePatterns.GET_OVERALL_RATING, {
+  //           gameId: game.id,
+  //         }),
+  //       ),
+  //       this.getAiOverview(id),
+  //     ]);
+
+  //     return new ApiResponse(true, 'Game Fetched Successfully', {
+  //       ...game,
+  //       overview,
+  //       rating,
+  //     });
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw error;
+  //   }
+  // }
   public async getGame(id: number) {
+    const cacheKey = `game_profile:${id}`;
+
     try {
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) {
+        return new ApiResponse(
+          true,
+          'Game Fetched Successfully (Cached)',
+          cachedData,
+        );
+      }
+
       const game = await this.gameRepo.findOne({
         where: { id },
         relations: ['genre'],
       });
 
       if (!game) {
-        throw new RpcException({
-          status: 404,
-          message: 'Game not found',
-        });
+        throw new RpcException({ status: 404, message: 'Game not found' });
       }
 
-      const rating = await firstValueFrom<RatingInterface>(
-        this.reviewClient.send(MessagePatterns.GET_OVERALL_RATING, {
-          gameId: game.id,
-        }),
-      );
+      const [rating, overview] = await Promise.all([
+        firstValueFrom<RatingInterface>(
+          this.reviewClient.send(MessagePatterns.GET_OVERALL_RATING, {
+            gameId: game.id,
+          }),
+        ).catch(() => null),
+        this.getAiOverview(id).catch(() => {}),
+      ]);
 
-      const overview = await this.getAiOverview(id);
-
-      return new ApiResponse(true, 'Game Fetched Successfully', {
+      const result = {
         ...game,
         overview,
         rating,
-      });
+      };
+
+      await this.cacheManager.set(cacheKey, result, 900000);
+
+      return new ApiResponse(true, 'Game Fetched Successfully', result);
     } catch (error) {
-      console.log(error);
+      console.error(`Error fetching game ${id}:`, error);
       throw error;
     }
   }
 
   // Get Games
-  public async getGames() {
+  public async getGames(fetchGamesDto: FetchGamesDto) {
     try {
-      const games = await this.gameRepo.find({ relations: ['genre'] });
+      const { page = 1, limit = 20, search } = fetchGamesDto;
 
-      const results = await Promise.all(
-        games.map(async (game) => {
-          const rating = await firstValueFrom<RatingInterface>(
-            this.reviewClient.send(MessagePatterns.GET_OVERALL_RATING, {
-              gameId: game.id,
-            }),
-          );
+      const cacheKey = `games_list:p${page}:l${limit}:s:${search || 'none'}`;
 
-          return { ...game, overallRating: rating.overallRating };
-        }),
-      );
+      const cachedResponse = await this.cacheManager.get(cacheKey);
+      if (cachedResponse) {
+        return new ApiResponse(
+          true,
+          'Games Fetched Successfully (Cached)',
+          cachedResponse,
+        );
+      }
 
-      return new ApiResponse(true, 'Games Fetched Successfully', results);
+      const skip = (page - 1) * limit;
+      const where: FindOptionsWhere<Game> = {};
+      if (search) {
+        where.name = Like(`%${search}%`);
+      }
+
+      const [games, total] = await this.gameRepo.findAndCount({
+        where,
+        relations: ['genre'],
+        skip,
+        take: limit,
+        select: ['id', 'imgUrl', 'name', 'releaseDate'],
+      });
+
+      let gamesWithRating: Game[] = [];
+
+      if (games.length > 0) {
+        const ratings: RatingItem[] = await firstValueFrom<OverallRating[]>(
+          this.reviewClient.send(MessagePatterns.GET_OVERALL_RATING_OF_GAMES, {
+            gameId: games.map((game) => game.id),
+          }),
+        ).catch(() => []);
+        const ratingMap = new Map(ratings.map((r) => [r.gameId, r.overall]));
+
+        gamesWithRating = games.map((game) => {
+          const rating = ratingMap.get(game.id);
+
+          return {
+            ...game,
+            overall: rating !== undefined ? rating.toFixed(1) : '0.0',
+          };
+        });
+      }
+
+      const lastPage = Math.ceil(total / limit);
+      const result = {
+        games: gamesWithRating,
+        meta: { total, page, lastPage },
+      };
+
+      await this.cacheManager.set(cacheKey, result, 900000);
+
+      return new ApiResponse(true, 'Games Fetched Successfully', result);
     } catch (error) {
-      console.log(error);
+      console.error('GetGames Error:', error);
       throw error;
     }
   }
@@ -181,7 +277,6 @@ export class GameService {
   // Get Popular Games
   public async getTopRatedGames() {
     try {
-      console.log('getPopularGames');
       const topRatedGameIds = await firstValueFrom<number[]>(
         this.reviewClient.send(MessagePatterns.GET_TOP_RATED_GAME_IDS, {}),
       );
@@ -246,16 +341,15 @@ export class GameService {
   // Get AI Overview
   public async getAiOverview(gameId: number) {
     try {
-      const game = await this.gameRepo.findOne({ where: { id: gameId } });
-      if (!game) {
+      const overview = await this.overviewRepo.findOne({
+        where: { game: { id: gameId } },
+      });
+      if (!overview) {
         throw new RpcException({
           status: 404,
           message: 'Game not found',
         });
       }
-      const overview = await this.overviewRepo.findOne({
-        where: { game: { id: gameId } },
-      });
 
       return overview;
     } catch (error) {

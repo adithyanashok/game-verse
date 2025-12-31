@@ -9,17 +9,7 @@ import { Observable } from 'rxjs';
 import { Request } from 'express';
 import { ROLES_KEY } from '../decorators/roles.decorators';
 import { Role } from '../enums/role.enum';
-
-interface User {
-  id: number;
-  email: string;
-  password: string;
-  role?: Role;
-}
-
-interface AuthenticatedRequest extends Request {
-  user?: User;
-}
+import { AuthenticatedRequest } from '../common/request';
 
 @Injectable()
 export class RoleGuard implements CanActivate {

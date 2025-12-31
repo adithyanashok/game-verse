@@ -24,10 +24,11 @@ import {
   ServiceName,
   UpdateCommentDto,
   UpdateReviewDto,
+  type User,
 } from 'libs/common/src';
 import { firstValueFrom } from 'rxjs';
 import { CurrentUser } from '../src/decorators/current-user.decorator';
-import type { User } from '../src/guards/jwt-auth.guard';
+
 import { Public } from '../src/decorators/public.decorator';
 @ApiBearerAuth()
 @Controller('review')
@@ -157,6 +158,7 @@ export class ReviewController {
     status: 200,
     description: 'Trending Review Fetched Successfully',
   })
+  @Public()
   @Get('trending-review')
   public async getTrendingReviews(): Promise<any> {
     try {
@@ -178,6 +180,7 @@ export class ReviewController {
     status: 200,
     description: 'Recent Review Fetched successfully',
   })
+  @Public()
   @Get('recent-review')
   public async getRecentReviews(): Promise<any> {
     try {
@@ -246,6 +249,7 @@ export class ReviewController {
     status: 200,
     description: 'Reviews Fetched Successfully',
   })
+  @Public()
   @Get('get-by-user')
   public async getReviewsByUser(
     @Query() getByGameDto: GetByIdDto,
@@ -478,6 +482,35 @@ export class ReviewController {
         this.reviewClient.send(MessagePatterns.GET_ANALYTICS_OVERVIEW, {
           userId: user.id,
           range: dto.range,
+        }),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Get Analytics Overview
+   */
+  @ApiOperation({
+    summary: 'Api For Get Reviews Of Followers',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Fetched Successfully',
+  })
+  @Get('get-followers-review')
+  public async getReviewsOfFollowings(
+    @CurrentUser() user: User,
+    @Query('limit', ParseIntPipe) limit: number,
+    @Query('page', ParseIntPipe) page: number,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.reviewClient.send(MessagePatterns.GET_REVIEWS_OF_FOLLOWERS, {
+          userId: user.id,
+          limit,
+          page,
         }),
       );
     } catch (error) {

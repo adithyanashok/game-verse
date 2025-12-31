@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -6,17 +7,23 @@ import {
   HttpException,
   HttpStatus,
   Inject,
+  InternalServerErrorException,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { MessagePatterns, UpdateUserDto } from 'libs/common/src';
+import { ClientProxy, RpcException } from '@nestjs/microservices';
+import { ApiBearerAuth, ApiHeaders, ApiOperation } from '@nestjs/swagger';
+import { MessagePatterns, UpdateUserDto, type User } from 'libs/common/src';
 import { firstValueFrom } from 'rxjs';
 import { CurrentUser } from '../src/decorators/current-user.decorator';
-import type { User } from '../src/guards/jwt-auth.guard';
+
+import { FileInterceptor } from '@nestjs/platform-express';
+import * as multer from 'multer';
+import { Public } from '../src/decorators/public.decorator';
 
 @ApiBearerAuth()
 @Controller('users')
@@ -45,6 +52,23 @@ export class UserController {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : 'Failed to update user';
+      throw new HttpException(message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  @ApiOperation({ summary: 'Get followings' })
+  @Get('/followings')
+  public async getFollowings(@CurrentUser() user: User): Promise<any> {
+    try {
+      console.log('user ', user);
+      return await firstValueFrom(
+        this.userClient.send(MessagePatterns.GET_FOLLOWINGS, {
+          userId: user.id,
+        }),
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to fetch followings';
       throw new HttpException(message, HttpStatus.BAD_REQUEST);
     }
   }
@@ -95,12 +119,17 @@ export class UserController {
    * Get Top Reviewers
    */
   @ApiOperation({ summary: 'Api to Get Top Reviewers' })
+  @Public()
   @Get('get-top-reviewers')
-  public async getTopReviewers(): Promise<any> {
-    console.log('get-user-reviewers');
+  public async getTopReviewers(
+    @CurrentUser() user?: User | null,
+  ): Promise<any> {
     try {
+      console.log('FIRST');
       return await firstValueFrom(
-        this.userClient.send(MessagePatterns.GET_TOP_REVIEWERS, { limit: 1 }),
+        this.userClient.send(MessagePatterns.GET_TOP_REVIEWERS, {
+          userId: user?.id,
+        }),
       );
     } catch (error) {
       console.log(error);
@@ -153,6 +182,36 @@ export class UserController {
       const message =
         error instanceof Error ? error.message : 'Failed to fetch user profile';
       throw new HttpException(message, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Upload image
+   */
+  @UseInterceptors(FileInterceptor('file', { storage: multer.memoryStorage() }))
+  @ApiHeaders([
+    { name: 'Content-Type', description: 'multipart/form-data' },
+    { name: 'Authorization', description: 'Bearer Tokens' },
+  ])
+  @ApiOperation({ summary: 'Upload User Image' })
+  @Post('/upload')
+  public async uploadUserImage(
+    @CurrentUser() user: User,
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.userClient.send(MessagePatterns.USER_PROFILE_IMAGE, {
+          userId: user.id,
+          file: file,
+        }),
+      );
+    } catch (error) {
+      if (error instanceof RpcException) {
+        throw new BadRequestException(error.getError());
+      }
+
+      throw new InternalServerErrorException('Microservice failed');
     }
   }
 }

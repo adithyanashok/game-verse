@@ -119,6 +119,12 @@ export class ReviewController {
     return await this.reviewService.getRatingOfGame(paylod.gameId);
   }
 
+  // Get Overall Rating
+  @MessagePattern(MessagePatterns.GET_OVERALL_RATING_OF_GAMES)
+  public async getRatingOfGames(@Payload() paylod: { gameId: number[] }) {
+    return await this.reviewService.getRatingOfGames(paylod.gameId);
+  }
+
   // Get Review
   @MessagePattern(MessagePatterns.GET_TOP_RATED_GAME_IDS)
   public async getPopularGameIds() {
@@ -149,5 +155,16 @@ export class ReviewController {
   @MessagePattern(MessagePatterns.GET_REVIEWS_BY_GAMEID)
   public async getReviewAndTitle(@Payload() paylod: { gameId: number }) {
     return await this.reviewService.getReviewAndTitle(paylod.gameId);
+  }
+
+  @MessagePattern(MessagePatterns.GET_REVIEWS_OF_FOLLOWERS)
+  public async getReviewsOfFollowings(
+    @Payload() paylod: { userId: number; page: number; limit: number },
+  ) {
+    return await this.reviewService.getReviewsOfFollowings(
+      paylod.userId,
+      paylod.limit,
+      paylod.page,
+    );
   }
 }

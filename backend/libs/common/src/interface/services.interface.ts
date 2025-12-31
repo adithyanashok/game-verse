@@ -3,6 +3,7 @@ export enum ServiceName {
   USER = 'USER_SERVICE',
   GAME = 'GAME_SERVICE',
   REVIEW = 'REVIEW_SERVICE',
+  DISCUSSION = 'DISCUSSION_SERVICE',
 }
 
 export enum MessagePatterns {
@@ -22,6 +23,10 @@ export enum MessagePatterns {
   USER_UNFOLLOW = 'user.unfollow',
   GET_TOP_REVIEWERS = 'user.top.reviewers',
   USER_FIND_BY_GOOGLE_ID = 'user.findByGoogleId',
+  USER_FIND_MANY_BY_USER_ID = 'user.findManyByUserId',
+  USER_PROFILE_IMAGE = 'user.profile.image',
+  USER_FIND_MANY_USERNAME_BY_USER_ID = 'user.findManyUsernameByUserId',
+  GET_FOLLOWINGS = 'get.followings',
   // Game
   GAME_CREATE = 'game.create',
   GAME_UPDATE = 'game.update',
@@ -49,12 +54,19 @@ export enum MessagePatterns {
   UPDATE_REVIEWS = 'review.update',
   DELETE_REVIEWS = 'review.delete',
   GET_OVERALL_RATING = 'review.rating',
+  GET_OVERALL_RATING_OF_GAMES = 'review.rating.of.games',
   GET_REVIEW_ANALYTICS = 'review.analytics',
   GET_ANALYTICS_OVERVIEW = 'review.analytics.overview',
   GET_REVIEWS_BY_GAMEID = 'review.game.gameId',
+  GET_REVIEWS_OF_FOLLOWERS = 'review.followers',
   // Comment
   COMMENT_REVIEWS = 'review.comment',
   GET_COMMENT = 'comment.get',
   UPDATE_COMMENT = 'comment.update',
   DELETE_COMMENT = 'comment.delete',
+
+  // Discussion
+  CREATE_DISCUSSION = 'discussion.create',
+  GET_DISCUSSION = 'discussion.get',
+  GET_ALL_DISCUSSION = 'discussion.get.all',
 }

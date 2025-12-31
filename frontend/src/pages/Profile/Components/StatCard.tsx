@@ -20,12 +20,16 @@ const StatCard: React.FC<StatCardProps> = ({
   const trendArrow = (num: number) =>
     num >= 0 ? (
       <div className="flex">
-        <span className="text-[12px] opacity-80 text-green-500">{trend}%</span>
+        <span className="text-[12px] opacity-80 text-green-500">
+          {trend?.toFixed(2)}%
+        </span>
         <IoMdArrowUp color="green" size={16} />
       </div>
     ) : (
       <div className="flex">
-        <span className="text-[12px] opacity-80 text-red-500">{trend}%</span>
+        <span className="text-[12px] opacity-80 text-red-500">
+          {trend?.toFixed(2)}%
+        </span>
         <IoMdArrowDown color="red" size={16} />
       </div>
     );
@@ -38,11 +42,11 @@ const StatCard: React.FC<StatCardProps> = ({
     >
       <h4 className="text-sm opacity-70">{title}</h4>
 
-      <p className="text-2xl font-semibold mt-1 flex items-center gap-2">
+      <div className="text-2xl font-semibold mt-1 flex items-center gap-2">
         {value}
 
         {showPercent && showArrow && trend !== undefined && trendArrow(trend)}
-      </p>
+      </div>
     </div>
   );
 };

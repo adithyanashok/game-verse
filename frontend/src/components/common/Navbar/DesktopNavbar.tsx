@@ -2,7 +2,6 @@ import controller from "../../../assets/images/controller.png";
 import { Link, useLocation } from "react-router";
 import { useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
-import { dummy } from "../../../data";
 import UserDropdown from "./DropDown";
 
 function DesktopNavbar() {
@@ -13,11 +12,13 @@ function DesktopNavbar() {
 
   return (
     <>
-      <div className="flex justify-between bg-primary items-center primary text-primary h-[80px]">
-        <div className="flex items-center">
-          <img src={controller} alt="Logo" width={80} height={60} />
-          <h1 className="font-bold md:text-[22px] text-[18px]">GameVerse</h1>
-        </div>
+      <div className="flex justify-between bg-dark items-center primary text-primary h-[80px]">
+        <Link to={"/"}>
+          <div className="flex items-center">
+            <img src={controller} alt="Logo" width={80} height={60} />
+            <h1 className="font-bold md:text-[22px] text-[18px]">GameVerse</h1>
+          </div>
+        </Link>
         <div className="lg:block hidden">
           <ul className="flex md:gap-x-10 sm:gap-x-3 font-light">
             <li className={activePath === "/" ? "text-purple font-bold" : ""}>
@@ -38,13 +39,11 @@ function DesktopNavbar() {
               <Link to={"/games"}>Games</Link>
             </li>
             <li>
-              <Link to={"/dashboard"}>Dashboard</Link>
+              <Link to={"/discussions"}>Discussions</Link>
             </li>
           </ul>
         </div>
-        {accessToken && (
-          <UserDropdown userImage={dummy[0].image} userName="Adithyan" />
-        )}
+        {accessToken && <UserDropdown />}
         {!accessToken && (
           <div className="hidden lg:flex  gap-x-2 mr-3">
             <div className=" bg-dark-purple px-5 py-1 rounded-full">

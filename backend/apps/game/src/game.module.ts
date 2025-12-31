@@ -11,6 +11,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MICROSERVICE_CONFIG, ServiceName } from 'libs/common/src';
 import { AiProvider } from './providers/ai.provider';
 import { Overview } from './entities/overview.entity';
+import { CacheModule } from '@nestjs/cache-manager';
 
 const ENV = process.env.NODE_ENV;
 console.log(ENV);
@@ -33,6 +34,9 @@ console.log(ENV);
       isGlobal: true,
       envFilePath: !ENV ? 'apps/game/.env' : `apps/game/.env.${ENV}`,
       load: [database],
+    }),
+    CacheModule.register({
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

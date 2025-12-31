@@ -1,4 +1,4 @@
-import Button from "../../../components/common/Button";
+import { useState } from "react";
 import type { Game } from "../../../features/games/types";
 import { useNavigate } from "react-router";
 interface Props {
@@ -6,21 +6,23 @@ interface Props {
   showWriteButton: boolean;
 }
 const Banner = (props: Props) => {
+  const [showMore, setShowMore] = useState(false);
   const navigate = useNavigate();
+  console.log(props.game?.imgUrl);
   return (
     <div
-      className="relative rounded-2xl  bg-cover bg-center h-[200px] md:h-[450px] lg:h-[350px] overflow-hidden"
+      className="relative sm:rounded-2xl  bg-cover bg-center  lg:h-[350px] overflow-hidden sm:mt-5"
       style={{ backgroundImage: `url(${props.game?.imgUrl})` }}
     >
       {/* Overlay */}
-      <div className="absolute inset-0 bg-primary opacity-60"></div>
+      <div className="absolute inset-0 bg-primary opacity-90"></div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col justify-end  h-full px-10 space-y-1 pb-10">
-        <h1 className="text-[15px] md:text-3xl xl:text-5xl font-bold text-white leading-[1.3]">
+      <div className="relative z-10 flex flex-col sm:justify-end h-full px-10 space-y-1 pb-10 mt-5">
+        <h1 className="text-[25px] md:text-3xl xl:text-5xl font-bold text-white leading-[1.3]">
           {props.game?.name}
         </h1>
-        <p className="flex gap-2 text-[10px] md:text-[14px] text-[#989fab] max-w-xl">
+        <p className="flex gap-2 text-[14px] md:text-[14px] text-[#989fab] max-w-xl">
           Released {props.game?.releaseDate}{" "}
           <span className="flex gap-2">
             {props.game?.genre.map((val) => (
@@ -32,21 +34,37 @@ const Banner = (props: Props) => {
             ))}
           </span>{" "}
         </p>
-        <div className="flex flex-col items-start lg:flex-row justify-between">
-          <p className="text-[8px] md:text-[14px] text-[#c3c7ce] max-w-xl">
-            {props.game?.description}
-          </p>
+        <div className="justify-between">
+          <div className="relative max-w-xl">
+            <p
+              className={`text-[12px] md:text-[14px] text-[#c3c7ce] ${
+                showMore ? "" : "line-clamp-2"
+              }`}
+            >
+              {props.game?.description}
+            </p>
+
+            {
+              <span
+                onClick={() => setShowMore(!showMore)}
+                className="absolute bottom-0 right-0 cursor-pointer text-purple text-[12px] md:text-[14px]"
+              >
+                {showMore ? "less" : "more"}
+              </span>
+            }
+          </div>
+
           {props.showWriteButton && (
-            <Button
+            <button
               onClick={() =>
                 navigate(`/write-review/${props.game?.id}`, {
                   state: { game: props.game },
                 })
               }
-              label="Write Review"
-              variant="primary"
-              className="md:p-3 p-2 text-[8px] md:text-[12px] rounded-[5px] bg-purple mt-2 md:mt-5"
-            />
+              className="md:p-3 p-3 text-[10px] text-white font-bold rounded-[5px] bg-dark-purple mt-2 md:mt-5"
+            >
+              Write Review
+            </button>
           )}
         </div>
       </div>

@@ -1,25 +1,28 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { Repository } from 'typeorm';
+import { Repository, FindOptionsWhere, In } from 'typeorm';
 import { Review } from '../entities/review.entity';
 import { Like } from '../entities/like.entity';
 import { Rating } from '../entities/rating.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
+import type { Cache } from 'cache-manager';
 import {
   AnalyticsRange,
   ApiResponse,
+  ErrorHandler,
   MessagePatterns,
   ServiceName,
   UpdateReviewDto,
   User,
 } from 'libs/common/src';
 import { CreateReviewDto } from 'libs/common/src/dto/review/create-review.dto';
-import { lastValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { GameResponse } from '@app/contract';
 import { View } from '../entities/view.entity';
 import { Like as SearchLike } from 'typeorm';
 import { subDays } from 'date-fns';
 import { CommentService } from '../comment/comment.service';
+
 @Injectable()
 export class ReviewService {
   constructor(
@@ -42,38 +45,35 @@ export class ReviewService {
 
     @Inject(ServiceName.USER)
     private userClient: ClientProxy,
+
+    @Inject('CACHE_MANAGER') private cacheManager: Cache,
   ) {}
 
   // Create Review
   public async createReview(createReviewDto: CreateReviewDto, userId: number) {
     try {
-      const existingUser: User = await lastValueFrom(
-        this.userClient.send(MessagePatterns.USER_FIND_BY_ID, userId),
-      );
-      if (!existingUser) {
-        throw new RpcException({
-          status: 404,
-          message: 'User Not Found',
-        });
-      }
-      const rating = createReviewDto.rating;
-      console.log('review ceated', createReviewDto, userId);
+      const [existingUser, game] = await Promise.all([
+        lastValueFrom<User>(
+          this.userClient.send(MessagePatterns.USER_FIND_BY_ID, userId),
+        ),
+        lastValueFrom<GameResponse>(
+          this.client.send(MessagePatterns.FIND_ONE_GAME, {
+            id: createReviewDto.gameId,
+          }),
+        ),
+      ]);
 
-      const game: GameResponse = await lastValueFrom(
-        this.client.send(MessagePatterns.FIND_ONE_GAME, {
-          id: createReviewDto.gameId,
-        }),
-      );
+      if (!existingUser) {
+        throw new RpcException({ status: 404, message: 'User Not Found' });
+      }
+      if (!game) {
+        throw new RpcException({ status: 404, message: 'Game Not Found' });
+      }
+
+      const { rating } = createReviewDto;
 
       const overall =
         (rating.graphics + rating.gameplay + rating.story + rating.sound) / 4;
-
-      if (!game) {
-        throw new RpcException({
-          status: 404,
-          message: 'Game Not Found',
-        });
-      }
 
       const review = this.repo.create({
         title: createReviewDto.title,
@@ -87,17 +87,14 @@ export class ReviewService {
       const savedReview = await this.repo.save(review);
 
       const ratingEntity = this.ratingRepo.create({
-        graphics: rating.graphics,
-        gameplay: rating.gameplay,
-        story: rating.story,
-        sound: rating.sound,
+        ...rating,
         overall,
         review: savedReview,
         gameId: createReviewDto.gameId,
       });
 
-      savedReview.rating = ratingEntity;
       await this.ratingRepo.save(ratingEntity);
+      savedReview.rating = ratingEntity;
 
       this.client
         .send(MessagePatterns.GENERATE_AI_OVERVIEW, {
@@ -105,14 +102,14 @@ export class ReviewService {
           savedReview,
         })
         .subscribe({
-          error: (err) => console.error('AI Overview Error:', err),
+          error: (err) => console.error('AI Overview Background Error:', err),
         });
 
       return new ApiResponse(true, 'Review Created Successfully', {
         savedReview,
       });
     } catch (error) {
-      console.error(error);
+      console.error('Create Review Error:', error);
       throw error;
     }
   }
@@ -132,73 +129,70 @@ export class ReviewService {
         });
       }
 
+      const id = review.userId;
+
+      const user: User = await lastValueFrom(
+        this.userClient.send(MessagePatterns.USER_FIND_BY_ID, id),
+      );
+
+      if (!user) {
+        throw new RpcException({
+          status: 404,
+          message: 'User Not Found',
+        });
+      }
+
       const liked = await this.likeRepo.findOne({
         where: { reviewId, userId },
       });
 
       return new ApiResponse(true, 'Review Fetched Successfully', {
         ...review,
+        user,
         isLiked: liked ? true : false,
       });
     } catch (error) {
-      console.log(error);
-      throw error;
+      ErrorHandler.handle(error, 'Unkwon error occured: Fetch Review');
     }
   }
 
   public async likeReview(reviewId: number, userId: number) {
-    console.log(reviewId, userId);
     try {
-      const review = await this.repo.findOne({
-        where: { id: reviewId },
-      });
-
-      if (!review) {
-        throw new RpcException({
-          status: 404,
-          message: 'Review Not Found',
-        });
-      }
       const alreadyLiked = await this.likeRepo.findOne({
         where: { reviewId, userId },
       });
 
       if (alreadyLiked) {
         await this.likeRepo.delete(alreadyLiked.id);
-        review.likeCount = review.likeCount - 1;
-        const savedReview = await this.repo.save(review);
+        await this.repo.decrement({ id: reviewId }, 'likeCount', 1);
 
         return new ApiResponse(true, 'Review Unliked Successfully', {
-          isLiked: false,
           reviewId,
-          likeCount: savedReview.likeCount,
+          isLiked: false,
         });
       }
 
       const newLike = this.likeRepo.create({
         reviewId,
         userId,
-        reviewOwnerId: review.userId,
+        reviewOwnerId: userId,
       });
-      review.likeCount = review.likeCount + 1;
 
-      const like = await this.likeRepo.save(newLike);
+      await this.likeRepo.save(newLike);
 
-      const savedReview = await this.repo.save(review);
+      await this.repo.increment({ id: reviewId }, 'likeCount', 1);
 
-      return new ApiResponse(true, 'Review liked Successfully', {
-        isLiked: userId === like.userId,
+      return new ApiResponse(true, 'Review Liked Successfully', {
+        isLiked: true,
         reviewId,
-        likeCount: savedReview.likeCount,
       });
     } catch (error) {
-      console.log(error);
       if (error instanceof RpcException) {
         throw error;
       }
       throw new RpcException({
         status: 500,
-        message: 'Failed to update like status',
+        message: 'Failed to update like',
       });
     }
   }
@@ -206,16 +200,6 @@ export class ReviewService {
   // Update Views
   public async updateViews(reviewId: number, userId: number) {
     try {
-      const review = await this.repo.findOne({
-        where: { id: reviewId },
-      });
-
-      if (!review) {
-        throw new RpcException({
-          status: 404,
-          message: 'Review Not Found',
-        });
-      }
       const alreadyViewed = await this.viewRepo.findOne({
         where: { reviewId, userId },
       });
@@ -224,30 +208,18 @@ export class ReviewService {
         return new ApiResponse(true, 'Already Viewed');
       }
 
-      const newView = this.viewRepo.create({
-        reviewId,
-        userId,
-        reviewOwnerId: review.userId,
-      });
-      review.viewCount = review.viewCount + 1;
+      await this.viewRepo.save({ reviewId, userId, reviewOwnerId: userId });
 
-      const view = await this.viewRepo.save(newView);
+      await this.repo.increment({ id: reviewId }, 'viewCount', 1);
 
-      const savedReview = await this.repo.save(review);
-
-      return new ApiResponse(true, 'Review viewd Successfully', {
-        isViewed: userId === view.userId,
-        reviewId,
-        viewCount: savedReview.viewCount,
-      });
+      return new ApiResponse(true, 'View Recorded');
     } catch (error) {
-      console.log(error);
       if (error instanceof RpcException) {
         throw error;
       }
       throw new RpcException({
         status: 500,
-        message: 'Failed to update like status',
+        message: 'Failed to update like',
       });
     }
   }
@@ -255,7 +227,7 @@ export class ReviewService {
   // Get Trending Reviews
   public async getTrendingReviews() {
     try {
-      const review = await this.repo
+      const result = await this.repo
         .createQueryBuilder('review')
         .leftJoinAndSelect('review.rating', 'rating')
         .orderBy('likeCount', 'DESC')
@@ -263,12 +235,26 @@ export class ReviewService {
         .limit(20)
         .getMany();
 
-      console.log(review);
+      const userIds = result.map((review) => review.userId);
+
+      const users = await lastValueFrom<User[]>(
+        this.userClient.send(
+          MessagePatterns.USER_FIND_MANY_USERNAME_BY_USER_ID,
+          userIds,
+        ),
+      );
+
+      const reviews = result.map((review) => {
+        return {
+          ...review,
+          user: users.find((user) => user.id === review.userId),
+        };
+      });
 
       return new ApiResponse(
         true,
         'Trending Review Fetched Successfully',
-        review,
+        reviews,
       );
     } catch (error) {
       console.log(error);
@@ -279,16 +265,32 @@ export class ReviewService {
   // Get Recent Reviews
   public async getRecentReviews() {
     try {
-      const review = await this.repo.find({
+      const result = await this.repo.find({
         order: { createdAt: 'DESC' },
         take: 20,
         relations: ['rating'],
       });
 
+      const userIds = result.map((review) => review.userId);
+
+      const users = await lastValueFrom<User[]>(
+        this.userClient.send(
+          MessagePatterns.USER_FIND_MANY_USERNAME_BY_USER_ID,
+          userIds,
+        ),
+      );
+
+      const reviews = result.map((review) => {
+        return {
+          ...review,
+          user: users.find((user) => user.id === review.userId),
+        };
+      });
+
       return new ApiResponse(
         true,
         'Recent Reviews Fetched Successfully',
-        review,
+        reviews,
       );
     } catch (error) {
       console.log(error);
@@ -302,14 +304,35 @@ export class ReviewService {
     limit: number = 20,
   ) {
     try {
-      const review = await this.repo.find({
+      const [data, total] = await this.repo.findAndCount({
         where: { gameId },
         skip: (page - 1) * limit,
         take: limit,
         relations: ['rating'],
       });
 
-      return new ApiResponse(true, 'Reviews Fetched Successfully', review);
+      const userIds = data.map((review) => review.userId);
+
+      const users = await lastValueFrom<User[]>(
+        this.userClient.send(
+          MessagePatterns.USER_FIND_MANY_USERNAME_BY_USER_ID,
+          userIds,
+        ),
+      );
+      const userMap = new Map(users.map((u) => [u.id, u]));
+
+      const reviews = data.map((review) => ({
+        ...review,
+        user: userMap.get(review.userId),
+      }));
+      return new ApiResponse(true, 'Reviews Fetched Successfully', {
+        reviews,
+        meta: {
+          total,
+          page,
+          lastPage: Math.ceil(total / limit),
+        },
+      });
     } catch (error) {
       console.log(error);
       throw error;
@@ -325,14 +348,21 @@ export class ReviewService {
     try {
       const newDate = new Date();
       console.log(newDate, subDays(newDate, 7));
-      const review = await this.repo.find({
+      const [reviews, total] = await this.repo.findAndCount({
         where: { userId },
         skip: (page - 1) * limit,
         take: limit,
         relations: ['rating'],
       });
 
-      return new ApiResponse(true, 'Reviews Fetched Successfully', review);
+      return new ApiResponse(true, 'Reviews Fetched Successfully', {
+        reviews,
+        meta: {
+          total,
+          page,
+          lastPage: Math.ceil(total / limit),
+        },
+      });
     } catch (error) {
       console.log(error);
       throw error;
@@ -346,17 +376,26 @@ export class ReviewService {
     limit: number = 20,
   ) {
     try {
-      const reviews = await this.repo.find({
-        where: { title: SearchLike(`%${query}%`) },
+      const where: FindOptionsWhere<Review> = {};
+
+      if (query) {
+        where.title = SearchLike(`%${query}%`);
+      }
+
+      const [reviews, total] = await this.repo.findAndCount({
+        where: Object.keys(where).length ? where : undefined,
         take: limit,
         skip: ((page ?? 1) - 1) * (limit ?? 20),
       });
 
-      return new ApiResponse(
-        true,
-        'Search Result Fetched Successfully',
+      return new ApiResponse(true, 'Search Result Fetched Successfully', {
         reviews,
-      );
+        meta: {
+          total,
+          page,
+          lastPage: Math.ceil(total / limit),
+        },
+      });
     } catch (error) {
       console.log(error);
       throw error;
@@ -433,43 +472,71 @@ export class ReviewService {
   // Get Rating of Game
   public async getRatingOfGame(gameId: number) {
     try {
-      const result = await this.ratingRepo.findAndCount({
-        where: { gameId },
-      });
+      const stats: { overall: number; count: string }[] = await this.ratingRepo
+        .createQueryBuilder('rating')
+        .select('rating.overall', 'overall')
+        .addSelect('COUNT(*)', 'count')
+        .where('rating.gameId = :gameId', { gameId })
+        .groupBy('rating.overall')
+        .getRawMany();
 
-      const rating = result[0];
-      const total: number = result[1];
+      if (stats.length === 0) {
+        return { overallRating: 0, ratings: [] };
+      }
 
-      // Calculate Count of rating
-      const countByRating: Record<number, number> = rating.reduce(
-        (acc: Record<number, number>, rating) => {
-          acc[rating.overall] = (acc[rating.overall] || 0) + 1;
-          return acc;
-        },
-        {},
+      const totalReviews = stats.reduce(
+        (sum, item) => sum + parseInt(item.count),
+        0,
+      );
+      const weightedSum = stats.reduce(
+        (sum, item) => sum + item.overall * parseInt(item.count),
+        0,
       );
 
-      // Calculate percentage
-      const ratings = Object.keys(countByRating)
-        .sort((a, b) => Number(b) - Number(a))
-        .map((rating) => ({
-          rating: Number(rating),
-          percent: Number(((countByRating[rating] / total) * 100).toFixed(0)),
-        }));
+      const overallRating = parseFloat((weightedSum / totalReviews).toFixed(1));
 
-      // Calculate Overall Rating
-      const overallRating =
-        ratings.reduce((acc, val) => acc + val.rating, 0) / ratings.length;
+      const ratings = [5, 4, 3, 2, 1].map((star) => {
+        const found = stats.find((s) => s.overall === star);
+        const count = found ? parseInt(found.count) : 0;
+        return {
+          rating: star,
+          percent:
+            totalReviews > 0 ? Math.round((count / totalReviews) * 100) : 0,
+        };
+      });
 
       return { overallRating, ratings };
     } catch (error) {
-      console.log(error);
+      console.error(error);
+      throw new RpcException({ status: 500, message: 'Aggregation failed' });
+    }
+  }
+
+  // Get Rating of Game
+  public async getRatingOfGames(gameIds: number[]) {
+    try {
+      const overallRatings: Rating[] = await this.ratingRepo
+        .createQueryBuilder('rating')
+        .select('rating.gameId', 'gameId')
+        .addSelect('AVG(rating.overall)', 'overall')
+        .where('rating.gameId IN (:...gameIds)', { gameIds })
+        .groupBy('rating.gameId')
+        .getRawMany();
+
+      return overallRatings.map((item) => ({
+        gameId: Number(item.gameId),
+        overall: parseFloat(Number(item.overall).toFixed(2)),
+      }));
+    } catch (error) {
+      console.error(error);
       throw new RpcException({
         status: 500,
-        message: error instanceof Error ? error.message : String(error),
+        message:
+          error instanceof Error ? error.message : 'Internal Server Error',
       });
     }
   }
+
   // Get Rating of Game
   public async getPopularGameIds() {
     try {
@@ -572,111 +639,103 @@ export class ReviewService {
   // Analytics Overview
   public async getAnalyticsOverview(userId: number, range: AnalyticsRange) {
     try {
-      const review = await this.repo.find({ where: { userId } });
+      const cacheKey = `analytics:overview:${userId}:${range}`;
 
-      const totalLikes = review.reduce((acc: number, curr) => {
-        return acc + (curr.likeCount ?? 0);
-      }, 0);
-
-      const totalViews = review.reduce((acc: number, curr) => {
-        return acc + (curr.viewCount ?? 0);
-      }, 0);
-
-      const totalComment = await this.commentService.getCommentCount(userId);
-
-      const topReviews = await this.repo
-        .createQueryBuilder('review')
-        .where('review.userId = :userId', { userId })
-        .leftJoinAndSelect('review.rating', 'rating')
-        .orderBy('likeCount', 'DESC')
-        .addOrderBy('viewCount', 'DESC')
-        .limit(5)
-        .getMany();
+      const cachedData = await this.cacheManager.get(cacheKey);
+      if (cachedData) return cachedData;
 
       const endDate = new Date();
       const startDate = subDays(endDate, range);
       const pastStartDate = subDays(startDate, range);
 
-      const currentViews = await this.viewRepo
-        .createQueryBuilder('view')
-        .where('view.reviewOwnerId = :reviewOwnerId', { reviewOwnerId: userId })
-        .andWhere('view.createdAt BETWEEN :start AND :end', {
-          start: startDate,
-          end: endDate,
-        })
-        .getManyAndCount();
+      const [totals, topReviews, totalComment, trendData, chartData] =
+        await Promise.all([
+          this.repo
+            .createQueryBuilder('review')
+            .select('SUM(review.likeCount)', 'totalLikes')
+            .addSelect('SUM(review.viewCount)', 'totalViews')
+            .where('review.userId = :userId', { userId })
+            .getRawOne<{
+              totalLikes: string | null;
+              totalViews: string | null;
+            }>(),
 
-      const viewGroups: { date: string; count: string }[] = await this.viewRepo
-        .createQueryBuilder('view')
-        .select('DATE(view.createdAt)', 'date')
-        .addSelect('COUNT(*)', 'count')
-        .where('view.reviewOwnerId = :reviewOwnerId', { reviewOwnerId: userId })
-        .andWhere('view.createdAt BETWEEN :start AND :end', {
-          start: startDate,
-          end: endDate,
-        })
-        .groupBy('DATE(view.createdAt)')
-        .orderBy('DATE(view.createdAt)', 'ASC')
-        .getRawMany();
+          this.repo.find({
+            where: { userId },
+            relations: ['rating'],
+            order: { likeCount: 'DESC', viewCount: 'DESC' },
+            take: 5,
+          }),
 
-      const chartData = viewGroups.map((v) => ({
-        date: v.date,
-        count: Number(v.count),
-      }));
+          this.commentService.getCommentCount(userId),
 
-      const pastViews = await this.viewRepo
-        .createQueryBuilder('view')
-        .where('view.reviewOwnerId = :reviewOwnerId', { reviewOwnerId: userId })
-        .andWhere('view.createdAt BETWEEN :pastStart AND :start', {
-          pastStart: pastStartDate,
-          start: startDate,
-        })
-        .getCount();
+          this.viewRepo
+            .createQueryBuilder('view')
+            .select(
+              `COUNT(CASE WHEN view.createdAt BETWEEN :start AND :end THEN 1 END)`,
+              'currentViews',
+            )
+            .addSelect(
+              `COUNT(CASE WHEN view.createdAt BETWEEN :pastStart AND :start THEN 1 END)`,
+              'pastViews',
+            )
+            .where('view.reviewOwnerId = :userId', { userId })
+            .setParameters({
+              start: startDate,
+              end: endDate,
+              pastStart: pastStartDate,
+            })
+            .getRawOne<{
+              currentViews: string | null;
+              pastViews: string | null;
+            }>(),
 
-      // Like
+          this.viewRepo
+            .createQueryBuilder('view')
+            .select('DATE(view.createdAt)', 'date')
+            .addSelect('COUNT(*)', 'count')
+            .where('view.reviewOwnerId = :userId', { userId })
+            .andWhere('view.createdAt BETWEEN :start AND :end', {
+              start: startDate,
+              end: endDate,
+            })
+            .groupBy('DATE(view.createdAt)')
+            .orderBy('date', 'ASC')
+            .getRawMany<{ date: string; count: string }>(),
+        ]);
 
-      const currentLikes = await this.likeRepo
-        .createQueryBuilder('like')
-        .where('like.reviewOwnerId = :reviewOwnerId', { reviewOwnerId: userId })
-        .andWhere('like.createdAt BETWEEN :start AND :end', {
-          start: startDate,
-          end: endDate,
-        })
-        .getCount();
-      const pastLikes = await this.likeRepo
-        .createQueryBuilder('like')
-        .where('like.reviewOwnerId = :reviewOwnerId', { reviewOwnerId: userId })
-        .andWhere('like.createdAt BETWEEN :pastStart AND :start', {
-          pastStart: pastStartDate,
-          start: startDate,
-        })
-        .getCount();
+      const currentViewsCount = parseInt(trendData?.currentViews || '0');
+      const pastViewsCount = parseInt(trendData?.pastViews || '0');
 
-      // Trends
       const viewsTrend =
-        currentViews[1] === 0
+        currentViewsCount === 0
           ? 0
-          : ((currentViews[1] - pastViews) / currentViews[1]) * 100;
+          : ((currentViewsCount - pastViewsCount) / currentViewsCount) * 100;
 
-      const likeTrend =
-        currentLikes === 0
-          ? 0
-          : ((currentLikes - pastLikes) / currentLikes) * 100;
-
-      return new ApiResponse(true, 'Fetched Successfully', {
+      const responseData = new ApiResponse(true, 'Fetched Successfully', {
         topReviews,
         totalComment,
-        totalLikes,
-        totalViews,
-        chartData,
-        likes: { pastLikes, currentLikes, likeTrend },
-        views: { pastViews, currentViews: currentViews[1], viewsTrend },
+        totalLikes: parseInt(totals?.totalLikes || '0'),
+        totalViews: parseInt(totals?.totalViews || '0'),
+        chartData: chartData.map((v) => ({
+          date: v.date,
+          count: Number(v.count),
+        })),
+        views: {
+          pastViews: pastViewsCount,
+          currentViews: currentViewsCount,
+          viewsTrend,
+        },
       });
+
+      await this.cacheManager.set(cacheKey, responseData, 900000);
+
+      return responseData;
     } catch (error) {
-      console.error(error);
+      console.log(error);
       throw new RpcException({
         status: 500,
-        message: error instanceof Error ? error.message : String(error),
+        message: 'Analytics aggregation failed',
       });
     }
   }
@@ -700,6 +759,42 @@ export class ReviewService {
       const [rating5, rating4, rating3, rating1] = await Promise.all(promises);
 
       return { ...rating5, ...rating4, ...rating3, ...rating1 };
+    } catch (error) {
+      console.log(error);
+      throw new RpcException({
+        status: 500,
+        message: error instanceof Error ? error.message : String(error),
+      });
+    }
+  }
+
+  public async getReviewsOfFollowings(
+    userId: number,
+    limit: number = 10,
+    page: number = 1,
+  ) {
+    try {
+      const ids = await firstValueFrom<number[]>(
+        this.userClient.send(MessagePatterns.GET_FOLLOWINGS, {
+          userId,
+          limit,
+          page,
+        }),
+      );
+      const [reviews, total] = await this.repo.findAndCount({
+        where: { userId: In(ids) },
+        take: limit,
+        skip: ((page ?? 1) - 1) * (limit ?? 20),
+      });
+      console.log(reviews);
+      return new ApiResponse(true, 'Reviews Fetched', {
+        reviews,
+        meta: {
+          total,
+          page,
+          lastPage: Math.ceil(total / limit),
+        },
+      });
     } catch (error) {
       console.log(error);
       throw new RpcException({

@@ -50,12 +50,12 @@ const Chart = ({ analytics }: ChartProps) => {
     maintainAspectRatio: false,
   };
   return (
-    <div className="p-6 rounded-xl border border-[#6711bf] text-white">
-      <div className="flex justify-between items-center mb-4">
+    <div className="p-4 sm:p-6 rounded-xl border border-[#6711bf] text-white">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4 gap-2">
         <h3 className="text-lg font-semibold">Views Chart</h3>
       </div>
 
-      <div className="h-56">
+      <div className="h-52 sm:h-60 md:h-72 lg:h-80">
         <Line data={lineChartData} options={chartOptions} />
       </div>
     </div>

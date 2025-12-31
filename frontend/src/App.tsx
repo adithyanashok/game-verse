@@ -1,98 +1,83 @@
+import { lazy, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router";
-import "./App.css";
-import HomePage from "./pages/Home/HomePages";
-import ReviewsPage from "./pages/Reviews/ReviewsPage";
-import Review from "./pages/Reviews/ReviewScreen/Review";
-import GamesPage from "./pages/Games/GamesPage";
-import Game from "./pages/Games/Game";
-import UserDashboard from "./pages/Dashboard/UserDashboard";
-import ProfilePage from "./pages/Profile/Profile";
-import Footer from "./components/common/footer/component/Footer";
-import LoginPage from "./pages/Auth/LoginPage";
-import SignupPage from "./pages/Auth/SignupPage";
-import ReviewFormScreen from "./pages/Reviews/ReviewFormScreen";
 import { ToastContainer } from "react-toastify";
+
 import ProtectedRoute from "./utils/ProtectedRoute";
+import AppLayout from "./layouts/AppLayout";
+
+import HomePage from "./pages/Home/HomePages";
+const ReviewsPage = lazy(() => import("./pages/Reviews/ReviewsPage"));
+const Review = lazy(() => import("./pages/Reviews/ReviewScreen/Review"));
+const GamesPage = lazy(() => import("./pages/Games/GamesPage"));
+const Game = lazy(() => import("./pages/Games/Game"));
+const UserDashboard = lazy(() => import("./pages/Dashboard/UserDashboard"));
+const ProfilePage = lazy(() => import("./pages/Profile/Profile"));
+const EditProfile = lazy(() => import("./pages/Profile/EditProfile"));
+const ReviewFormScreen = lazy(() => import("./pages/Reviews/ReviewFormScreen"));
+
+const DiscussionListScreen = lazy(
+  () => import("./pages/Discussions/Discussions")
+);
+const CreateDiscussionScreen = lazy(
+  () => import("./pages/Discussions/CreateDiscussion")
+);
+const DiscussionDetailScreen = lazy(
+  () => import("./pages/Discussions/Discussion")
+);
+
+const LoginPage = lazy(() => import("./pages/Auth/LoginPage"));
+const SignupPage = lazy(() => import("./pages/Auth/SignupPage"));
+
+const router = createBrowserRouter([
+  {
+    element: <AppLayout />,
+    children: [
+      { path: "/", element: <HomePage /> },
+      { path: "/home", element: <HomePage /> },
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { path: "/dashboard", element: <UserDashboard /> },
+          { path: "/reviews", element: <ReviewsPage /> },
+          { path: "/review/:id", element: <Review /> },
+          { path: "/games", element: <GamesPage /> },
+          { path: "/games/:id", element: <Game /> },
+          { path: "/profile", element: <ProfilePage /> },
+          { path: "/profile/:userId", element: <ProfilePage /> },
+          { path: "/edit-profile/:userId", element: <EditProfile /> },
+          {
+            path: "/write-review/:id",
+            element: <ReviewFormScreen mode="create" />,
+          },
+          {
+            path: "/edit-review/:id",
+            element: <ReviewFormScreen mode="edit" />,
+          },
+          { path: "/discussions", element: <DiscussionListScreen /> },
+          { path: "/discussions/create", element: <CreateDiscussionScreen /> },
+          { path: "/discussions/:id", element: <DiscussionDetailScreen /> },
+        ],
+      },
+    ],
+  },
+  { path: "/login", element: <LoginPage /> },
+  { path: "/signup", element: <SignupPage /> },
+]);
 
 function App() {
-  const router = createBrowserRouter([
-    { path: "/", element: <HomePage /> },
-
-    {
-      path: "/dashboard",
-      element: (
-        <ProtectedRoute>
-          <UserDashboard />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/reviews",
-      element: (
-        <ProtectedRoute>
-          <ReviewsPage />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/review/:id",
-      element: (
-        <ProtectedRoute>
-          <Review />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/games",
-      element: (
-        <ProtectedRoute>
-          <GamesPage />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/games/:id",
-      element: (
-        <ProtectedRoute>
-          <Game />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/profile",
-      element: (
-        <ProtectedRoute>
-          <ProfilePage />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/write-review/:id",
-      element: (
-        <ProtectedRoute>
-          <ReviewFormScreen mode="create" />
-        </ProtectedRoute>
-      ),
-    },
-    {
-      path: "/edit-review/:id",
-      element: (
-        <ProtectedRoute>
-          <ReviewFormScreen mode="edit" />
-        </ProtectedRoute>
-      ),
-    },
-
-    // Public Auth Routes
-    { path: "/login", element: <LoginPage /> },
-    { path: "/signup", element: <SignupPage /> },
-  ]);
-
   return (
     <>
-      <RouterProvider router={router} />
+      <Suspense
+        fallback={
+          <div className="h-screen flex items-center justify-center text-white">
+            Loading...
+          </div>
+        }
+      >
+        <RouterProvider router={router} />
+      </Suspense>
+
       <ToastContainer hideProgressBar theme="dark" />
-      <Footer />
     </>
   );
 }

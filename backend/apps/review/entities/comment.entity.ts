@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
@@ -10,6 +11,7 @@ import {
 
 import { Review } from './review.entity';
 
+@Index('idx_comment_review_created', ['review', 'createdAt'])
 @Entity()
 export class Comment {
   @PrimaryGeneratedColumn()
@@ -24,11 +26,9 @@ export class Comment {
   @ManyToOne(() => Review, (review) => review.comment, { onDelete: 'CASCADE' })
   review: Review;
 
-  // Optional parent for replies; simple numeric reference to avoid deep relation complexity
   @Column({ type: 'int', nullable: true })
   parentCommentId?: number | null;
 
-  // Optional reverse relation for completeness (not required for functionality)
   @OneToMany(() => Comment, () => undefined)
   replies?: Comment[];
 

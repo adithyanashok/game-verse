@@ -2,22 +2,32 @@ import { Controller, Body, Inject } from '@nestjs/common';
 import {
   ClientProxy,
   MessagePattern,
+  Payload,
   RpcException,
 } from '@nestjs/microservices';
+import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import {
   ApiResponse,
   CreateUserDto,
+  ErrorHandler,
   LoginUserDto,
   MessagePatterns,
 } from 'libs/common/src';
 import { lastValueFrom } from 'rxjs';
 import { User } from './interfaces/user.interface';
 
+interface JwtPayload {
+  sub: string | number;
+  email: string;
+  role?: string;
+}
+
 @Controller()
 export class AuthController {
   constructor(
     private readonly authService: AuthService,
+    private readonly jwtService: JwtService,
     @Inject('USER_SERVICE') private readonly userClient: ClientProxy,
   ) {}
 
@@ -29,7 +39,16 @@ export class AuthController {
       );
       const tokens = await this.authService.generateTokens(user);
 
-      return new ApiResponse(true, 'Account Created', { user, ...tokens });
+      const newUser = {
+        email: user.email,
+        role: user.role,
+        id: user.id,
+      };
+
+      return new ApiResponse(true, 'Account Created', {
+        newUser,
+        ...tokens,
+      });
     } catch (error) {
       throw new RpcException(
         error instanceof Error ? error.message : 'Signup failed',
@@ -47,9 +66,16 @@ export class AuthController {
           message: 'Invalid credentials',
         });
       }
+
       const tokens = await this.authService.generateTokens(user);
+      const newUser = {
+        email: user.email,
+        role: user.role,
+        id: user.id,
+      };
+
       return new ApiResponse(true, 'Login Successful', {
-        user,
+        user: newUser,
         ...tokens,
       });
     } catch (error) {
@@ -62,27 +88,28 @@ export class AuthController {
   }
 
   @MessagePattern(MessagePatterns.AUTH_VALIDATE)
-  async validate(
-    @Body() payload: { sub: string | number; email: string; role?: string },
-  ) {
+  async validate(@Payload() data: { token: string }) {
     try {
-      const user = await this.authService.validateJwtPayload(payload);
+      const payload = this.jwtService.verify<JwtPayload>(data.token);
+
+      const user = await lastValueFrom(
+        this.userClient.send<User>(
+          MessagePatterns.USER_FIND_BY_ID,
+          payload.sub,
+        ),
+      );
+
       if (!user) {
-        throw new RpcException({
-          status: 401,
-          message: 'Invalid token',
-        });
+        throw new RpcException({ status: 401, message: 'User not found' });
       }
-      if (!user.role && payload.role) {
-        user.role = payload.role;
-      }
+
       return user;
     } catch (error) {
-      throw new RpcException(
-        error instanceof RpcException
-          ? error.getError()
-          : { status: 401, message: 'Validation failed' },
-      );
+      console.log(error);
+      throw new RpcException({
+        status: 401,
+        message: 'Invalid or expired token',
+      });
     }
   }
 
@@ -105,7 +132,7 @@ export class AuthController {
       const tokens = await this.authService.generateTokens(user);
       return new ApiResponse(true, 'Token refreshed', tokens);
     } catch (error) {
-      throw new RpcException(error.message);
+      ErrorHandler.handle(error, 'Unknown Error Occured: Refersh Token');
     }
   }
 }

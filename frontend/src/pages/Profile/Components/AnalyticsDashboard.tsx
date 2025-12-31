@@ -21,15 +21,18 @@ const AnalyticsDashboard = () => {
   );
 
   return (
-    <div className="w-full p-6 space-y-8">
+    <div className="w-full mt-4 sm:p-6 space-y-8">
       {/* Header */}
-      <div className="flex justify-between">
-        <h1 className="text-2xl font-bold text-white">Review Analytics</h1>
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-white">
+          Review Analytics
+        </h1>
+
         {/* Range Selector */}
         <select
           value={range}
           onChange={(e) => setRange(e.target.value as AnalyticsRange)}
-          className="bg-dark text-white px-3 py-2 rounded-md border border-gray-700"
+          className="bg-dark text-white px-3 py-2 rounded-md border border-gray-700 w-full sm:w-auto"
         >
           {Object.values(AnalyticsRange).map((r) => (
             <option key={r} value={r}>
@@ -40,46 +43,26 @@ const AnalyticsDashboard = () => {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
         {[
+          { title: "Total Comments", value: analyticsOverview?.totalComment },
+          { title: "Total Likes", value: analyticsOverview?.totalLikes },
+          { title: "Total Views", value: analyticsOverview?.totalViews },
           {
-            title: "Total Comments",
-            value: analyticsOverview?.totalComment,
-          },
-          {
-            title: "Total Likes",
-            value: analyticsOverview?.totalLikes,
-          },
-          {
-            title: "Total Views",
-            value: analyticsOverview?.totalViews,
-          },
-          {
-            title: "Likes Trend",
-            value: `${analyticsOverview?.likes.likeTrend}%`,
+            title: "Views",
+            value: analyticsOverview?.views.currentViews,
+            trends: analyticsOverview?.views.viewsTrend,
           },
         ].map((item, index) => (
-          <StatCard key={index} title={item.title} value={item.value ?? 0} />
+          <StatCard
+            key={index}
+            title={item.title}
+            value={item.value ?? 0}
+            trend={item.trends}
+            showArrow
+            showPercent
+          />
         ))}
-      </div>
-
-      {/* Trend Cards */}
-      <div className="grid grid-cols-2 gap-4">
-        <StatCard
-          title="Likes"
-          value={`${analyticsOverview?.likes.currentLikes}`}
-          trend={analyticsOverview?.likes.likeTrend ?? 0}
-          showArrow
-          showPercent
-        />
-
-        <StatCard
-          title="Views"
-          value={`${analyticsOverview?.views.currentViews}`}
-          trend={analyticsOverview?.views.viewsTrend ?? 0}
-          showArrow
-          showPercent
-        />
       </div>
 
       {/* Line Chart */}

@@ -1,3 +1,5 @@
+import type { UserProfile } from "../user/types";
+
 export interface RatingBreakdown {
   graphics: number;
   gameplay: number;
@@ -8,10 +10,8 @@ export interface RatingBreakdown {
 
 export interface ReviewSummary {
   id: number;
-  userName: string;
   title: string;
   text: string;
-  userId: number;
   gameId: number;
   likeCount: number;
   viewCount: number;
@@ -19,6 +19,7 @@ export interface ReviewSummary {
   imageUrl: string;
   createdAt: string;
   updatedAt: string;
+  user: UserProfile;
   rating?: RatingBreakdown;
 }
 
@@ -53,7 +54,6 @@ export interface AnalyticsOverview {
   totalLikes: number;
   totalViews: number;
   chartData: ChartData[];
-  likes: LikesData;
   views: ViewsData;
 }
 
@@ -94,7 +94,7 @@ export interface UpdateReviewPayload {
 }
 
 export interface SearchReviewsPayload {
-  query: string;
+  query?: string | null;
   page?: number;
   limit?: number;
 }
@@ -130,6 +130,7 @@ export interface ReviewComment {
   createdAt: string;
   updatedAt: string;
   isYourComment: boolean;
+  username: string;
 }
 
 export interface CreateCommentPayload {
@@ -141,4 +142,15 @@ export interface CreateCommentPayload {
 export interface UpdateCommentPayload {
   id: number;
   comment: string;
+}
+
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  lastPage: number;
+}
+
+export interface PaginatedReviewsResponse {
+  reviews: ReviewSummary[];
+  meta: PaginationMeta;
 }

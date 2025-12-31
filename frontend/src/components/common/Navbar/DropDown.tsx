@@ -1,20 +1,17 @@
 import { useState } from "react";
 import { Menu, MenuItem } from "@mui/material";
 import { Link, useNavigate } from "react-router";
-import { useAppDispatch } from "../../../store/hooks";
+import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { logout } from "../../../features/auth/authSlice";
 
-interface Props {
-  userImage: string;
-  userName: string;
-}
-const UserDropdown = ({ userImage, userName }: Props) => {
-  const [anchorEl, setAnchorEl] = useState(null);
+const UserDropdown = () => {
+  const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const open = Boolean(anchorEl);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const authUser = useAppSelector((state) => state.auth.user);
 
-  const handleOpen = (event) => {
+  const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
 
@@ -33,12 +30,12 @@ const UserDropdown = ({ userImage, userName }: Props) => {
       {/* Trigger Button */}
       <button
         onClick={handleOpen}
-        className="flex items-center gap-3 bg-dark-purple lg:px-2 md:py-1 rounded-full cursor-pointer lg:mr-2"
+        className="flex items-center gap-2 bg-dark-purple lg:px-1 lg:pr-2 md:py-1 rounded-full cursor-pointer lg:mr-3"
       >
         {/* Avatar */}
         <div className="w-8 h-8 lg:w-10 lg:h-10">
           <img
-            src={userImage}
+            src={`https://${authUser?.profileImage}`}
             alt="User"
             className="w-full h-full object-cover rounded-full"
           />
@@ -46,7 +43,7 @@ const UserDropdown = ({ userImage, userName }: Props) => {
 
         {/* Name hidden on small screens */}
         <p className="text-purple font-semibold text-[14px] hidden lg:block">
-          {userName}
+          {authUser?.name}
         </p>
       </button>
 

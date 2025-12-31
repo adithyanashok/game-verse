@@ -11,4 +11,10 @@ export class ApiGatewayController {
   getHello(): string {
     return this.apiGatewayService.getHello();
   }
+
+  @Public()
+  @Get('csrf')
+  getCsrfToken() {
+    return { message: 'CSRF token set' };
+  }
 }

@@ -3,7 +3,13 @@ import {
   createSlice,
   type ActionReducerMapBuilder,
 } from "@reduxjs/toolkit";
-import type { ApiResponse, Game } from "./types";
+import type {
+  ApiResponse,
+  FetchGamesPayload,
+  Game,
+  PaginatedGamesResponse,
+  PaginationMeta,
+} from "./types";
 import apiClient from "../../services/apiClient";
 import { API } from "../../services/endpoints";
 
@@ -56,7 +62,9 @@ const extractErrorMessage = (error: unknown, fallback: string): string => {
 
 export interface GameState {
   games: Game[];
+  meta: PaginationMeta | null;
   searchResults: Game[];
+  searchMeta: PaginationMeta | null;
   currentGame: Game | null;
   topRatedGames: Game[];
   loading: OperationState;
@@ -65,33 +73,74 @@ export interface GameState {
 
 const initialState: GameState = {
   games: [],
+  meta: null,
   searchResults: [],
+  searchMeta: null,
   currentGame: null,
   topRatedGames: [],
   loading: createOperationState(false),
   errors: createErrorState(null),
 };
 
-export const getGames = createAsyncThunk<Game[], void, { rejectValue: string }>(
-  "games/getGames",
-  async (_, thunkApi) => {
-    try {
-      const res = await apiClient.get<ApiResponse<Game[]>>(API.GAME.GET_GAMES);
+export const getGames = createAsyncThunk<
+  PaginatedGamesResponse,
+  FetchGamesPayload | void,
+  { rejectValue: string }
+>("games/getGames", async (payload, thunkApi) => {
+  try {
+    const params = new URLSearchParams();
+    if (payload) {
+      if (payload.page) params.append("page", payload.page.toString());
+      if (payload.limit) params.append("limit", payload.limit.toString());
+      if (payload.search) params.append("search", payload.search);
+    }
 
-      if (!res.data.status) {
-        return thunkApi.rejectWithValue(
-          res.data.message ?? "Failed to load games"
-        );
-      }
-      console.log(res.data.data[1]);
-      return res.data.data;
-    } catch (error) {
+    const query = params.toString();
+    const url = query ? `${API.GAME.GET_GAMES}?${query}` : API.GAME.GET_GAMES;
+
+    const res = await apiClient.get<ApiResponse<PaginatedGamesResponse>>(url);
+
+    if (!res.data.status) {
       return thunkApi.rejectWithValue(
-        extractErrorMessage(error, "Unable to load games")
+        res.data.message ?? "Failed to load games"
       );
     }
+    return res.data.data;
+  } catch (error) {
+    return thunkApi.rejectWithValue(
+      extractErrorMessage(error, "Unable to load games")
+    );
   }
-);
+});
+
+export const searchGames = createAsyncThunk<
+  PaginatedGamesResponse,
+  FetchGamesPayload,
+  { rejectValue: string }
+>("games/searchGames", async (payload, thunkApi) => {
+  try {
+    const params = new URLSearchParams();
+    if (payload.page) params.append("page", payload.page.toString());
+    if (payload.limit) params.append("limit", payload.limit.toString());
+    if (payload.search) params.append("search", payload.search);
+
+    const query = params.toString();
+    const url = `${API.GAME.GET_GAMES}?${query}`;
+
+    const res = await apiClient.get<ApiResponse<PaginatedGamesResponse>>(url);
+
+    if (!res.data.status) {
+      return thunkApi.rejectWithValue(
+        res.data.message ?? "Failed to search games"
+      );
+    }
+    return res.data.data;
+  } catch (error) {
+    return thunkApi.rejectWithValue(
+      extractErrorMessage(error, "Unable to search games")
+    );
+  }
+});
 
 export const getGame = createAsyncThunk<Game, string, { rejectValue: string }>(
   "games/getGame",
@@ -144,6 +193,7 @@ const gamesSlice = createSlice({
   reducers: {
     clearSearchResults: (state: GameState) => {
       state.searchResults = [];
+      state.searchMeta = null;
       state.errors.search = null;
     },
     resetCurrentGame: (state: GameState) => {
@@ -159,7 +209,8 @@ const gamesSlice = createSlice({
       })
       .addCase(getGames.fulfilled, (state, action) => {
         state.loading.getAll = false;
-        state.games = action.payload;
+        state.games = action.payload.games;
+        state.meta = action.payload.meta;
         console.log(action.payload);
       })
       .addCase(getGames.rejected, (state, action) => {
@@ -196,6 +247,21 @@ const gamesSlice = createSlice({
         state.loading.getTopRatedGames = false;
         state.errors.getTopRatedGames =
           action.payload ?? "Failed to fetch top rated games";
+      })
+
+      // SEARCH GAMES
+      .addCase(searchGames.pending, (state) => {
+        state.loading.search = true;
+        state.errors.search = null;
+      })
+      .addCase(searchGames.fulfilled, (state, action) => {
+        state.loading.search = false;
+        state.searchResults = action.payload.games;
+        state.searchMeta = action.payload.meta;
+      })
+      .addCase(searchGames.rejected, (state, action) => {
+        state.loading.search = false;
+        state.errors.search = action.payload ?? "Failed to search games";
       });
   },
 });

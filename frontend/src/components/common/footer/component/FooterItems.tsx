@@ -10,7 +10,7 @@ const FooterItems = ({ items, title }: Props) => {
       </li>
       {items.map((item) => {
         return (
-          <li key={item} className="text-[12px] my-2">
+          <li key={item} className="text-[12px] md:text-[14px] my-2">
             {item}
           </li>
         );

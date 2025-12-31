@@ -8,7 +8,12 @@ import {
 import apiClient from "../../services/apiClient";
 import { API } from "../../services/endpoints";
 import type { ApiResponse } from "../../interfaces/api-response.interface";
-import type { FollowStatusResponse, UserProfile, UserState } from "./types";
+import type {
+  FollowStatusResponse,
+  UpdateUserProfilePayload,
+  UserProfile,
+  UserState,
+} from "./types";
 
 const extractErrorMessage = (error: unknown, fallback: string): string => {
   if (typeof error === "string") {
@@ -149,6 +154,64 @@ export const getTopReviewers = createAsyncThunk<
   }
 });
 
+export const uploadUserImage = createAsyncThunk<
+  UserProfile,
+  { file: File },
+  { rejectValue: string }
+>("user/uploadImage", async ({ file }, thunkApi) => {
+  try {
+    // Prepare form data
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await apiClient.post<ApiResponse<UserProfile>>(
+      API.USER.UPLOAD_IMAGE,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    if (!response.data.status || !response.data.data) {
+      return thunkApi.rejectWithValue(response.data.message ?? "Upload failed");
+    }
+
+    return response.data.data;
+  } catch (error: unknown) {
+    return thunkApi.rejectWithValue(
+      extractErrorMessage(error, "Unable to upload image")
+    );
+  }
+});
+
+export const updateUserProfile = createAsyncThunk<
+  UserProfile,
+  UpdateUserProfilePayload,
+  { rejectValue: string }
+>("user/updateUserProfile", async (payload, thunkApi) => {
+  try {
+    const response = await apiClient.patch<ApiResponse<UserProfile>>(
+      API.USER.UPDATE_USER_PROFILE,
+      payload
+    );
+
+    if (!response.data.status || !response.data.data) {
+      return thunkApi.rejectWithValue(
+        response.data.message ?? "Failed to load user"
+      );
+    }
+
+    const data = response.data.data;
+    return data;
+  } catch (error: unknown) {
+    return thunkApi.rejectWithValue(
+      extractErrorMessage(error, "Unable to load user")
+    );
+  }
+});
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -166,6 +229,8 @@ const userSlice = createSlice({
         (state, action: PayloadAction<UserProfile>) => {
           state.loading = false;
           state.profile = action.payload;
+
+          console.log(action.payload);
         }
       )
       .addCase(
@@ -245,6 +310,34 @@ const userSlice = createSlice({
         state.topReviewers = action.payload;
       })
       .addCase(getTopReviewers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? "Failed to fetch reviewers";
+      })
+
+      // UPLOAD USER IMAGE
+      .addCase(uploadUserImage.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(uploadUserImage.fulfilled, (state, action) => {
+        state.loading = false;
+        state.profile = action.payload;
+      })
+      .addCase(uploadUserImage.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload ?? "Failed to fetch reviewers";
+      })
+
+      // UPDATE USER PROFILE
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.profile = action.payload;
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload ?? "Failed to fetch reviewers";
       });

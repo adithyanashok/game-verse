@@ -50,8 +50,7 @@ export class AuthService {
       ? Number(process.env.JWT_REFRESH_EXPIRES_IN)
       : 60 * 60 * 24 * 7;
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret:
-        process.env.JWT_REFRESH_SECRET || process.env.JWT_SECRET || 'secret',
+      secret: process.env.JWT_REFRESH_SECRET! || process.env.JWT_SECRET!,
       expiresIn: refreshExpiresIn,
     } as any);
 

@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router";
-import ResponsiveNavbar from "../../components/common/Navbar/ResponsiveNavbar";
+import { Link, useParams } from "react-router";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
   fetchUserProfile,
@@ -9,12 +8,14 @@ import {
 } from "../../features/user/userSlice";
 import { getByUserId } from "../../features/reviews/reviewsSlice";
 import AnalyticsDashboard from "./Components/AnalyticsDashboard";
+import ProfileImage from "./Components/ProfileImage";
+import { toast } from "react-toastify";
+import ReviewCardProfile from "../Reviews/Components/ReviewCardProfile";
 
 const ProfilePage = () => {
   const { userId: userIdParam } = useParams();
   const dispatch = useAppDispatch();
   const [activeTab, setActiveTab] = useState("Reviews");
-  const tabs = ["Reviews", "Analytics"];
   const authUser = useAppSelector((state) => state.auth.user);
   const { profile, loading, error, followLoading, followError } =
     useAppSelector((state) => state.user);
@@ -39,6 +40,7 @@ const ProfilePage = () => {
 
   const isOwnProfile = authUser?.id === profile?.id;
   const canFollow = !isOwnProfile && typeof targetUserId === "number";
+  const tabs = !isOwnProfile ? ["Reviews"] : ["Reviews", "Analytics"];
 
   const handleFollowToggle = () => {
     if (!canFollow || typeof targetUserId !== "number") {
@@ -59,13 +61,22 @@ const ProfilePage = () => {
 
     if (!canFollow) {
       return (
-        <span className="mt-5 px-6 py-2 rounded-full bg-[#1f1233] text-gray-300 font-medium shadow-md">
+        <Link
+          to={`/edit-profile/${authUser.id}`}
+          className="mt-5 px-6 py-2 rounded-full bg-[#1f1233] text-gray-300 font-medium shadow-md"
+        >
           Edit
-        </span>
+        </Link>
       );
     }
 
-    console.log(profile);
+    if (error) {
+      toast.error(error, {
+        position: "top-right",
+        autoClose: 1500,
+        theme: "dark",
+      });
+    }
 
     return (
       <button
@@ -87,107 +98,102 @@ const ProfilePage = () => {
   };
 
   return (
-    <>
-      <ResponsiveNavbar />
-      <div className="min-h-screen bg-primary text-white flex flex-col items-center py-10 px-4">
-        {!authUser && (
-          <p className="mb-6 text-sm text-red-400">
-            Sign in to view profiles and manage follow status.
-          </p>
-        )}
+    <div className="min-h-screen bg-primary text-white flex flex-col items-center py-10 px-2 md:px-4">
+      {!authUser && (
+        <p className="mb-6 text-sm text-red-400">
+          Sign in to view profiles and manage follow status.
+        </p>
+      )}
 
-        {typeof targetUserId !== "number" && (
-          <div className="text-center text-gray-400">
-            Unable to determine which profile to load.
+      {typeof targetUserId !== "number" && (
+        <div className="text-center text-gray-400">
+          Unable to determine which profile to load.
+        </div>
+      )}
+
+      {loading && (
+        <div className="text-center text-gray-400 mt-10">Loading...</div>
+      )}
+
+      {!loading && profile && (
+        <>
+          <div className="flex flex-col items-center text-center">
+            {/* Profile Image */}
+            <ProfileImage isOwnProfile={isOwnProfile} />
+
+            {/* User Name */}
+            <h2 className="text-2xl font-semibold mt-4">
+              {profile.name || "Unnamed Gamer"}
+            </h2>
+
+            {/* User Bio */}
+            <p className="text-gray-400 text-sm max-w-md mt-2">
+              {profile.bio || "No bio added yet."}
+            </p>
+
+            {/* Following and Followers Count */}
+            <div className="flex items-center gap-2 mt-3 text-gray-400 text-sm">
+              <span className="font-semibold text-white">
+                {profile.followersCount}
+              </span>{" "}
+              followers ·{" "}
+              <span className="font-semibold text-white">
+                {profile.followingCount}
+              </span>{" "}
+              following
+            </div>
+
+            {/* Action Buttons */}
+            {renderActionButton()}
+            {followError && (
+              <p className="mt-2 text-sm text-red-400">{followError}</p>
+            )}
           </div>
-        )}
-
-        {loading && (
-          <div className="text-center text-gray-400 mt-10">Loading...</div>
-        )}
-
-        {error && !loading && (
-          <div className="text-center text-red-500 mt-10">{error}</div>
-        )}
-
-        {!loading && !error && profile && (
-          <>
-            <div className="flex flex-col items-center text-center">
-              <img
-                src="https://i.imgur.com/8Km9tLL.png"
-                alt="Profile"
-                className="w-24 h-24 rounded-full border-4 border-[#2a1b45] shadow-lg"
-              />
-              <h2 className="text-2xl font-semibold mt-4">
-                {profile.name || "Unnamed Gamer"}
-              </h2>
-              <p className="text-gray-400 text-sm mt-1">{profile.email}</p>
-              <p className="text-gray-400 text-sm max-w-md mt-2">
-                {profile.bio || "No bio added yet."}
-              </p>
-              <div className="flex items-center gap-2 mt-3 text-gray-400 text-sm">
-                <span className="font-semibold text-white">
-                  {profile.followersCount}
-                </span>{" "}
-                followers ·{" "}
-                <span className="font-semibold text-white">
-                  {profile.followingCount}
-                </span>{" "}
-                following
-              </div>
-              {renderActionButton()}
-              {followError && (
-                <p className="mt-2 text-sm text-red-400">{followError}</p>
-              )}
-            </div>
-
-            {/* Tabs */}
-
-            <div className="flex mt-10 border-b border-gray-700 w-full max-w-3xl justify-center">
-              {tabs.map((tab) => (
-                <button
-                  key={tab}
-                  className={`px-4 py-2 text-sm font-medium transition relative ${
-                    activeTab === tab
-                      ? "text-[#b072ff]" // active tab color
-                      : "text-gray-400 hover:text-white"
-                  }`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab}
-
-                  {activeTab === tab && (
-                    <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#b072ff]"></span>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Placeholder Game Cards */}
-            {activeTab === "Reviews" && (
-              <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 w-full max-w-5xl">
-                {userReviews.map((review, index) => (
-                  <div
-                    key={index}
-                    className="bg-[#1a102d] rounded-xl p-2 hover:scale-105 transition transform cursor-pointer shadow-lg"
+          {userReviews.length !== 0 ? (
+            <>
+              {/* Tabs */}
+              <div className="flex mt-10 border-b border-gray-700 w-full max-w-3xl justify-center">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab + new Date().getMilliseconds()}
+                    className={`px-4 py-2 text-sm font-medium transition relative ${
+                      activeTab === tab
+                        ? "text-[#b072ff]"
+                        : "text-gray-400 hover:text-white"
+                    }`}
+                    onClick={() => setActiveTab(tab)}
                   >
-                    <img
-                      src={review.imageUrl}
-                      alt={review.title}
-                      className="rounded-lg w-full h-44 object-cover"
-                    />
-                    <p className="mt-2 text-center text-sm text-gray-300">
-                      {review.title}
-                    </p>
-                  </div>
+                    {tab}
+
+                    {activeTab === tab && (
+                      <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#b072ff]"></span>
+                    )}
+                  </button>
                 ))}
               </div>
-            )}
-            {activeTab === "Analytics" && <AnalyticsDashboard />}
-          </>
-        )}
-      </div>
-    </>
+
+              {/* Placeholder Game Cards */}
+              {activeTab === "Reviews" && (
+                <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 w-full max-w-5xl">
+                  {userReviews.map((review, index) => (
+                    <Link key={review.createdAt} to={`/review/${review.id}`}>
+                      <ReviewCardProfile
+                        key={index}
+                        image={review.imageUrl}
+                        title={review.title}
+                      />
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {activeTab === "Analytics" && <AnalyticsDashboard />}
+            </>
+          ) : (
+            <p className="mt-10">No Reviews Posted</p>
+          )}
+        </>
+      )}
+    </div>
   );
 };
 

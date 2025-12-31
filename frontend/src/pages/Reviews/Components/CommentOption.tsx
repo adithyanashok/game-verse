@@ -23,11 +23,8 @@ export const OptionsMenu = ({ onEdit, onDelete }: OptionsMenuProps) => {
 
   return (
     <div className="relative inline-block text-left" ref={menuRef}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center justify-center w-9 h-9 rounded-full bg-[#1f2933]/80 hover:bg-[#374151] transition-all duration-200 shadow-sm hover:shadow-md border border-white/10 backdrop-blur-sm"
-      >
-        <BiDotsVerticalRounded className="w-5 h-5 text-white" />
+      <button onClick={() => setOpen(!open)}>
+        <BiDotsVerticalRounded className="sm:w-5 sm:h-5 text-white" />
       </button>
 
       {open && (

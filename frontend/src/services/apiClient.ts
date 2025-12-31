@@ -3,7 +3,7 @@ import axios from "axios";
 import { loadPersistedAuth } from "../features/auth/storage";
 
 export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3000/api";
+  import.meta.env.VITE_API_BASE_URL ?? "http://192.168.1.100:3000/api";
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,

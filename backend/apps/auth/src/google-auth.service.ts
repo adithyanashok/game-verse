@@ -57,13 +57,15 @@ export class GoogleAuthService implements OnModuleInit {
         this.userClient.send<User>(MessagePatterns.AUTH_SIGNUP, {
           email: tokenPayload?.email,
           name: tokenPayload?.given_name,
-          googleId: tokenPayload?.sub,
         }),
       );
 
       return new ApiResponse(true, 'Authenticated', newUser);
     } catch (error) {
-      throw new RpcException(error.message);
+      if (error instanceof Error) {
+        throw new RpcException(error.message);
+      }
+      throw new RpcException('Failed Google Authentication');
     }
   }
 }

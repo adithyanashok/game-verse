@@ -2,6 +2,7 @@ import { Exclude } from 'class-transformer';
 import {
   Column,
   Entity,
+  Index,
   JoinTable,
   ManyToMany,
   PrimaryGeneratedColumn,
@@ -12,6 +13,7 @@ export enum Role {
   Admin = 'admin',
 }
 
+@Index('idx_user_email', ['email'])
 @Entity()
 export class User {
   @PrimaryGeneratedColumn()
@@ -34,6 +36,14 @@ export class User {
   googleId?: string;
 
   @Column({
+    type: 'varchar',
+    nullable: true,
+    default:
+      'd24vf7cnmzp62c.cloudfront.net/profile-images/Profile_avatar_placeholder_large.png',
+  })
+  profileImage?: string;
+
+  @Column({
     type: 'enum',
     enum: Role,
     default: Role.User,
@@ -43,6 +53,9 @@ export class User {
 
   @Column({ default: 0 })
   followerCount: number;
+
+  @Column({ default: 0 })
+  followingCount: number;
 
   @ManyToMany(() => User, (user) => user.followers, {
     cascade: false,

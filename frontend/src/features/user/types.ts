@@ -3,6 +3,7 @@ export interface UserProfile {
   name: string;
   email: string;
   bio: string;
+  profileImage: string;
   followersCount: number;
   followingCount: number;
   isFollowing: boolean;
@@ -19,4 +20,9 @@ export interface UserState {
   error: string | null;
   followLoading: boolean;
   followError: string | null;
+}
+
+export interface UpdateUserProfilePayload {
+  name: string;
+  bio: string;
 }

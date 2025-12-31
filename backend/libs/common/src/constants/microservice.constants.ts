@@ -15,6 +15,10 @@ export const MICROSERVICE_CONFIG = {
     host: 'localhost',
     port: 7000,
   },
+  DISCUSSION_SERVICE: {
+    host: 'localhost',
+    port: 8000,
+  },
   API_GATEWAY: {
     port: 3000,
   },

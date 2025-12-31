@@ -55,6 +55,15 @@
         "tsConfigPath": "libs/contract/tsconfig.lib.json"
       }
     },
+    "discussion": {
+      "type": "application",
+      "root": "apps/discussion",
+      "entryFile": "main",
+      "sourceRoot": "apps/discussion/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/discussion/tsconfig.app.json"
+      }
+    },
     "game": {
       "type": "application",
       "root": "apps/game",

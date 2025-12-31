@@ -5,13 +5,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import database from './config/database';
+import { UploadService } from './upload/upload.service';
+import appConfig from './config/appConfig';
 const ENV = process.env.NODE_ENV;
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: !ENV ? 'apps/user/.env' : `apps/user/.env.${ENV}`,
-      load: [database],
+      load: [database, appConfig],
     }),
     TypeOrmModule.forFeature([User]),
     TypeOrmModule.forRootAsync({
@@ -35,6 +37,6 @@ const ENV = process.env.NODE_ENV;
     }),
   ],
   controllers: [UserController],
-  providers: [UserService, UserService],
+  providers: [UserService, UserService, UploadService],
 })
 export class UserModule {}

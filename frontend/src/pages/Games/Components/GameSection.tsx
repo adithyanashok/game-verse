@@ -3,23 +3,40 @@ import { Link } from "react-router";
 import { BiSearch } from "react-icons/bi";
 import GameCard from "./GameCard";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { getGames } from "../../../features/games/gamesSlice";
+import { getGames, searchGames } from "../../../features/games/gamesSlice";
 import type { RootState } from "../../../store";
+import Pagination from "../../../components/common/Pagination";
+import debounce from "../../../utils/debouncer";
 
 const GameSection = () => {
   const dispatch = useAppDispatch();
   const [selectedGenre, setSelectedGenre] = useState<string | null>("All");
   const [search, setSearch] = useState("");
 
-  const { games, loading } = useAppSelector((state: RootState) => state.game);
+  const { games, meta, loading, searchResults, searchMeta } = useAppSelector(
+    (state: RootState) => state.game
+  );
+
+  const [page, setPage] = useState(1);
+  const LIMIT = 20;
+
+  const debouncedSetSearch = useMemo(
+    () =>
+      debounce((value: string) => {
+        setSearch(value);
+        setPage(1);
+      }, 500),
+    []
+  );
 
   useEffect(() => {
-    if (games.length === 0) {
-      dispatch(getGames());
+    if (search) {
+      dispatch(searchGames({ search, page, limit: LIMIT }));
+    } else {
+      dispatch(getGames({ page, limit: LIMIT }));
     }
-  }, [dispatch, games]);
+  }, [dispatch, search, page]);
 
-  // Extract unique genres from all games
   const genres = useMemo(() => {
     const genreSet = new Set<string>();
     games.forEach((game) => {
@@ -32,26 +49,11 @@ const GameSection = () => {
     return Array.from(genreSet).sort();
   }, [games]);
 
-  const filteredGames = useMemo(() => {
-    if (games.length === 0) return [];
-
-    return games.filter((game) => {
-      const matchesSearch =
-        search === "" ||
-        game.name.toLowerCase().includes(search.toLowerCase()) ||
-        game.description.toLowerCase().includes(search.toLowerCase());
-
-      const matchesGenre =
-        selectedGenre === "All" ||
-        selectedGenre === null ||
-        game.genre?.some((g) => g.name === selectedGenre);
-
-      return matchesSearch && matchesGenre;
-    });
-  }, [games, selectedGenre, search]);
+  const displayedGames = search ? searchResults : games;
+  const currentMeta = search ? searchMeta : meta;
 
   return (
-    <div className="md:w-[95%] p-2 md:p-10">
+    <div className="p-2 md:p-4">
       <div className="md:border-1 rounded-[10px] md:bg-dark md:border-[#989fab1e] md:p-5">
         <div className="flex items-center gap-x-2 bg-dark md:bg-primary p-3 rounded-[15px]">
           <BiSearch className="text-white text-2xl" />
@@ -60,13 +62,13 @@ const GameSection = () => {
             type="text"
             placeholder="Search for games"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => debouncedSetSearch(e.target.value)}
           />
         </div>
         <div className="flex flex-wrap gap-2 mt-4">
           <button
             onClick={() => setSelectedGenre("All")}
-            className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+            className={`sm:px-4 sm:py-2 px-2 py-1 rounded-full sm:text-sm text-xs font-semibold transition-colors ${
               selectedGenre === "All"
                 ? "bg-[var(--color-purple)] text-white"
                 : "bg-dark-purple text-[var(--color-purple)] hover:bg-[#6711bf] hover:text-white"
@@ -78,7 +80,7 @@ const GameSection = () => {
             <button
               key={genreName}
               onClick={() => setSelectedGenre(genreName)}
-              className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
+              className={`sm:px-4 sm:py-2 px-2 py-1 rounded-full sm:text-sm text-xs font-semibold transition-colors ${
                 selectedGenre === genreName
                   ? "bg-[var(--color-purple)] text-white"
                   : "bg-dark-purple text-[var(--color-purple)] hover:bg-[#6711bf] hover:text-white"
@@ -90,19 +92,27 @@ const GameSection = () => {
         </div>
       </div>
 
-      <div className="flex flex-wrap justify-center md:justify-start gap-5 mt-10">
-        {loading.getAll ? (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 xl:gap-6 gap-2 mt-5">
+        {loading.getAll || loading.search ? (
           <p className="text-white">Loading...</p>
-        ) : filteredGames.length === 0 ? (
+        ) : displayedGames.length === 0 ? (
           <p className="text-gray-400">No games found</p>
         ) : (
-          filteredGames.map((game) => (
+          displayedGames.map((game) => (
             <Link key={game.id} to={`/games/${game.id}`}>
               <GameCard game={game} />
             </Link>
           ))
         )}
       </div>
+
+      {currentMeta && (
+        <Pagination
+          currentPage={currentMeta.page}
+          totalPages={currentMeta.lastPage}
+          onPageChange={setPage}
+        />
+      )}
     </div>
   );
 };

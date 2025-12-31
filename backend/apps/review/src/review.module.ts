@@ -3,6 +3,7 @@ import { ReviewController } from './review.controller';
 import { ReviewService } from './review.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { CacheModule } from '@nestjs/cache-manager';
 import databaseConfig from '../config/database.config';
 import { Review } from '../entities/review.entity';
 import { ClientsModule, Transport } from '@nestjs/microservices';
@@ -41,6 +42,9 @@ const ENV = process.env.NODE_ENV;
       isGlobal: true,
       envFilePath: !ENV ? 'apps/review/.env' : `apps/review/.env.${ENV}`,
       load: [databaseConfig],
+    }),
+    CacheModule.register({
+      isGlobal: true,
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

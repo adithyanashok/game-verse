@@ -1,10 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsNumber, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class SearchDto {
-  @ApiProperty({ example: 'Game', description: 'Search Keyword' })
+  @ApiProperty({
+    example: 'Game',
+    description: 'Search Keyword',
+    required: false,
+  })
   @IsString()
+  @IsOptional()
   query: string;
 
   @ApiProperty({ example: '1' })

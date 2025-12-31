@@ -33,27 +33,27 @@ const ReviewActions: FC<ReviewActionsProps> = ({
   }, [onDelete]);
 
   return (
-    <div className="flex flex-wrap gap-3 mt-5">
+    <div className="flex flex-wrap gap-3 mt-5 mb-5">
       {/* Like button */}
       <button
         type="button"
         onClick={onLike}
         disabled={loadingLike}
-        className={`flex items-center gap-2 px-4 py-2 rounded-full border transition-colors ${
+        className={`flex items-center gap-1 h-7 px-1 md:py-1 rounded-full border transition-colors ${
           liked
             ? "bg-[var(--color-purple)] text-white border-transparent"
             : "border-[var(--color-purple)] text-[var(--color-purple)] hover:bg-[var(--color-purple)] hover:text-white"
         } ${loadingLike ? "opacity-60 cursor-not-allowed" : ""}`}
       >
         <HiThumbUp />
-        <span>{liked ? "Liked" : "Like"}</span>
-        <span className="text-xs">{likeCount}</span>
+        <span className="text-[12px]">{liked ? "Liked" : "Like"}</span>
+        <span className="text-[12px]">{likeCount}</span>
       </button>
 
       {/* Views */}
-      <span className="flex items-center gap-2 px-4 py-2 rounded-full border border-[#989fab1e] text-gray-300">
-        <BsEye className="text-[var(--color-purple)]" />
-        Views {views}
+      <span className="flex items-center gap-2 h-7 px-2 md:py-2 rounded-full border border-[#989fab1e] text-purple text-[12px]">
+        <BsEye className="text-purple" />
+        {views}
       </span>
 
       {/* Owner actions */}
@@ -63,20 +63,20 @@ const ReviewActions: FC<ReviewActionsProps> = ({
             type="button"
             onClick={() => setOpenDeleteModal(true)}
             disabled={loadingLike}
-            className="flex items-center gap-2 px-4 py-2 text-white rounded-full transition-colors bg-red-600 hover:bg-red-500"
+            className="flex items-center gap-2 h-7 px-2 md:py-2 text-white rounded-full transition-colors bg-red-600 hover:bg-red-500"
           >
             <BiBasket />
-            <span>Delete</span>
+            <span className="text-[12px]">Delete</span>
           </button>
 
           <button
             type="button"
             onClick={onEdit}
             disabled={loadingLike}
-            className="flex items-center gap-2 px-4 py-2 text-white rounded-full transition-colors bg-[#6711bf] hover:bg-[#290d44]"
+            className="flex items-center gap-2 h-7 px-2 md:py-2 text-white rounded-full transition-colors bg-[#6711bf] hover:bg-[#290d44]"
           >
             <BiEdit />
-            <span>Edit</span>
+            <span className="text-[12px]">Edit</span>
           </button>
 
           <DeleteConfirmModal

@@ -4,13 +4,14 @@ import authReducer from "../features/auth/authSlice";
 import reviewsReducer from "../features/reviews/reviewsSlice";
 import gameReducer from "../features/games/gamesSlice";
 import userReducer from "../features/user/userSlice";
-
+import discussionReducer from "../features/discussions/discussionSlice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     reviews: reviewsReducer,
     game: gameReducer,
     user: userReducer,
+    discussions: discussionReducer,
   },
   devTools: import.meta.env.MODE !== "production",
 });

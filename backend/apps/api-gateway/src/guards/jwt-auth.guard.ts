@@ -11,17 +11,7 @@ import { firstValueFrom } from 'rxjs';
 import { Request } from 'express';
 import { ServiceName, MessagePatterns } from 'libs/common/src';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
-
-export interface User {
-  id: number;
-  email: string;
-  // password: string;
-  role?: string;
-}
-
-export interface AuthenticatedRequest extends Request {
-  user?: User;
-}
+import { User, AuthenticatedRequest } from '../common/request';
 
 interface JwtPayload {
   sub: string | number;
@@ -42,55 +32,47 @@ export class JwtAuthGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (isPublic) {
-      return true;
-    }
+    if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
-    const token = this.extractTokenFromHeader(request);
+    const token = this.extractToken(request);
 
     if (!token) {
       throw new UnauthorizedException('No token provided');
     }
 
     try {
-      const payload = this.parseToken(token);
       const user = await firstValueFrom<User>(
-        this.authClient.send<User>(MessagePatterns.AUTH_VALIDATE, payload),
+        this.authClient.send(MessagePatterns.AUTH_VALIDATE, { token }),
       );
 
-      if (!user || !user.id || !user.email) {
-        throw new UnauthorizedException('Invalid token');
-      }
-
-      // Ensure role is included from token payload if not in user object
-      if (!user.role && payload.role) {
-        user.role = payload.role;
-      }
-
-      const extractedUser: User = {
+      request.user = {
         id: user.id,
-        role: user.role,
         email: user.email,
+        role: user.role,
       };
 
-      request.user = extractedUser;
-      console.log('JWT GUARD', request.user);
       return true;
-    } catch {
+    } catch (err) {
+      console.error('Auth validation failed', err);
       throw new UnauthorizedException('Invalid or expired token');
     }
   }
 
-  private extractTokenFromHeader(
-    request: AuthenticatedRequest,
-  ): string | undefined {
-    const authHeader = request.headers.authorization;
-    if (!authHeader || typeof authHeader !== 'string') {
-      return undefined;
+  private extractToken(request: AuthenticatedRequest): string | undefined {
+    // 1. Check cookies
+    if (request.cookies && request.cookies['access_token']) {
+      return request.cookies['access_token'];
     }
-    const [type, token] = authHeader.split(' ');
-    return type === 'Bearer' ? token : undefined;
+
+    // 2. Check Authorization header
+    const authHeader = request.headers.authorization;
+    if (authHeader && typeof authHeader === 'string') {
+      const [type, token] = authHeader.split(' ');
+      return type === 'Bearer' ? token : undefined;
+    }
+
+    return undefined;
   }
 
   private parseToken(token: string): JwtPayload {

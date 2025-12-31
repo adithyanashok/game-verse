@@ -5,15 +5,25 @@ import {
   Inject,
   HttpException,
   HttpStatus,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { ClientProxy } from '@nestjs/microservices';
 import {
+  ApiResponse,
   CreateUserDto,
-  GoogleTokenDto,
+  GoogleUserDto,
   LoginUserDto,
   MessagePatterns,
   ServiceName,
+  User,
 } from 'libs/common/src';
+
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user?: User;
+}
 import { firstValueFrom } from 'rxjs';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Public } from '../src/decorators/public.decorator';
@@ -33,11 +43,26 @@ export class AuthController {
     summary: 'Api for Signup',
   })
   @Post('signup')
-  public async signup(@Body() createUserDto: CreateUserDto): Promise<any> {
+  public async signup(
+    @Body() createUserDto: CreateUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResponse<AuthResponse>> {
     try {
-      return await firstValueFrom(
-        this.authClient.send(MessagePatterns.AUTH_SIGNUP, createUserDto),
+      const response = await firstValueFrom(
+        this.authClient.send<ApiResponse<AuthResponse>>(
+          MessagePatterns.AUTH_SIGNUP,
+          createUserDto,
+        ),
       );
+      if (response.status && response.data?.accessToken) {
+        res.cookie('access_token', response.data.accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 15 * 60 * 1000,
+        });
+      }
+      return response;
     } catch (error) {
       throw new HttpException(error, HttpStatus.BAD_REQUEST);
     }
@@ -47,15 +72,27 @@ export class AuthController {
    * Login
    */
   @Public()
-  @ApiOperation({
-    summary: 'Api for Login',
-  })
   @Post('login')
-  public async login(@Body() loginUserDto: LoginUserDto): Promise<any> {
+  public async login(
+    @Body() loginUserDto: LoginUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResponse<AuthResponse>> {
     try {
-      return await firstValueFrom(
-        this.authClient.send(MessagePatterns.AUTH_SIGNIN, loginUserDto),
+      const response = await firstValueFrom(
+        this.authClient.send<ApiResponse<AuthResponse>>(
+          MessagePatterns.AUTH_SIGNIN,
+          loginUserDto,
+        ),
       );
+      if (response.status && response.data?.accessToken) {
+        res.cookie('access_token', response.data.accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 15 * 60 * 1000,
+        });
+      }
+      return response;
     } catch (error) {
       throw new HttpException(error, HttpStatus.UNAUTHORIZED);
     }
@@ -69,11 +106,26 @@ export class AuthController {
     summary: 'Api for Refreshing Access Token',
   })
   @Post('refresh')
-  public async refresh(@Body() body: { refreshToken: string }): Promise<any> {
+  public async refresh(
+    @Body() body: { refreshToken: string },
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResponse<AuthResponse>> {
     try {
-      return await firstValueFrom(
-        this.authClient.send(MessagePatterns.AUTH_REFRESH, body),
+      const response = await firstValueFrom(
+        this.authClient.send<ApiResponse<AuthResponse>>(
+          MessagePatterns.AUTH_REFRESH,
+          body,
+        ),
       );
+      if (response.status && response.data?.accessToken) {
+        res.cookie('access_token', response.data.accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 15 * 60 * 1000,
+        });
+      }
+      return response;
     } catch (error) {
       throw new HttpException(error, HttpStatus.UNAUTHORIZED);
     }
@@ -88,12 +140,25 @@ export class AuthController {
   })
   @Post('google-auth')
   public async googleAuth(
-    @Body() googleTokenDto: GoogleTokenDto,
-  ): Promise<any> {
+    @Body() googleTokenDto: GoogleUserDto,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<ApiResponse<AuthResponse>> {
     try {
-      return await firstValueFrom(
-        this.authClient.send(MessagePatterns.GOOGLE_AUTH, googleTokenDto),
+      const response = await firstValueFrom(
+        this.authClient.send<ApiResponse<AuthResponse>>(
+          MessagePatterns.GOOGLE_AUTH,
+          googleTokenDto,
+        ),
       );
+      if (response.status && response.data?.accessToken) {
+        res.cookie('access_token', response.data.accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'strict',
+          maxAge: 15 * 60 * 1000,
+        });
+      }
+      return response;
     } catch (error) {
       throw new HttpException(error, HttpStatus.UNAUTHORIZED);
     }

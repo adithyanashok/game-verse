@@ -2,6 +2,7 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -10,6 +11,11 @@ import {
 import { Rating } from './rating.entity';
 import { Comment } from './comment.entity';
 
+@Index('idx_review_game_id', ['gameId'])
+@Index('idx_review_user_id', ['userId'])
+@Index('idx_review_created_at', ['createdAt'])
+@Index('idx_review_game_user', ['gameId', 'userId'])
+@Index(['likeCount', 'viewCount'])
 @Entity()
 export class Review {
   @PrimaryGeneratedColumn()

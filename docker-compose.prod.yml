@@ -1,20 +1,39 @@
 version: "3.8"
 
 services:
+  # ---------------------- Frontend ----------------------
+  frontend:
+    image: ${DOCKER_USER}/frontend:latest
+    container_name: frontend
+    restart: always
+    ports:
+      - "80:80"
+    networks:
+      - game-net
+    depends_on:
+      - api-gateway
+
   # ---------------------- API Gateway ----------------------
   api-gateway:
     image: ${DOCKER_USER}/backend-api-gateway:latest
     container_name: api-gateway
     restart: always
-    ports:
-      - "80:3000"
+    expose:
+      - "3000"
     networks:
       - game-net
     environment:
-      AUTH_SERVICE_URL=http://auth:3000
-      GAME_SERVICE_URL=http://game:3000
-      REVIEW_SERVICE_URL=http://review:3000
-      USER_SERVICE_URL=http://user:3000
+      - AUTH_SERVICE_URL=http://auth:3000
+      - GAME_SERVICE_URL=http://game:3000
+      - REVIEW_SERVICE_URL=http://review:3000
+      - USER_SERVICE_URL=http://user:3000
+      - DISCUSSION_SERVICE_URL=http://discussion:3000
+    depends_on:
+      - auth
+      - game
+      - review
+      - user
+      - discussion
 
   # ---------------------- Auth Service ----------------------
   auth:
@@ -24,7 +43,7 @@ services:
     networks:
       - game-net
     env_file:
-      - ./auth/.env
+      - ./backend/apps/auth/.env
 
   # ---------------------- Game Service ----------------------
   game:
@@ -34,7 +53,7 @@ services:
     networks:
       - game-net
     env_file:
-      - ./game/.env
+      - ./backend/apps/game/.env
 
   # ---------------------- Review Service (MySQL) ----------------------
   review:
@@ -44,7 +63,9 @@ services:
     networks:
       - game-net
     env_file:
-      - ./review/.env
+      - ./backend/apps/review/.env
+    depends_on:
+      - mysql
 
   # ---------------------- User Service (Postgres) ----------------------
   user:
@@ -54,7 +75,19 @@ services:
     networks:
       - game-net
     env_file:
-      - ./user/.env
+      - ./backend/apps/user/.env
+    depends_on:
+      - postgres
+
+  # ---------------------- Discussion Service ----------------------
+  discussion:
+    image: ${DOCKER_USER}/backend-discussion:latest
+    container_name: discussion
+    restart: always
+    networks:
+      - game-net
+    env_file:
+      - ./backend/apps/discussion/.env
 
   # ---------------------- MySQL ----------------------
   mysql:
@@ -75,9 +108,9 @@ services:
     container_name: postgres
     restart: always
     environment:
-      POSTGRES_USER=postgres
-      POSTGRES_PASSWORD=postgres
-      POSTGRES_DB=userdb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=userdb
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

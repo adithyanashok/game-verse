@@ -60,8 +60,19 @@
     scrollbar-width: none;
   }
 
+  .hover-card {
+    border: 1px solid #989fab1e;
+    transform: scale(1);
+    transition: transform 300ms ease, border-color 300ms ease;
+  }
+
+  .hover-card:hover {
+    border-color: #6711bf;
+    transform: scale(1.05);
+  }
+
   .card-image {
-    width: 200px;
+    width: 300px;
     height: 100px;
     border-radius: 10px;
   }

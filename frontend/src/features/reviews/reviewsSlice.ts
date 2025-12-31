@@ -23,6 +23,8 @@ import {
   type ReviewAnalytics,
   type ReviewAnalyticsPayload,
   type AnalyticsOverview,
+  type PaginationMeta,
+  type PaginatedReviewsResponse,
 } from "./types";
 import { API } from "../../services/endpoints";
 
@@ -43,7 +45,8 @@ type ReviewOperation =
   | "fetchComments"
   | "addComment"
   | "updateComment"
-  | "deleteComment";
+  | "deleteComment"
+  | "fetchFollowing";
 
 type OperationState = Record<ReviewOperation, boolean>;
 type OperationErrorState = Record<ReviewOperation, string | null>;
@@ -66,6 +69,7 @@ const createOperationState = (value: boolean): OperationState => ({
   fetchByUser: value,
   getAnalytics: value,
   getAnalyticsOverview: value,
+  fetchFollowing: value,
 });
 
 const createErrorState = (value: string | null): OperationErrorState => ({
@@ -86,6 +90,7 @@ const createErrorState = (value: string | null): OperationErrorState => ({
   fetchByUser: value,
   getAnalytics: value,
   getAnalyticsOverview: value,
+  fetchFollowing: value,
 });
 
 const extractErrorMessage = (error: unknown, fallback: string): string => {
@@ -121,13 +126,19 @@ export interface ReviewsState {
   reviews: ReviewSummary[];
   recent: ReviewSummary[];
   userReviews: ReviewSummary[];
+  userReviewsMeta: PaginationMeta | null;
   searchResults: ReviewSummary[];
+  searchMeta: PaginationMeta | null;
+  gameReviews: ReviewSummary[];
+  gameReviewsMeta: PaginationMeta | null;
   reviewAnalytics: ReviewAnalytics | null;
   analyticsOverview: AnalyticsOverview | null;
   currentReview: ReviewDetails | null;
   createdReview: ReviewDetails | null;
   likedReviews: Record<number, boolean>;
   commentsByReviewId: Record<number, ReviewComment[]>;
+  followingReviews: ReviewSummary[];
+  followingReviewsMeta: PaginationMeta | null;
   loading: OperationState;
   errors: OperationErrorState;
 }
@@ -137,29 +148,37 @@ const initialState: ReviewsState = {
   reviews: [],
   recent: [],
   userReviews: [],
+  userReviewsMeta: null,
   searchResults: [],
+  searchMeta: null,
+  gameReviews: [],
+  gameReviewsMeta: null,
   reviewAnalytics: null,
   analyticsOverview: null,
   currentReview: null,
   createdReview: null,
   likedReviews: {},
   commentsByReviewId: {},
+  followingReviews: [],
+  followingReviewsMeta: null,
   loading: createOperationState(false),
   errors: createErrorState(null),
 };
 
-const buildUrl = (path: string, searchParams?: Record<string, string>) => {
+const buildUrl = (
+  path: string,
+  searchParams?: Record<string, string | null | undefined>
+) => {
   const params = new URLSearchParams();
+
   if (searchParams) {
     Object.entries(searchParams).forEach(([key, value]) => {
-      if (value !== undefined && value !== null && value !== "") {
-        params.set(key, value);
-      }
+      if (value) params.set(key, value);
     });
   }
 
   const queryString = params.toString();
-  return `${path}${queryString ? `?${queryString}` : ""}`;
+  return queryString ? `${path}?${queryString}` : path;
 };
 
 export const createReview = createAsyncThunk<
@@ -268,7 +287,6 @@ export const fetchTrendingReviews = createAsyncThunk<
   { rejectValue: string }
 >("reviews/fetchTrending", async (_, thunkApi) => {
   try {
-    console.log(buildUrl("/trending-review"));
     const response = await apiClient.get<ApiResponse<ReviewSummary[]>>(
       buildUrl(API.REVIEWS.TRENDING_REVIEW)
     );
@@ -281,7 +299,7 @@ export const fetchTrendingReviews = createAsyncThunk<
       );
     }
 
-    return response.data.data ?? [];
+    return response.data.data;
   } catch (error: unknown) {
     return thunkApi.rejectWithValue(
       extractErrorMessage(error, "Unable to load trending reviews")
@@ -314,24 +332,25 @@ export const fetchRecentReviews = createAsyncThunk<
 });
 
 export const searchReviews = createAsyncThunk<
-  ReviewSummary[],
+  PaginatedReviewsResponse,
   SearchReviewsPayload,
   { rejectValue: string }
 >("reviews/search", async ({ query, page, limit }, thunkApi) => {
   try {
-    const response = await apiClient.get<ApiResponse<ReviewSummary[]>>(
-      buildUrl(API.REVIEWS.SEARCH_REVIEW, {
-        query,
-        page: page?.toString() ?? "1",
-        limit: limit?.toString() ?? "20",
-      })
+    const url = buildUrl(API.REVIEWS.SEARCH_REVIEW, {
+      query: query,
+      page: page?.toString() ?? "1",
+      limit: limit?.toString() ?? "20",
+    });
+    const response = await apiClient.get<ApiResponse<PaginatedReviewsResponse>>(
+      url
     );
 
     if (!response.data.status) {
       return thunkApi.rejectWithValue(response.data.message ?? "Search failed");
     }
 
-    return response.data.data ?? [];
+    return response.data.data;
   } catch (error: unknown) {
     return thunkApi.rejectWithValue(
       extractErrorMessage(error, "Unable to search reviews")
@@ -339,13 +358,43 @@ export const searchReviews = createAsyncThunk<
   }
 });
 
+export const fetchFollowingReviews = createAsyncThunk<
+  PaginatedReviewsResponse,
+  SearchReviewsPayload,
+  { rejectValue: string }
+>("reviews/fetchFollowing", async ({ page, limit }, thunkApi) => {
+  try {
+    const url = buildUrl(API.REVIEWS.GET_FOLLOWING_REVIEWS, {
+      limit: limit?.toString() ?? "20",
+      page: page?.toString() ?? "1",
+    });
+    const response = await apiClient.get<ApiResponse<PaginatedReviewsResponse>>(
+      url
+    );
+
+    console.log(response);
+
+    if (!response.data.status) {
+      return thunkApi.rejectWithValue(
+        response.data.message ?? "Failed to fetch following reviews"
+      );
+    }
+
+    return response.data.data;
+  } catch (error: unknown) {
+    return thunkApi.rejectWithValue(
+      extractErrorMessage(error, "Unable to fetch following reviews")
+    );
+  }
+});
+
 export const getByGameId = createAsyncThunk<
-  ReviewSummary[],
+  PaginatedReviewsResponse,
   GetReviewsByIdPayload,
   { rejectValue: string }
 >("reviews/getByGameId", async ({ id, page, limit }, thunkApi) => {
   try {
-    const response = await apiClient.get<ApiResponse<ReviewSummary[]>>(
+    const response = await apiClient.get<ApiResponse<PaginatedReviewsResponse>>(
       buildUrl(API.REVIEWS.GET_BY_GAMEID, {
         id: id.toString(),
         page: page?.toString() ?? "1",
@@ -353,13 +402,13 @@ export const getByGameId = createAsyncThunk<
       })
     );
 
-    console.log(response.data);
+    console.log(response.data.data);
 
     if (!response.data.status) {
       return thunkApi.rejectWithValue(response.data.message ?? "Search failed");
     }
 
-    return response.data.data ?? [];
+    return response.data.data;
   } catch (error: unknown) {
     return thunkApi.rejectWithValue(
       extractErrorMessage(error, "Unable to search reviews")
@@ -368,12 +417,12 @@ export const getByGameId = createAsyncThunk<
 });
 
 export const getByUserId = createAsyncThunk<
-  ReviewSummary[],
+  PaginatedReviewsResponse,
   GetReviewsByIdPayload,
   { rejectValue: string }
 >("reviews/getByUserId", async ({ id, page, limit }, thunkApi) => {
   try {
-    const response = await apiClient.get<ApiResponse<ReviewSummary[]>>(
+    const response = await apiClient.get<ApiResponse<PaginatedReviewsResponse>>(
       buildUrl(API.REVIEWS.GET_BY_USERID, {
         id: id.toString(),
         page: page?.toString() ?? "1",
@@ -387,7 +436,7 @@ export const getByUserId = createAsyncThunk<
       return thunkApi.rejectWithValue(response.data.message ?? "Fetch failed");
     }
 
-    return response.data.data ?? [];
+    return response.data.data;
   } catch (error: unknown) {
     return thunkApi.rejectWithValue(
       extractErrorMessage(error, "Unable to fetch reviews")
@@ -604,6 +653,7 @@ const reviewsSlice = createSlice({
   reducers: {
     clearSearchResults: (state: ReviewsState) => {
       state.searchResults = [];
+      state.searchMeta = null;
       state.errors.search = null;
     },
     resetCurrentReview: (state: ReviewsState) => {
@@ -656,14 +706,18 @@ const reviewsSlice = createSlice({
       .addCase(likeReview.fulfilled, (state, action) => {
         state.loading.like = false;
         state.likedReviews[action.payload.reviewId] = action.payload.isLiked;
-        console.log(action.payload.likeCount);
+        console.log(action.payload);
 
         if (
           state.currentReview &&
           state.currentReview.id === action.payload.reviewId
         ) {
           state.currentReview.isLiked = action.payload.isLiked;
-          state.currentReview.likeCount = action.payload.likeCount;
+          if (action.payload.isLiked) {
+            state.currentReview.likeCount = state.currentReview.likeCount + 1;
+          } else {
+            state.currentReview.likeCount = state.currentReview.likeCount - 1;
+          }
         }
       })
       .addCase(likeReview.rejected, (state, action) => {
@@ -723,11 +777,28 @@ const reviewsSlice = createSlice({
       })
       .addCase(searchReviews.fulfilled, (state, action) => {
         state.loading.search = false;
-        state.searchResults = action.payload;
+        state.searchResults = action.payload.reviews;
+        state.searchMeta = action.payload.meta;
       })
       .addCase(searchReviews.rejected, (state, action) => {
         state.loading.search = false;
         state.errors.search = action.payload ?? "Search failed";
+      })
+      // Fetch Following Reviews
+      .addCase(fetchFollowingReviews.pending, (state) => {
+        state.loading.fetchFollowing = true;
+        state.errors.fetchFollowing = null;
+      })
+      .addCase(fetchFollowingReviews.fulfilled, (state, action) => {
+        state.loading.fetchFollowing = false;
+        state.followingReviews = action.payload.reviews;
+        state.followingReviewsMeta = action.payload.meta;
+        console.log(action.payload.reviews);
+      })
+      .addCase(fetchFollowingReviews.rejected, (state, action) => {
+        state.loading.fetchFollowing = false;
+        state.errors.fetchFollowing =
+          action.payload ?? "Failed to fetch following reviews";
       })
 
       // Get reviews By GameId
@@ -737,7 +808,8 @@ const reviewsSlice = createSlice({
       })
       .addCase(getByGameId.fulfilled, (state, action) => {
         state.loading.fetchByGame = false;
-        state.reviews = action.payload;
+        state.gameReviews = action.payload.reviews;
+        state.gameReviewsMeta = action.payload.meta;
       })
       .addCase(getByGameId.rejected, (state, action) => {
         state.loading.fetchByGame = false;
@@ -751,7 +823,8 @@ const reviewsSlice = createSlice({
       })
       .addCase(getByUserId.fulfilled, (state, action) => {
         state.loading.fetchByUser = false;
-        state.userReviews = action.payload;
+        state.userReviews = action.payload.reviews;
+        state.userReviewsMeta = action.payload.meta;
       })
       .addCase(getByUserId.rejected, (state, action) => {
         state.loading.fetchByUser = false;

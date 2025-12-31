@@ -11,6 +11,7 @@ const HorizontalCard = ({ review }: HorizontalCardProps) => {
     <div className="flex gap-x-4 items-start shadow-md rounded-[8px]">
       <img
         className="card-image rounded-[10px] object-cover"
+        loading="lazy"
         src={review.imageUrl || ""}
         alt={review.title}
       />
@@ -18,7 +19,7 @@ const HorizontalCard = ({ review }: HorizontalCardProps) => {
         <h1 className="text-[12px] md:text-2xl font-bold text-white">
           {review.title}
         </h1>
-        <h1 className="text-[10px] text-gray-500">{review.userName}</h1>
+        <h1 className="text-[10px] text-gray-500">{review.user.name}</h1>
         <Link to={`/review/${review.id}`}>
           <Button
             label="Read Review"

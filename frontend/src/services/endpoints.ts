@@ -10,6 +10,8 @@ export const API = {
     FOLLOW: (id: string | number) => `/users/${id}/follow`,
     PROFILE: "/users/get-user-profile",
     GET_TOP_REVIEWERS: "users/get-top-reviewers/",
+    UPLOAD_IMAGE: `/users/upload`,
+    UPDATE_USER_PROFILE: `/users/update-user`,
   },
   GAME: {
     GET_TOP_RATED_GAMES: "game/get-top-rated-games",
@@ -36,9 +38,15 @@ export const API = {
     DELETE_COMMENT: "/review/delete-comment",
     GET_REVIEW_ANALYTICS: "/review/get-review-analytics",
     GET_ANALYTICS_OVERVIEW: "/review/get-analytics-overview",
+    GET_FOLLOWING_REVIEWS: "/review/get-followers-review",
   },
   GENRE: {
     CREATE: "/genre/create",
     GET_ALL: "/genre",
+  },
+  DISCUSSIONS: {
+    CREATE: "/discussion/create-discussion",
+    GET_ALL: "/discussion/get-discussions",
+    GET_ONE: (id: string) => `/discussion/get-discussion?${id}`,
   },
 };

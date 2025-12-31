@@ -2,10 +2,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  Index,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 
 @Entity()
+@Index('idx_view_review_id', ['reviewId'])
+@Index('idx_view_user_id', ['userId'])
+@Index('idx_view_review_owner_id', ['reviewOwnerId'])
 export class View {
   @PrimaryGeneratedColumn()
   id: number;

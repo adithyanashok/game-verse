@@ -5,6 +5,7 @@ export interface Game {
   imgUrl: string;
   genre: Genre[];
   rating: Rating;
+  overall: number;
   releaseDate: string;
   overallRating: number;
   overview: Overview;
@@ -33,4 +34,21 @@ export interface ApiResponse<T> {
   status: boolean;
   message: string;
   data: T;
+}
+
+export interface FetchGamesPayload {
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  lastPage: number;
+}
+
+export interface PaginatedGamesResponse {
+  games: Game[];
+  meta: PaginationMeta;
 }

@@ -30,6 +30,7 @@ import { firstValueFrom } from 'rxjs';
 import { RoleGuard } from '../src/guards/role.guard';
 import { Roles } from '../src/decorators/roles.decorators';
 import { Role } from '../src/enums/role.enum';
+import { Public } from '../src/decorators/public.decorator';
 
 @ApiBearerAuth()
 @ApiTags('games')
@@ -110,8 +111,7 @@ export class GameController {
     status: 200,
     description: 'Game Fetched successfully',
   })
-  @Roles(Role.User, Role.Admin)
-  @UseGuards(RoleGuard)
+  @Public()
   @Get('get-game')
   public async getGame(@Query('id', ParseIntPipe) id: number): Promise<any> {
     try {
@@ -133,6 +133,7 @@ export class GameController {
     status: 200,
     description: 'Games Fetched successfully',
   })
+  @Public()
   @Get('get-games')
   public async getGames(): Promise<any> {
     try {
@@ -176,6 +177,7 @@ export class GameController {
     status: 200,
     description: 'Top Rated Games Fetched Successfully',
   })
+  @Public()
   @Get('get-top-rated-games')
   public async getTopRatedGames(): Promise<any> {
     try {

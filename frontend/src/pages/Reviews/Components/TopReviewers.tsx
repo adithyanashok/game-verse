@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getTopReviewers } from "../../../features/user/userSlice";
 import type { AppDispatch, RootState } from "../../../store";
-import { dummy } from "../../../data";
 
 const TopReviewers = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -13,23 +12,23 @@ const TopReviewers = () => {
   // const error = useSelector((state: RootState) => state.user.error);
 
   useEffect(() => {
-    dispatch(getTopReviewers());
-  }, [dispatch]);
+    if (!reviewers || reviewers.length === 0) {
+      dispatch(getTopReviewers());
+    }
+  }, [dispatch, reviewers]);
 
   return (
     <div>
-      {" "}
-      <h1 className="text-white font-bold text-[20px]">Top Reviewers</h1>{" "}
+      <h1 className="text-white font-bold text-[20px]">Top Reviewers</h1>
       <div className="flex flex-col gap-x-2 gap-y-2 mt-3">
-        {" "}
         {reviewers.map((review) => {
-          console.log(review);
           return (
             <div key={review.id} className="flex gap-4 items-center mt-2">
               {" "}
               <img
-                src={dummy[0].image}
+                src={`https://${review.profileImage}`}
                 className="w-[60px] h-[60px] rounded-full"
+                loading="lazy"
                 alt=""
               />{" "}
               <div>

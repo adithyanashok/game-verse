@@ -29,7 +29,7 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
   return (
     <div
       onClick={handleCardClick}
-      className="w-[250px] cursor-pointer bg-dark rounded-2xl overflow-hidden border border-[#3d2f5a] hover:border-[var(--color-purple)] transition-colors duration-200 max-w-xs relative"
+      className="w-full  cursor-pointer bg-dark sm:rounded-[10px] md:rounded-[10px] overflow-hidden hover-card md:max-w-xs relative"
     >
       {review.imageUrl ? (
         <img
@@ -47,11 +47,11 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
       )}
 
       <div className="px-4 py-3">
-        <h3 className="text-white font-semibold text-lg line-clamp-2">
+        <h3 className="text-white font-semibold lg:text-sm xl:text-lg line-clamp-2">
           {review.title}
         </h3>
-        <p className="text-gray-400 text-sm line-clamp-3 min-h-[10px]">
-          {review.userName}
+        <p className="text-gray-400 text-sm line-clamp-3 min-h-[5px]">
+          {review.user?.name}
         </p>
         <div className="flex items-center gap-1.5 my-2">
           <AiFillStar className="text-[#6711bf]" size={18} />

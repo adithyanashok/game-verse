@@ -5,6 +5,7 @@ import {
   CreateGameDto,
   CreateGenreDto,
   EditGameDto,
+  FetchGamesDto,
   MessagePatterns,
 } from 'libs/common/src';
 import { GenreService } from './genre/genre.service';
@@ -38,8 +39,8 @@ export class GameController {
   }
 
   @MessagePattern(MessagePatterns.GET_GAMES)
-  public async getGames() {
-    return await this.gameService.getGames();
+  public async getGames(@Payload() payload: FetchGamesDto) {
+    return await this.gameService.getGames(payload);
   }
 
   @MessagePattern(MessagePatterns.FIND_ONE_GAME)

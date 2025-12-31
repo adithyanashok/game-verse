@@ -14,6 +14,7 @@ import {
   type PersistedAuthState,
 } from "./storage";
 import type { ApiResponse, AuthSuccessPayload, User } from "./types";
+import { updateUserProfile, uploadUserImage } from "../user/userSlice";
 
 const syncPersistedAuth = (state: AuthState) => {
   persistAuthState({
@@ -306,7 +307,15 @@ const authSlice = createSlice({
           state.loading = false;
           state.error = action.payload ?? "Unable to login at this time";
         }
-      );
+      )
+      .addCase(uploadUserImage.fulfilled, (state, action) => {
+        state.user!.profileImage = action.payload.profileImage;
+        syncPersistedAuth(state);
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.user = action.payload;
+        syncPersistedAuth(state);
+      });
   },
 });
 

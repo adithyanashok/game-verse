@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useCallback } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { ToastContainer, toast } from "react-toastify";
-
-import ResponsiveNavbar from "../../../components/common/Navbar/ResponsiveNavbar";
 import RatingBreakdown from "../Components/RatingBreakdown";
 import CommentsSection from "./Components/CommentSection";
 import {
@@ -111,17 +109,15 @@ const Review = () => {
   const handleDeleteComment = useCallback(
     async (commentId: number) => {
       await dispatch(deleteComment({ reviewId, commentId }));
-      // you can add toast/error handling here if needed
     },
     [dispatch, reviewId]
   );
 
   return (
     <>
-      <ResponsiveNavbar />
       <ToastContainer hideProgressBar />
 
-      <div className="xl:px-40 px-4 py-10 space-y-8">
+      <div className="xl:px-40 sm:px-4 pb-10 space-y-8 sm:mt-5">
         {isLoading && (
           <p className="text-gray-400 text-sm">Loading review details...</p>
         )}
@@ -132,13 +128,13 @@ const Review = () => {
 
         {!isLoading && !errorMessage && currentReview && (
           <div className="space-y-8">
-            <div className="shadow-lg px-5 md:p-10 rounded-2xl bg-dark border border-[#989fab1e]">
+            <div className="shadow-lg px-3 md:p-10 sm:rounded-2xl bg-dark border-y sm:border-x border-[#989fab1e]">
               {/* Header */}
               <ReviewHeader review={currentReview} LinkComponent={Link} />
 
               {/* Rating */}
               <section className="mt-6">
-                <h2 className="text-white font-bold text-[16px]">
+                <h2 className="text-white font-bold text-[14px] sm:text-[16px]">
                   Rating Breakdown
                 </h2>
                 <RatingBreakdown rating={currentReview.rating} />
@@ -152,7 +148,7 @@ const Review = () => {
                 likeCount={currentReview.likeCount ?? 0}
                 views={currentReview.viewCount ?? 0}
                 loadingLike={loading.like}
-                isOwner={user?.id === currentReview.userId}
+                isOwner={user?.id === currentReview.user.id}
                 onLike={handleLike}
                 onDelete={handleDeleteReview}
                 onEdit={() =>
@@ -161,11 +157,11 @@ const Review = () => {
                   })
                 }
               />
-              {user?.id === currentReview.userId && <ViewCountChart />}
+              {user?.id === currentReview.user.id && <ViewCountChart />}
             </div>
 
             {/* Comments */}
-            <section className="px-5 md:px-10">
+            <section className="sm:px-5 sm:md:px-10">
               <CommentsSection
                 onEditComment={(commentId, updatedText) => {
                   console.log(commentId, updatedText);

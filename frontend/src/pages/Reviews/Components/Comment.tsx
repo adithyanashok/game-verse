@@ -6,6 +6,7 @@ const Comment = () => {
       <img
         className="w-[35px] h-[35px] md:w-[50px] md:h-[50px] rounded-full"
         src={dummy[0].image}
+        loading="lazy"
         alt=""
       />
       <div className="shadow-lg p-5 rounded-[12px]">

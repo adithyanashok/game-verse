@@ -1,5 +1,4 @@
 import { useEffect } from "react";
-import CustomCard from "../../../components/common/ScrollableRow";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import { getTopRatedGames } from "../../../features/games/gamesSlice";
@@ -11,12 +10,12 @@ const PopularGames = () => {
     (state: RootState) => state.game
   );
 
-  // Fetch trending reviews once on mount
   useEffect(() => {
-    dispatch(getTopRatedGames());
-  }, [dispatch]);
+    if (!topRatedGames || topRatedGames.length === 0) {
+      dispatch(getTopRatedGames());
+    }
+  }, [dispatch, topRatedGames]);
 
-  // Handle loading and error states
   if (loading.getTopRatedGames) {
     return <div className="text-center py-4 text-gray-400">Loading...</div>;
   }
@@ -29,18 +28,17 @@ const PopularGames = () => {
     );
   }
   return (
-    <div className="scroll-row">
+    <div className="scroll-row py-4 px-4">
       {topRatedGames.map((game) => {
         return (
-          <Link to={`/games/${game.id}`}>
-            <CustomCard
-              key={game.id}
-              subtitle={game.description}
-              image={<img className="card-image" src={game.imgUrl} alt="" />}
-              title={game.name}
-              showSubtitle={false}
-              rating={game.rating?.overallRating}
-            />
+          <Link to={`/games/${game.id}`} key={game.id}>
+            <div className="w-[200px] transform hover:scale-105 transition duration-300">
+              <img
+                className="object-cover w-[200px] h-[100px] rounded-[10px]"
+                src={game.imgUrl}
+                alt=""
+              />
+            </div>
           </Link>
         );
       })}
