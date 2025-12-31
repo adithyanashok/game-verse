@@ -11,7 +11,7 @@ async function bootstrap() {
       transport: Transport.TCP,
       options: {
         port: MICROSERVICE_CONFIG.GAME_SERVICE.port,
-        host: MICROSERVICE_CONFIG.GAME_SERVICE.host,
+        host: '0.0.0.0',
       },
     },
   );

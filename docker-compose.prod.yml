@@ -23,11 +23,11 @@ services:
     networks:
       - game-net
     environment:
-      - AUTH_SERVICE_URL=http://auth:3000
-      - GAME_SERVICE_URL=http://game:3000
-      - REVIEW_SERVICE_URL=http://review:3000
-      - USER_SERVICE_URL=http://user:3000
-      - DISCUSSION_SERVICE_URL=http://discussion:3000
+      - GAME_HOST=game
+      - REVIEW_HOST=review
+      - AUTH_HOST=auth
+      - USER_HOST=user
+      - DISCUSSION_HOST=discussion
     depends_on:
       - auth
       - game

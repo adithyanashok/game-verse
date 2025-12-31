@@ -9,7 +9,7 @@ async function bootstrap() {
     {
       transport: Transport.TCP,
       options: {
-        host: MICROSERVICE_CONFIG.AUTH_SERVICE.host,
+        host: '0.0.0.0',
         port: MICROSERVICE_CONFIG.AUTH_SERVICE.port,
       },
     },

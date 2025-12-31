@@ -10,7 +10,7 @@ async function bootstrap() {
     {
       transport: Transport.TCP,
       options: {
-        host: MICROSERVICE_CONFIG.REVIEW_SERVICE.host,
+        host: '0.0.0.0',
         port: MICROSERVICE_CONFIG.REVIEW_SERVICE.port,
       },
     },
@@ -24,6 +24,6 @@ async function bootstrap() {
     }),
   );
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
-  await app.listen(5000,0.0.0.0);
+  await app.listen();
 }
 bootstrap();
