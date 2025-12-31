@@ -41,6 +41,8 @@ services:
       context: ./backend
       dockerfile: apps/auth/Dockerfile
     container_name: gv-auth
+    ports:
+      - "6000:6000"
     networks:
       - game-net
     env_file:
@@ -52,6 +54,8 @@ services:
       context: ./backend
       dockerfile: apps/game/Dockerfile
     container_name: gv-game
+    ports:
+      - "4000:4000"
     networks:
       - game-net
     env_file:
@@ -63,6 +67,8 @@ services:
       context: ./backend
       dockerfile: apps/review/Dockerfile
     container_name: gv-review
+    ports:
+      - "5000:5000"
     networks:
       - game-net
     env_file:
@@ -76,6 +82,8 @@ services:
       context: ./backend
       dockerfile: apps/user/Dockerfile
     container_name: gv-user
+    ports:
+      - "7000:7000"
     networks:
       - game-net
     env_file:
@@ -89,6 +97,8 @@ services:
       context: ./backend
       dockerfile: apps/discussion/Dockerfile
     container_name: gv-discussion
+    ports:
+      - "8000:8000"
     networks:
       - game-net
     env_file:
