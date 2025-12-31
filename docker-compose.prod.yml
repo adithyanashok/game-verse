@@ -6,8 +6,8 @@ services:
     restart: always
     env_file:
       - ./frontend/.env
-    expose:
-      - "80"
+    ports:
+      - "5173:5173"
     networks:
       - game-net
     depends_on:
@@ -18,8 +18,8 @@ services:
     image: adithyan1983/backend-api-gateway
     container_name: api-gateway
     restart: always
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     networks:
       - game-net
     environment:
