@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:20 AS builder
 WORKDIR /app
 
 COPY package*.json ./
@@ -11,7 +11,7 @@ COPY libs ./libs
 RUN npm install
 RUN npm run build --project discussion
 
-FROM node:18-alpine
+FROM node:20
 WORKDIR /app
 
 COPY package*.json ./
