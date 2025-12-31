@@ -51,7 +51,6 @@ export async function getCroppedImg(
     rotation
   );
 
-  // set canvas size to match the bounding box
   canvas.width = bBoxWidth;
   canvas.height = bBoxHeight;
 
