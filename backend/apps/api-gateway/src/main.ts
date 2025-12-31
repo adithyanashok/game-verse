@@ -9,7 +9,7 @@ import { Request, Response, NextFunction } from 'express';
 import { MICROSERVICE_CONFIG } from 'libs/common/src';
 
 async function bootstrap() {
-  console.log('Starting API Gateway...');
+  console.log('Starting API Gateway...', process.env.NODE_ENV);
   console.log('Environment REVIEW_HOST:', process.env.REVIEW_HOST);
   console.log(
     'Microservice Config:',
