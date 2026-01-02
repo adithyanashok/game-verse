@@ -4,7 +4,7 @@ import type { RootState } from "../../../store";
 import { fetchRecentReviews } from "../../../features/reviews/reviewsSlice";
 
 import CustomCard from "../../../components/common/ScrollableRow";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { Spinner } from "../../../components/common/Loader";
 
 const LatestReviews = () => {

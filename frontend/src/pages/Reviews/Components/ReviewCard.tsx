@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { AiFillStar } from "react-icons/ai";
 
 import type { ReviewSummary } from "../../../features/reviews/types";

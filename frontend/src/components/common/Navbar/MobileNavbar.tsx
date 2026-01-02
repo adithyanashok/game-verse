@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MdDehaze } from "react-icons/md";
 import controller from "../../../assets/images/controller.png";
 import { useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import UserDropdown from "./DropDown";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router-dom";
 
 const navLinks = ["Home", "Reviews", "Games", "Discussions"];
 
@@ -13,6 +13,12 @@ const MobileNavbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
+
+  const location = useLocation();
+
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location.pathname]);
 
   return (
     <nav className="bg-dark text-white">

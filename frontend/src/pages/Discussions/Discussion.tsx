@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import MessageBubble from "./Components/MessageBubble";
 import { io, Socket } from "socket.io-client";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import { getDiscussion } from "../../features/discussions/discussionSlice";
 import type {
@@ -34,7 +34,8 @@ export default function DiscussionDetailsScreen() {
 
     const newSocket = io(wsUrl, {
       query: { token: accessToken },
-      transports: ["polling"],
+      path: "/socket.io",
+      transports: ["websocket"],
       forceNew: true,
     });
 

@@ -1,7 +1,7 @@
 import type { AnalyticsOverview } from "../../../features/reviews/types";
 import { BiLike } from "react-icons/bi";
 import { IoEyeOutline } from "react-icons/io5";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 interface TopReviewsProps {
   analytics: AnalyticsOverview;
 }

@@ -9,7 +9,7 @@ import type {
   CreateReviewPayload,
   ReviewSummary,
 } from "../../features/reviews/types";
-import { useLocation, useNavigate, useParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import ResponsiveNavbar from "../../components/common/Navbar/ResponsiveNavbar";
 import Banner from "../Games/Components/Banner";

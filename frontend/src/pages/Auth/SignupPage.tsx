@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 
 import { googleAuth, signupUser } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
@@ -20,7 +20,7 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (accessToken) {
-      navigate("/dashboard", { replace: true });
+      navigate("/", { replace: true });
     }
   }, [accessToken, navigate]);
 
@@ -44,7 +44,7 @@ export default function SignupPage() {
       setBio("");
       setEmail("");
       setPassword("");
-      navigate("/dashboard", { replace: true });
+      navigate("/", { replace: true });
     }
   };
 
@@ -161,7 +161,7 @@ export default function SignupPage() {
                 googleAuth({ token: credentialResponse.credential })
               );
               if (googleAuth.fulfilled.match(resultAction)) {
-                navigate("/profile", { replace: true });
+                navigate("/", { replace: true });
               }
             }}
             onError={() => {

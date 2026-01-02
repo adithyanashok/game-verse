@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import type { AppDispatch, RootState } from "../../../store";
 import { useDispatch, useSelector } from "react-redux";
 import { getTopReviewers } from "../../../features/user/userSlice";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import ReviewerCard from "./ReviewerCard";
 
 const TopReviewers = () => {

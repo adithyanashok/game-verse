@@ -1,4 +1,4 @@
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import DiscussionCard from "./Components/DiscussionCard";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";

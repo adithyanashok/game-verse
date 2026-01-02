@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../store/hooks";
 import { createDiscussion } from "../../features/discussions/discussionSlice";
 

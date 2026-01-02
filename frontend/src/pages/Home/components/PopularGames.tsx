@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import { getTopRatedGames } from "../../../features/games/gamesSlice";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { Spinner } from "../../../components/common/Loader";
 
 const PopularGames = () => {

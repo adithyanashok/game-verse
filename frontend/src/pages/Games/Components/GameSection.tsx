@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import { BiSearch } from "react-icons/bi";
 import GameCard from "./GameCard";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";

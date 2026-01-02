@@ -1,7 +1,7 @@
 import { useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import CustomCard from "../../../components/common/ScrollableRow";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 const Trending = () => {
   const trending = useAppSelector((state: RootState) => state.reviews.trending);

@@ -4,7 +4,7 @@ import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import ResponsiveNavbar from "../../components/common/Navbar/ResponsiveNavbar";
 import { updateUserProfile } from "../../features/user/userSlice";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 export default function EditProfile() {
   const navigator = useNavigate();

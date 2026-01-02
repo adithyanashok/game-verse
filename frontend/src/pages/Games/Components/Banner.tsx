@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Game } from "../../../features/games/types";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 interface Props {
   game: Game | null;
   showWriteButton: boolean;
@@ -22,18 +22,19 @@ const Banner = (props: Props) => {
         <h1 className="text-[25px] md:text-3xl xl:text-5xl font-bold text-white leading-[1.3]">
           {props.game?.name}
         </h1>
-        <p className="flex gap-2 text-[14px] md:text-[14px] text-[#989fab] max-w-xl">
-          Released {props.game?.releaseDate}{" "}
-          <span className="flex gap-2">
+        <div className="text-[#989fab] text-[14px] max-w-xl">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span>Released {props.game?.releaseDate}</span>
+
             {props.game?.genre.map((val) => (
-              <>
-                {" "}
-                <span>·</span>
-                <p>{val.name}</p>
-              </>
+              <span key={val.id} className="flex items-center gap-2">
+                <span className="hidden sm:inline">·</span>
+                <span className="text-[#989fab]">{val.name}</span>
+              </span>
             ))}
-          </span>{" "}
-        </p>
+          </div>
+        </div>
+
         <div className="justify-between">
           <div className="relative max-w-xl">
             <p

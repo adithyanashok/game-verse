@@ -1,5 +1,5 @@
 import controller from "../../../assets/images/controller.png";
-import { Link, useLocation } from "react-router";
+import { Link, useLocation } from "react-router-dom";
 import { useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import UserDropdown from "./DropDown";

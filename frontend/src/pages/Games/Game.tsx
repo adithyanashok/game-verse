@@ -5,7 +5,7 @@ import ReviewStats from "./Components/ReviewStats";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import type { RootState } from "../../store";
 import { getGame } from "../../features/games/gamesSlice";
-import { Link, useParams } from "react-router";
+import { Link, useParams } from "react-router-dom";
 import { getByGameId } from "../../features/reviews/reviewsSlice";
 import ScreenLoader from "../../components/common/Loader";
 const Game = () => {

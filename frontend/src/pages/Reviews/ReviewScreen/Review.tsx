@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useCallback } from "react";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { ToastContainer, toast } from "react-toastify";
 import RatingBreakdown from "../Components/RatingBreakdown";
 import CommentsSection from "./Components/CommentSection";

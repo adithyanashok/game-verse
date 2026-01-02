@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Menu, MenuItem } from "@mui/material";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { logout } from "../../../features/auth/authSlice";
 
