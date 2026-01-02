@@ -5,27 +5,27 @@ const getServiceHost = (serviceName: string) => {
 };
 export const MICROSERVICE_CONFIG = {
   GAME_SERVICE: {
-    host: getServiceHost('game'),
+    host: 'game',
     port: 4000,
   },
 
   REVIEW_SERVICE: {
-    host: getServiceHost('review'),
+    host: 'review',
     port: 5000,
   },
 
   AUTH_SERVICE: {
-    host: getServiceHost('auth'),
+    host: 'auth',
     port: 6000,
   },
 
   USER_SERVICE: {
-    host: getServiceHost('user'),
+    host: 'user',
     port: 7000,
   },
 
   DISCUSSION_SERVICE: {
-    host: getServiceHost('discussion'),
+    host: 'discussion',
     port: 8000,
   },
 
