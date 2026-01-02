@@ -11,7 +11,7 @@ const ReviewsPage = () => {
       <div className="vertical-line"></div>
 
       {/* Trending Genre & Top Reviewers */}
-      <div className="px-10 p-10">
+      <div className="px-5 p-5">
         {/* Top Reviewers */}
         <TopReviewers />
       </div>

@@ -27,7 +27,7 @@ const UserDropdown = () => {
   };
 
   return (
-    <div className="mr-5">
+    <div>
       {/* Trigger Button */}
       <button
         onClick={handleOpen}

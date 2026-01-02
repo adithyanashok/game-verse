@@ -131,7 +131,7 @@ const ReviewSection = () => {
 
           {!loading.fetchFollowing && followingReviews.length > 0 && (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 lg:gap-4 gap-2 px-1">
                 {followingReviews.map((review: ReviewSummary) => (
                   <ReviewCard key={review.id} review={review} />
                 ))}
@@ -167,7 +167,7 @@ const ReviewSection = () => {
 
           {!loading.search && searchResults.length > 0 && (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 lg:gap-4 gap-2 px-1">
                 {searchResults.map((review: ReviewSummary) => (
                   <ReviewCard key={review.id} review={review} />
                 ))}
