@@ -100,20 +100,20 @@ const ProfilePage = () => {
     );
   };
 
+  if (typeof targetUserId !== "number") {
+    return (
+      <div className="min-h-screen bg-primary text-white flex flex-col items-center justify-center py-10 px-2 md:px-4">
+        <div className="text-center text-gray-400">
+          {!authUser
+            ? "Sign in to view profiles and manage follow status."
+            : "Unable to determine which profile to load."}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-primary text-white flex flex-col items-center py-10 px-2 md:px-4">
-      {!authUser && (
-        <p className="mb-6 text-sm text-red-400">
-          Sign in to view profiles and manage follow status.
-        </p>
-      )}
-
-      {typeof targetUserId !== "number" && (
-        <div className="text-center text-gray-400">
-          Unable to determine which profile to load.
-        </div>
-      )}
-
       {loading && (
         <div className="flex justify-center mt-10">
           <Spinner />

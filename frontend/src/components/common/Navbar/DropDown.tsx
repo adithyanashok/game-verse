@@ -1,15 +1,16 @@
 import { useState } from "react";
 import { Menu, MenuItem } from "@mui/material";
 import { Link, useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
+import { useAppDispatch } from "../../../store/hooks";
 import { logout } from "../../../features/auth/authSlice";
+import { FaUserCircle } from "react-icons/fa";
+import { MdArrowDropDown } from "react-icons/md";
 
 const UserDropdown = () => {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const open = Boolean(anchorEl);
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const authUser = useAppSelector((state) => state.auth.user);
 
   const handleOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -26,25 +27,14 @@ const UserDropdown = () => {
   };
 
   return (
-    <div>
+    <div className="mr-5">
       {/* Trigger Button */}
       <button
         onClick={handleOpen}
-        className="flex items-center gap-2 bg-dark-purple lg:px-1 lg:pr-2 md:py-1 rounded-full cursor-pointer lg:mr-3"
+        className="flex items-center gap-1 bg-dark-purple px-2 py-1 rounded-full"
       >
-        {/* Avatar */}
-        <div className="w-8 h-8 lg:w-10 lg:h-10">
-          <img
-            src={`https://${authUser?.profileImage}`}
-            alt="User"
-            className="w-full h-full object-cover rounded-full"
-          />
-        </div>
-
-        {/* Name hidden on small screens */}
-        <p className="text-purple font-semibold text-[14px] hidden lg:block">
-          {authUser?.name}
-        </p>
+        <FaUserCircle className="text-purple text-lg" />
+        <MdArrowDropDown className="text-purple text-xl" />
       </button>
 
       {/* Dropdown Menu */}
@@ -52,14 +42,8 @@ const UserDropdown = () => {
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        anchorOrigin={{
-          vertical: "bottom",
-          horizontal: "right",
-        }}
-        transformOrigin={{
-          vertical: "top",
-          horizontal: "right",
-        }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        transformOrigin={{ vertical: "top", horizontal: "right" }}
       >
         <MenuItem onClick={handleClose}>
           <Link to="/profile" className="w-full block">
