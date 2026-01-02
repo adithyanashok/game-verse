@@ -39,6 +39,7 @@ export enum MessagePatterns {
 
   CREATE_GENRE = 'game.genre',
   DELETE_GENRE = 'game.genre.delete',
+  GET_ALL_GENRE = 'game.genre.getall',
   // Review
   CREATE_REVIEW = 'review.create',
   LIKE_REVIEW = 'review.like',

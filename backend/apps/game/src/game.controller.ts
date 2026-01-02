@@ -59,6 +59,11 @@ export class GameController {
     return await this.genreService.delete(payload.id);
   }
 
+  @MessagePattern(MessagePatterns.GET_ALL_GENRE)
+  public async getAllGenre() {
+    return await this.genreService.getAll();
+  }
+
   @MessagePattern(MessagePatterns.GET_TOP_RATED_GAMES)
   public async getTopRatedGame() {
     return await this.gameService.getTopRatedGames();

@@ -13,8 +13,17 @@ import { APP_GUARD } from '@nestjs/core';
 import { UserController } from '../user/user.controller';
 import { DiscussionController } from '../discussion/discussion.controller';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ConfigModule } from '@nestjs/config';
+const ENV = process.env.NODE_ENV;
+
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: !ENV
+        ? 'apps/api-gateway/.env'
+        : `apps/api-gateway/.env.${ENV}`,
+    }),
     ClientsModule.registerAsync([
       {
         name: ServiceName.GAME,

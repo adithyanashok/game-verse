@@ -47,4 +47,15 @@ export class GenreService {
       throw error;
     }
   }
+
+  public async getAll() {
+    try {
+      const genres = await this.genreRepo.find();
+
+      return new ApiResponse(true, 'Genre Fetched Successfully', genres);
+    } catch (error) {
+      console.log(error);
+      throw error;
+    }
+  }
 }

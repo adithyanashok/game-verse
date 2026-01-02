@@ -4,8 +4,6 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import csurf from 'csurf';
-import { Request, Response, NextFunction } from 'express';
 import { MICROSERVICE_CONFIG } from 'libs/common/src';
 
 async function bootstrap() {

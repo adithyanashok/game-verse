@@ -35,6 +35,8 @@ services:
       - review
       - user
       - discussion
+    env_file:
+      - ./backend/apps/api-gateway/.env
 
   # ---------------------- Auth ----------------------
   auth:

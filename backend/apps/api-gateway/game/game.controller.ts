@@ -170,6 +170,28 @@ export class GameController {
     }
   }
 
+  /**
+   * Create Genre
+   */
+  @ApiOperation({
+    summary: 'Get All Genre',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Genre Fetched Successfully',
+  })
+  @Post('get-all-genre')
+  @UseGuards(RoleGuard)
+  public async getAllGenre(): Promise<any> {
+    try {
+      return await firstValueFrom(
+        this.gameClient.send(MessagePatterns.GET_ALL_GENRE, {}),
+      );
+    } catch (error) {
+      throw new HttpException(error, HttpStatus.BAD_REQUEST);
+    }
+  }
+
   @ApiOperation({
     summary: 'Get Top Rated Games',
   })
