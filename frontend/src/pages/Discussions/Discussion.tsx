@@ -30,7 +30,9 @@ export default function DiscussionDetailsScreen() {
   useEffect(() => {
     if (!accessToken || !id) return;
 
-    const newSocket = io("http://192.168.1.103:8000", {
+    const wsUrl = import.meta.env.VITE_WS_URL || "http://localhost:8000";
+
+    const newSocket = io(wsUrl, {
       query: { token: accessToken },
       transports: ["polling"],
       forceNew: true,

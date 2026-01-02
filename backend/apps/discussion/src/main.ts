@@ -28,6 +28,8 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
 
-  await app.listen(8000);
+  const port = process.env.DISCUSSION_WS_PORT || 8000;
+  await app.listen(port, '0.0.0.0');
+  console.log(`Discussion WebSocket server running on port ${port}`);
 }
 bootstrap();

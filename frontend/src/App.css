@@ -90,6 +90,16 @@
 }
 @apply text-[#191022];
 
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
 @font-face {
   font-family: "SpaceGrotesk";
   src: local("SpaceGrotesk"),

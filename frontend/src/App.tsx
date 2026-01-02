@@ -4,6 +4,7 @@ import { ToastContainer } from "react-toastify";
 
 import ProtectedRoute from "./utils/ProtectedRoute";
 import AppLayout from "./layouts/AppLayout";
+import { Spinner } from "./components/common/Loader";
 
 import HomePage from "./pages/Home/HomePages";
 const ReviewsPage = lazy(() => import("./pages/Reviews/ReviewsPage"));
@@ -69,8 +70,8 @@ function App() {
     <>
       <Suspense
         fallback={
-          <div className="h-screen flex items-center justify-center text-white">
-            Loading...
+          <div className="h-screen flex items-center justify-center bg-primary">
+            <Spinner />
           </div>
         }
       >

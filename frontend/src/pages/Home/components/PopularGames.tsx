@@ -3,6 +3,7 @@ import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import { getTopRatedGames } from "../../../features/games/gamesSlice";
 import { Link } from "react-router";
+import { Spinner } from "../../../components/common/Loader";
 
 const PopularGames = () => {
   const dispatch = useAppDispatch();
@@ -17,7 +18,11 @@ const PopularGames = () => {
   }, [dispatch, topRatedGames]);
 
   if (loading.getTopRatedGames) {
-    return <div className="text-center py-4 text-gray-400">Loading...</div>;
+    return (
+      <div className="flex justify-center py-4">
+        <Spinner />
+      </div>
+    );
   }
 
   if (errors.getTopRatedGames) {

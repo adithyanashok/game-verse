@@ -3,6 +3,7 @@ import Trending from "./Trending";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import { fetchTrendingReviews } from "../../../features/reviews/reviewsSlice";
+import { Spinner } from "../../../components/common/Loader";
 
 const TrendingSection = () => {
   const dispatch = useAppDispatch();
@@ -22,7 +23,11 @@ const TrendingSection = () => {
   }, [dispatch, trending]);
 
   if (loading) {
-    return <div className="text-center py-4 text-gray-400">Loading...</div>;
+    return (
+      <div className="flex justify-center py-4">
+        <Spinner />
+      </div>
+    );
   }
 
   if (error) {

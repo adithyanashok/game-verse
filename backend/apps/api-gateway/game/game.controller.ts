@@ -23,6 +23,7 @@ import {
   CreateGameDto,
   CreateGenreDto,
   EditGameDto,
+  FetchGamesDto,
   MessagePatterns,
   ServiceName,
 } from 'libs/common/src';
@@ -135,10 +136,11 @@ export class GameController {
   })
   @Public()
   @Get('get-games')
-  public async getGames(): Promise<any> {
+  public async getGames(@Query() fetchGamesDto: FetchGamesDto): Promise<any> {
     try {
+      console.log(fetchGamesDto);
       return await firstValueFrom(
-        this.gameClient.send(MessagePatterns.GET_GAMES, {}),
+        this.gameClient.send(MessagePatterns.GET_GAMES, fetchGamesDto),
       );
     } catch (error) {
       return error;

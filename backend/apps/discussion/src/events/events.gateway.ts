@@ -22,7 +22,15 @@ interface AuthenticatedSocket extends Socket {
   discussionId?: number;
 }
 
-@WebSocketGateway({ cors: { origin: '*' } })
+@WebSocketGateway({
+  cors: {
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? process.env.ALLOWED_ORIGINS?.split(',') || []
+        : '*',
+    credentials: true,
+  },
+})
 @UseGuards(WsAuthGuard)
 export class EventsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;

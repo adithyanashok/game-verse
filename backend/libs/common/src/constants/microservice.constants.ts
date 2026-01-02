@@ -1,31 +1,31 @@
-const isProd = process.env.NODE_ENV === 'production';
+const isDev = process.env.NODE_ENV === 'development';
 
 const getServiceHost = (serviceName: string) => {
-  return isProd ? serviceName : 'localhost';
+  return isDev ? 'localhost' : serviceName;
 };
 export const MICROSERVICE_CONFIG = {
   GAME_SERVICE: {
-    host: 'game',
+    host: getServiceHost('game'),
     port: 4000,
   },
 
   REVIEW_SERVICE: {
-    host: 'review',
+    host: getServiceHost('review'),
     port: 5000,
   },
 
   AUTH_SERVICE: {
-    host: 'auth',
+    host: getServiceHost('auth'),
     port: 6000,
   },
 
   USER_SERVICE: {
-    host: 'user',
+    host: getServiceHost('user'),
     port: 7000,
   },
 
   DISCUSSION_SERVICE: {
-    host: 'discussion',
+    host: getServiceHost('discussion'),
     port: 8000,
   },
 
@@ -33,3 +33,39 @@ export const MICROSERVICE_CONFIG = {
     port: 3000,
   },
 };
+
+// const isProd = process.env.NODE_ENV === 'production';
+
+// const getServiceHost = (serviceName: string) => {
+//   return isProd ? serviceName : 'localhost';
+// };
+// export const MICROSERVICE_CONFIG = {
+//   GAME_SERVICE: {
+//     host: 'game',
+//     port: 4000,
+//   },
+
+//   REVIEW_SERVICE: {
+//     host: 'review',
+//     port: 5000,
+//   },
+
+//   AUTH_SERVICE: {
+//     host: 'auth',
+//     port: 6000,
+//   },
+
+//   USER_SERVICE: {
+//     host: 'user',
+//     port: 7000,
+//   },
+
+//   DISCUSSION_SERVICE: {
+//     host: 'discussion',
+//     port: 8000,
+//   },
+
+//   API_GATEWAY: {
+//     port: 3000,
+//   },
+// };

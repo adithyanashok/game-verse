@@ -90,7 +90,6 @@ services:
     depends_on:
       - postgres
 
-  # ---------------------- Discussion ----------------------
   discussion:
     image: adithyan1983/backend-discussion
     container_name: discussion
@@ -99,6 +98,10 @@ services:
       - "8000:8000"
     networks:
       - game-net
+    environment:
+      - NODE_ENV=production
+      - DISCUSSION_WS_PORT=8000
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://gamevera.online}
     env_file:
       - ./backend/apps/discussion/.env
 

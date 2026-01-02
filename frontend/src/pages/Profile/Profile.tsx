@@ -11,6 +11,7 @@ import AnalyticsDashboard from "./Components/AnalyticsDashboard";
 import ProfileImage from "./Components/ProfileImage";
 import { toast } from "react-toastify";
 import ReviewCardProfile from "../Reviews/Components/ReviewCardProfile";
+import { Spinner } from "../../components/common/Loader";
 
 const ProfilePage = () => {
   const { userId: userIdParam } = useParams();
@@ -88,11 +89,13 @@ const ProfilePage = () => {
             : "bg-[#6a0dad] hover:bg-[#7b26e4]"
         } ${followLoading ? "opacity-70 cursor-not-allowed" : ""}`}
       >
-        {followLoading
-          ? "Loading..."
-          : profile?.isFollowing
-          ? "Following"
-          : "Follow"}
+        {followLoading ? (
+          <Spinner className="w-5 h-5 border-2 text-white" />
+        ) : profile?.isFollowing ? (
+          "Following"
+        ) : (
+          "Follow"
+        )}
       </button>
     );
   };
@@ -112,7 +115,9 @@ const ProfilePage = () => {
       )}
 
       {loading && (
-        <div className="text-center text-gray-400 mt-10">Loading...</div>
+        <div className="flex justify-center mt-10">
+          <Spinner />
+        </div>
       )}
 
       {!loading && profile && (

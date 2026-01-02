@@ -5,6 +5,7 @@ import { fetchRecentReviews } from "../../../features/reviews/reviewsSlice";
 
 import CustomCard from "../../../components/common/ScrollableRow";
 import { Link } from "react-router";
+import { Spinner } from "../../../components/common/Loader";
 
 const LatestReviews = () => {
   const dispatch = useAppDispatch();
@@ -25,7 +26,11 @@ const LatestReviews = () => {
   console.log(recent);
 
   if (loading) {
-    return <div className="text-center py-4 text-gray-400">Loading...</div>;
+    return (
+      <div className="flex justify-center py-4">
+        <Spinner />
+      </div>
+    );
   }
 
   if (error) {

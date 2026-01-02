@@ -24,6 +24,7 @@ import {
 import { AiProvider } from './providers/ai.provider';
 import { Content } from './providers/interface/content.interface';
 import { Overview } from './entities/overview.entity';
+import { Genre } from './entities/genre.entity';
 
 @Injectable()
 export class GameService {
@@ -61,6 +62,7 @@ export class GameService {
       const genres = await this.genreService.findMultipleGenres(
         createGameDto.genre,
       );
+
       const game = this.gameRepo.create({ ...createGameDto, genre: genres });
 
       const newGame = await this.gameRepo.save(game);
@@ -227,6 +229,11 @@ export class GameService {
           status: 404,
           message: 'Game not found',
         });
+      }
+      let genres: Genre[];
+      if (editGameDto.genre?.length !== 0) {
+        genres = await this.genreService.findMultipleGenres(editGameDto.genre!);
+        game.genre = genres;
       }
       game.name = editGameDto.name ?? game.name;
       game.description = editGameDto.description ?? game.description;
