@@ -46,7 +46,7 @@ export default function DiscussionListScreen() {
       {discussions.length > 0 ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {discussions.map((item) => (
-            <Link to={"/discussions/" + item.id}>
+            <Link key={item.createdAt} to={"/discussions/" + item.id}>
               <DiscussionCard
                 key={item.title}
                 description={item.description}

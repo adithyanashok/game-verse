@@ -1,5 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable } from '@nestjs/common';
 import { Socket, io } from 'socket.io-client';
 
 @Injectable()
@@ -7,7 +6,7 @@ export class SocketIoClientProvider {
   private socket: Socket;
 
   private connect() {
-    this.socket = io('http://localhost:5173/');
+    this.socket = io('http://frontend:5173/');
     return this.socket;
   }
 

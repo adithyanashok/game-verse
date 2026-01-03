@@ -14,6 +14,7 @@ import {
   CreateDiscussionDto,
   MessagePatterns,
   ServiceName,
+  type User,
 } from 'libs/common/src';
 import { RoleGuard } from '../src/guards/role.guard';
 import { firstValueFrom } from 'rxjs';
@@ -65,7 +66,7 @@ export class DiscussionController {
   @Post('create-discussion')
   public async createDiscussion(
     @Body() createDiscussionDto: CreateDiscussionDto,
-    @CurrentUser() user: any,
+    @CurrentUser() user: User,
   ): Promise<any> {
     try {
       return await firstValueFrom(
