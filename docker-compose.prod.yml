@@ -95,12 +95,14 @@ services:
     container_name: discussion
     restart: always
     ports:
-      - "8000:8000"
+      - "8001:8001"
+    expose:
+      - "8000"
     networks:
       - game-net
     environment:
       - NODE_ENV=production
-      - DISCUSSION_WS_PORT=8000
+      - DISCUSSION_WS_PORT=8001
       - ALLOWED_ORIGINS=${ALLOWED_ORIGINS:-https://gamevera.online}
     env_file:
       - ./backend/apps/discussion/.env
