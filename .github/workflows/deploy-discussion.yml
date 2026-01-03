@@ -1,0 +1,74 @@
+name: Deploy Discussions (EC2)
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "backend/apps/discussion/**"
+      - "backend/apps/discussion/Dockerfile"
+      - "backend/libs/**"
+      - "docker-compose.prod.yml"
+      - ".github/workflows/deploy-discussion.yml"
+
+env:
+  DOCKER_IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/backend-discussion
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # --- 1. BUILD & PUSH ---
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          # Context stays at backend root so we can access package.json and libs
+          context: ./backend
+
+          # Point to the specific Dockerfile for this service
+          file: ./backend/apps/discussion/Dockerfile
+
+          push: true
+          tags: ${{ env.DOCKER_IMAGE }}:latest
+
+          # Removed build-args (unless your specific Dockerfile still needs them)
+
+      # --- 2. DEPLOY TO EC2 ---
+      - name: Copy Compose File to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.prod.yml"
+          target: "/home/ubuntu/"
+
+      - name: SSH Remote Commands
+        uses: appleboy/ssh-action@master
+        env:
+          DOCKER_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          envs: DOCKER_USER
+          script: |
+            export DOCKER_USER=$DOCKER_USER
+
+            # Pull the new image
+            docker compose -f docker-compose.prod.yml pull discussion
+
+            # Restart only the discussion service
+            docker compose -f docker-compose.prod.yml up -d --no-deps discussion
+
+            # Cleanup
+            docker image prune -f
