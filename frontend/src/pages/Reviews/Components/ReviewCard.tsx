@@ -29,7 +29,7 @@ const ReviewCard = ({ review }: ReviewCardProps) => {
   return (
     <div
       onClick={handleCardClick}
-      className="w-full  cursor-pointer bg-dark sm:rounded-[10px] md:rounded-[10px] overflow-hidden hover-card md:max-w-xs relative"
+      className="w-full  cursor-pointer bg-dark rounded-[7px] sm:rounded-[10px] md:rounded-[10px] overflow-hidden hover-card md:max-w-xs relative"
     >
       {review.imageUrl ? (
         <img
