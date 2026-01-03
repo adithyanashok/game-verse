@@ -56,7 +56,7 @@ const router = createBrowserRouter([
           },
           { path: "/discussions", element: <DiscussionListScreen /> },
           { path: "/discussions/create", element: <CreateDiscussionScreen /> },
-          { path: "/discussions/:id", element: <DiscussionDetailScreen /> },
+          { path: "/discussion/:id", element: <DiscussionDetailScreen /> },
         ],
       },
     ],

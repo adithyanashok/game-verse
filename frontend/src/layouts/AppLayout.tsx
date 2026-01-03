@@ -1,13 +1,17 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Footer from "../components/common/footer/component/Footer";
 import ResponsiveNavbar from "../components/common/Navbar/ResponsiveNavbar";
 
 const AppLayout = () => {
+  const params = useLocation();
+  const showNavbarAndFooter =
+    params.pathname.includes("/discussion") &&
+    params.pathname !== "/discussions/create";
   return (
     <>
-      <ResponsiveNavbar />
+      {!showNavbarAndFooter && <ResponsiveNavbar />}
       <Outlet />
-      <Footer />
+      {!showNavbarAndFooter && <Footer />}
     </>
   );
 };
