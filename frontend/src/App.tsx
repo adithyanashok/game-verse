@@ -7,8 +7,8 @@ import AppLayout from "./layouts/AppLayout";
 import { Spinner } from "./components/common/Loader";
 
 import HomePage from "./pages/Home/HomePages";
-import NotFound from "./components/common/Notfound";
 import ErrorPage from "./components/common/ErrorPage";
+import NotFound from "./components/common/NotFound";
 const ReviewsPage = lazy(() => import("./pages/Reviews/ReviewsPage"));
 const Review = lazy(() => import("./pages/Reviews/ReviewScreen/Review"));
 const GamesPage = lazy(() => import("./pages/Games/GamesPage"));
