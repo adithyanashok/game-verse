@@ -19,6 +19,7 @@ const RatingBreakdown = ({ rating }: RatingBreakdownProps) => {
     <div className="text-white flex flex-col justify-between sm:p-4 mt-4 sm:border sm:border-[#989fab1e] rounded-[10px] gap-4">
       {metrics.map((metric) => {
         const value = rating[metric];
+        console.log(value);
         return (
           <div
             key={metric}
@@ -48,7 +49,7 @@ const RatingBreakdown = ({ rating }: RatingBreakdownProps) => {
                 max={100}
               />
               <p className="text-[10px] sm:text-[14px] font-bold whitespace-nowrap">
-                {value.toFixed(1)}/10
+                {value.toFixed(1)}/5
               </p>
             </div>
           </div>
@@ -59,7 +60,7 @@ const RatingBreakdown = ({ rating }: RatingBreakdownProps) => {
       <div className="flex flex-col sm:flex-row justify-between sm:items-center mt-2 pt-2 border-t border-[#989fab1e] gap-1">
         <p className="text-[12px] sm:text-[14px] font-semibold">Overall</p>
         <span className="text-[var(--color-purple)] font-bold sm:text-base text-[14px] sm:text-[16px]">
-          {rating.overall.toFixed(1)} / 10
+          {rating.overall.toFixed(1)} / 5
         </span>
       </div>
     </div>

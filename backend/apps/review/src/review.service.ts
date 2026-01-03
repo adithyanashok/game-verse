@@ -117,6 +117,7 @@ export class ReviewService {
   // Get Review
   public async getReview(reviewId: number, userId: number) {
     try {
+      console.log('ID ', userId);
       const review = await this.repo.findOne({
         where: { id: reviewId },
         relations: ['rating'],
@@ -134,7 +135,7 @@ export class ReviewService {
       const user: User = await lastValueFrom(
         this.userClient.send(MessagePatterns.USER_FIND_BY_ID, id),
       );
-
+      console.log('USER ', user);
       if (!user) {
         throw new RpcException({
           status: 404,
@@ -142,9 +143,12 @@ export class ReviewService {
         });
       }
 
-      const liked = await this.likeRepo.findOne({
-        where: { reviewId, userId },
-      });
+      let liked: Like | null = null;
+      if (userId) {
+        liked = await this.likeRepo.findOne({
+          where: { reviewId, userId },
+        });
+      }
 
       return new ApiResponse(true, 'Review Fetched Successfully', {
         ...review,

@@ -36,8 +36,15 @@ const ReviewSection = () => {
   const [followingPage, setFollowingPage] = useState(1);
   const [allPage, setAllPage] = useState(1);
 
+  const { accessToken } = useAppSelector((state: RootState) => state.auth);
+
   useEffect(() => {
     if (activeTab !== "following") return;
+
+    if (!accessToken) {
+      setActiveTab("all");
+      return;
+    }
 
     dispatch(
       fetchFollowingReviews({
@@ -46,7 +53,7 @@ const ReviewSection = () => {
         query: searchTerm || null,
       })
     );
-  }, [dispatch, followingPage, searchTerm, activeTab]);
+  }, [dispatch, followingPage, searchTerm, activeTab, accessToken]);
 
   useEffect(() => {
     if (activeTab !== "all") return;
@@ -99,16 +106,18 @@ const ReviewSection = () => {
         >
           All Reviews
         </button>
-        <button
-          onClick={() => setActiveTab("following")}
-          className={`pb-2 text-sm font-medium transition ${
-            activeTab === "following"
-              ? "text-white border-b-2 border-purple"
-              : "text-gray-400 hover:text-white"
-          }`}
-        >
-          Following
-        </button>
+        {accessToken && (
+          <button
+            onClick={() => setActiveTab("following")}
+            className={`pb-2 text-sm font-medium transition ${
+              activeTab === "following"
+                ? "text-white border-b-2 border-purple"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            Following
+          </button>
+        )}
       </div>
 
       {activeTab === "following" && (

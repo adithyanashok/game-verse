@@ -32,6 +32,8 @@ const ReviewActions: FC<ReviewActionsProps> = ({
     setOpenDeleteModal(false);
   }, [onDelete]);
 
+  console.log("LIKED ", liked);
+
   return (
     <div className="flex flex-wrap gap-3 mt-5 mb-5">
       {/* Like button */}

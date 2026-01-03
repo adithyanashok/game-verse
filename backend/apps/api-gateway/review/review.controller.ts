@@ -75,16 +75,17 @@ export class ReviewController {
     status: 200,
     description: 'Review Fetched successfully',
   })
+  @Public()
   @Get('get-review')
   public async getReview(
-    @CurrentUser() user: User,
     @Query('id', ParseIntPipe) id: number,
+    @CurrentUser() user?: User,
   ): Promise<any> {
     try {
       return await firstValueFrom(
         this.reviewClient.send(MessagePatterns.GET_REVIEW, {
           reviewId: id,
-          userId: user.id,
+          userId: user?.id,
         }),
       );
     } catch (error) {
@@ -202,6 +203,7 @@ export class ReviewController {
     status: 200,
     description: 'Search Result Fetched Successfully',
   })
+  @Public()
   @Get('search-review')
   public async searchReviews(@Query() searchDto: SearchDto): Promise<any> {
     try {
@@ -223,6 +225,7 @@ export class ReviewController {
     status: 200,
     description: 'Reviews Fetched Successfully',
   })
+  @Public()
   @Get('get-by-gameid')
   public async getReviewsByGameId(
     @Query() getByGameDto: GetByIdDto,
@@ -359,17 +362,18 @@ export class ReviewController {
     status: 200,
     description: 'Coment Fetched',
   })
+  @Public()
   @Get('get-comments')
   public async getComments(
-    @CurrentUser() user: User,
     @Query('reviewId', ParseIntPipe) reviewId: number,
+    @CurrentUser() user?: User,
   ): Promise<any> {
     try {
       console.log(user);
       return await firstValueFrom(
         this.reviewClient.send(MessagePatterns.GET_COMMENT, {
           reviewId,
-          userId: user.id,
+          userId: user?.id,
         }),
       );
     } catch (error) {

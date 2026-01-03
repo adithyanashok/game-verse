@@ -3,7 +3,10 @@ import MessageBubble from "./Components/MessageBubble";
 import { io, Socket } from "socket.io-client";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { getDiscussion } from "../../features/discussions/discussionSlice";
+import {
+  getDiscussion,
+  resetCurrentDiscussion,
+} from "../../features/discussions/discussionSlice";
 import type {
   Message,
   UserJoinedPayload,
@@ -21,11 +24,18 @@ export default function DiscussionDetailsScreen() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [length, setLength] = useState<number>(0);
   console.log(id);
+
   useEffect(() => {
     if (id) {
       dispatch(getDiscussion(id));
     }
   }, [id, dispatch]);
+
+  console.log(currentDiscussion);
+
+  if (!currentDiscussion) {
+    navigate("/discussions");
+  }
 
   useEffect(() => {
     if (!accessToken || !id) return;
@@ -132,6 +142,7 @@ export default function DiscussionDetailsScreen() {
       discussionId: Number(id),
       adminId: user?.id,
     });
+    resetCurrentDiscussion();
   };
 
   const isAdmin = currentDiscussion?.adminId === user?.id;

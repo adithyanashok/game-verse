@@ -7,6 +7,8 @@ import AppLayout from "./layouts/AppLayout";
 import { Spinner } from "./components/common/Loader";
 
 import HomePage from "./pages/Home/HomePages";
+import NotFound from "./components/common/Notfound";
+import ErrorPage from "./components/common/ErrorPage";
 const ReviewsPage = lazy(() => import("./pages/Reviews/ReviewsPage"));
 const Review = lazy(() => import("./pages/Reviews/ReviewScreen/Review"));
 const GamesPage = lazy(() => import("./pages/Games/GamesPage"));
@@ -32,17 +34,15 @@ const SignupPage = lazy(() => import("./pages/Auth/SignupPage"));
 const router = createBrowserRouter([
   {
     element: <AppLayout />,
+    errorElement: <ErrorPage />,
     children: [
+      { path: "*", element: <NotFound /> },
       { path: "/", element: <HomePage /> },
       { path: "/home", element: <HomePage /> },
       {
         element: <ProtectedRoute />,
         children: [
           { path: "/dashboard", element: <UserDashboard /> },
-          { path: "/reviews", element: <ReviewsPage /> },
-          { path: "/review/:id", element: <Review /> },
-          { path: "/games", element: <GamesPage /> },
-          { path: "/games/:id", element: <Game /> },
           { path: "/profile", element: <ProfilePage /> },
           { path: "/profile/:userId", element: <ProfilePage /> },
           { path: "/edit-profile/:userId", element: <EditProfile /> },
@@ -59,6 +59,10 @@ const router = createBrowserRouter([
           { path: "/discussion/:id", element: <DiscussionDetailScreen /> },
         ],
       },
+      { path: "/reviews", element: <ReviewsPage /> },
+      { path: "/review/:id", element: <Review /> },
+      { path: "/games", element: <GamesPage /> },
+      { path: "/games/:id", element: <Game /> },
     ],
   },
   { path: "/login", element: <LoginPage /> },
