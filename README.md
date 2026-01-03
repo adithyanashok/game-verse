@@ -69,7 +69,3 @@ docker-compose -f docker-compose.prod.yml up -d
 - Redux State Management
 - JWT Authentication
 - WebSocket Real-time Communication
-
----
-
-**Built with TypeScript, containerized with Docker, ready to scale** 🚀

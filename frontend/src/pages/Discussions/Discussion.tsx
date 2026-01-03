@@ -31,7 +31,7 @@ export default function DiscussionDetailsScreen() {
     if (!accessToken || !id) return;
 
     const wsUrl = import.meta.env.VITE_WS_URL || "http://localhost:8000";
-
+    console.log("WEB SOCKET URL ", wsUrl);
     const newSocket = io(wsUrl, {
       query: { token: accessToken },
       path: "/socket.io",
