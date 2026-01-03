@@ -6,7 +6,7 @@ const AppLayout = () => {
   const params = useLocation();
   const showNavbarAndFooter =
     params.pathname.includes("/discussion") &&
-    params.pathname !== "/discussions/create";
+    params.pathname !== "/discussions";
   return (
     <>
       {!showNavbarAndFooter && <ResponsiveNavbar />}
