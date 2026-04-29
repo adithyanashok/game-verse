@@ -8,12 +8,14 @@ export interface Game {
   overall: number;
   releaseDate: string;
   overallRating: number;
-  overview: Overview;
+  // AI-generated overview feature disabled
+  // overview: Overview;
 }
-export interface Overview {
-  id: number;
-  overview: string;
-}
+// AI-generated overview feature disabled
+// export interface Overview {
+//   id: number;
+//   overview: string;
+// }
 export interface Rating {
   overallRating: number;
   ratings: Ratings[];

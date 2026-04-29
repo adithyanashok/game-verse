@@ -55,6 +55,7 @@ const extractErrorMessage = (error: unknown, fallback: string): string => {
 export interface DiscussionState {
   discussions: Discussion[];
   currentDiscussion: Discussion | null;
+  discussionsFetchedAt: number | null;
   loading: OperationState;
   errors: OperationErrorState;
 }
@@ -62,6 +63,7 @@ export interface DiscussionState {
 const initialState: DiscussionState = {
   discussions: [],
   currentDiscussion: null,
+  discussionsFetchedAt: null,
   loading: createOperationState(false),
   errors: createErrorState(null),
 };
@@ -73,7 +75,10 @@ export const getDiscussions = createAsyncThunk<
 >("discussion/getDiscussions", async (_, thunkApi) => {
   try {
     const res = await apiClient.get<ApiResponse<Discussion[]>>(
-      API.DISCUSSIONS.GET_ALL
+      API.DISCUSSIONS.GET_ALL,
+      {
+        signal: thunkApi.signal,
+      }
     );
 
     if (!res.data.status) {
@@ -154,9 +159,13 @@ const discussionSlice = createSlice({
       .addCase(getDiscussions.fulfilled, (state, action) => {
         state.loading.getAll = false;
         state.discussions = action.payload;
+        state.discussionsFetchedAt = Date.now();
       })
       .addCase(getDiscussions.rejected, (state, action) => {
         state.loading.getAll = false;
+        if (action.meta.aborted) {
+          return;
+        }
         state.errors.getAll = action.payload ?? "Failed to fetch discussions";
       })
 

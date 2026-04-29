@@ -1,7 +1,7 @@
 import ReviewSection from "./Components/ReviewSection";
 import TopReviewers from "./Components/TopReviewers";
 
-const ReviewsPage = () => {
+const ReviewListScreen = () => {
   return (
     <div className="2xl:flex bg-primary">
       {/* Review Section */}
@@ -19,4 +19,4 @@ const ReviewsPage = () => {
   );
 };
 
-export default ReviewsPage;
+export default ReviewListScreen;

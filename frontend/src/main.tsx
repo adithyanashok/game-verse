@@ -8,6 +8,8 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 const VITE_GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
+    {/* StrictMode intentionally re-runs effects in development, so screens
+        cancel in-flight requests and reuse fresh cached Redux data. */}
     <Provider store={store}>
       <GoogleOAuthProvider clientId={VITE_GOOGLE_CLIENT_ID}>
         <App />

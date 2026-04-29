@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { FiBarChart2, FiEdit3, FiFileText, FiUserPlus, FiUsers } from "react-icons/fi";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
   fetchUserProfile,
@@ -10,18 +11,30 @@ import { getByUserId } from "../../features/reviews/reviewsSlice";
 import AnalyticsDashboard from "./Components/AnalyticsDashboard";
 import ProfileImage from "./Components/ProfileImage";
 import { toast } from "react-toastify";
-import ReviewCardProfile from "../Reviews/Components/ReviewCardProfile";
-import { Spinner } from "../../components/common/Loader";
+import ReviewCard from "../Reviews/Components/ReviewCard";
+import { AppLoader, Spinner } from "../../components/common/Loader";
+import { isCacheFresh } from "../../utils/cache";
 
 const ProfilePage = () => {
   const { userId: userIdParam } = useParams();
   const dispatch = useAppDispatch();
   const [activeTab, setActiveTab] = useState("Reviews");
   const authUser = useAppSelector((state) => state.auth.user);
-  const { profile, loading, error, followLoading, followError } =
-    useAppSelector((state) => state.user);
-
-  const { userReviews } = useAppSelector((state) => state.reviews);
+  const {
+    profile,
+    loading,
+    error,
+    followLoading,
+    followError,
+    profilesById,
+    fetchedAtById,
+  } = useAppSelector((state) => state.user);
+  const {
+    userReviews,
+    userReviewsByUserId,
+    userReviewsFetchedAtByUserId,
+    loading: reviewLoading,
+  } = useAppSelector((state) => state.reviews);
 
   const targetUserId = useMemo(() => {
     if (userIdParam) {
@@ -32,14 +45,57 @@ const ProfilePage = () => {
     return authUser?.id;
   }, [userIdParam, authUser?.id]);
 
+  const displayedProfile =
+    typeof targetUserId === "number"
+      ? profilesById[targetUserId] ??
+        (profile?.id === targetUserId ? profile : null)
+      : profile;
+  const displayedReviews =
+    typeof targetUserId === "number"
+      ? userReviewsByUserId[targetUserId] ??
+        (profile?.id === targetUserId ? userReviews : [])
+      : userReviews;
+
   useEffect(() => {
     if (typeof targetUserId === "number") {
-      void dispatch(fetchUserProfile(targetUserId));
-      void dispatch(getByUserId({ id: targetUserId, limit: 20, page: 1 }));
-    }
-  }, [dispatch, targetUserId]);
+      const pendingRequests: Array<{ abort: () => void }> = [];
+      const hasFreshProfile = isCacheFresh(fetchedAtById[targetUserId]);
+      const hasFreshReviews = isCacheFresh(userReviewsFetchedAtByUserId[targetUserId]);
 
-  const isOwnProfile = authUser?.id === profile?.id;
+      if (!hasFreshProfile && !loading) {
+        pendingRequests.push(dispatch(fetchUserProfile(targetUserId)));
+      }
+
+      if (!hasFreshReviews && !reviewLoading.fetchByUser) {
+        pendingRequests.push(
+          dispatch(getByUserId({ id: targetUserId, limit: 20, page: 1 })),
+        );
+      }
+
+      return () => {
+        pendingRequests.forEach((request) => request.abort());
+      };
+    }
+  }, [
+    dispatch,
+    fetchedAtById,
+    loading,
+    reviewLoading.fetchByUser,
+    targetUserId,
+    userReviewsFetchedAtByUserId,
+  ]);
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error, {
+        position: "top-right",
+        autoClose: 1500,
+        theme: "dark",
+      });
+    }
+  }, [error]);
+
+  const isOwnProfile = authUser?.id === displayedProfile?.id;
   const canFollow = !isOwnProfile && typeof targetUserId === "number";
   const tabs = !isOwnProfile ? ["Reviews"] : ["Reviews", "Analytics"];
 
@@ -48,7 +104,7 @@ const ProfilePage = () => {
       return;
     }
 
-    if (profile?.isFollowing) {
+    if (displayedProfile?.isFollowing) {
       void dispatch(unfollowUser(targetUserId));
     } else {
       void dispatch(followUser(targetUserId));
@@ -64,37 +120,31 @@ const ProfilePage = () => {
       return (
         <Link
           to={`/edit-profile/${authUser.id}`}
-          className="mt-5 px-6 py-2 rounded-full bg-[#1f1233] text-gray-300 font-medium shadow-md"
+          className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,212,255,0.16)] bg-[rgba(0,212,255,0.08)] px-5 py-3 text-sm font-black text-white transition hover:border-[rgba(0,212,255,0.34)] hover:bg-[rgba(0,212,255,0.14)]"
         >
-          Edit
+          <FiEdit3 className="h-4 w-4" />
+          Edit Profile
         </Link>
       );
-    }
-
-    if (error) {
-      toast.error(error, {
-        position: "top-right",
-        autoClose: 1500,
-        theme: "dark",
-      });
     }
 
     return (
       <button
         onClick={handleFollowToggle}
         disabled={followLoading}
-        className={`mt-5 px-6 py-2 rounded-full transition font-medium shadow-md ${
-          profile?.isFollowing
-            ? "bg-gray-700 hover:bg-gray-600"
-            : "bg-[#6a0dad] hover:bg-[#7b26e4]"
-        } ${followLoading ? "opacity-70 cursor-not-allowed" : ""}`}
+        className={`inline-flex items-center gap-2 rounded-full border px-5 py-3 text-sm font-black text-white transition ${
+          displayedProfile?.isFollowing
+            ? "border-white/10 bg-white/8 hover:bg-white/12"
+            : "border-[rgba(0,212,255,0.18)] bg-[linear-gradient(90deg,rgba(0,212,255,0.2),rgba(0,212,255,0.1))] hover:border-[rgba(0,212,255,0.34)] hover:bg-[linear-gradient(90deg,rgba(0,212,255,0.28),rgba(0,212,255,0.14))]"
+        } ${followLoading ? "cursor-not-allowed opacity-70" : ""}`}
       >
         {followLoading ? (
-          <Spinner className="w-5 h-5 border-2 text-white" />
-        ) : profile?.isFollowing ? (
-          "Following"
+          <Spinner className="h-5 w-5 border-2 text-white" />
         ) : (
-          "Follow"
+          <>
+            <FiUserPlus className="h-4 w-4" />
+            {displayedProfile?.isFollowing ? "Following" : "Follow"}
+          </>
         )}
       </button>
     );
@@ -102,8 +152,8 @@ const ProfilePage = () => {
 
   if (typeof targetUserId !== "number") {
     return (
-      <div className="min-h-screen bg-primary text-white flex flex-col items-center justify-center py-10 px-2 md:px-4">
-        <div className="text-center text-gray-400">
+      <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_16%_0%,rgba(0,212,255,0.16),transparent_32%),linear-gradient(180deg,#070b16_0%,#0d1424_48%,#070b16_100%)] px-4 py-10 text-white">
+        <div className="rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[#0d1424]/84 px-6 py-8 text-center text-[#9aa7bd] shadow-xl shadow-black/20">
           {!authUser
             ? "Sign in to view profiles and manage follow status."
             : "Unable to determine which profile to load."}
@@ -113,92 +163,163 @@ const ProfilePage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-primary text-white flex flex-col items-center py-10 px-2 md:px-4">
-      {loading && (
-        <div className="flex justify-center mt-10">
-          <Spinner />
-        </div>
-      )}
+    <main className="min-h-screen bg-[radial-gradient(circle_at_16%_0%,rgba(0,212,255,0.16),transparent_32%),radial-gradient(circle_at_84%_10%,rgba(182,255,59,0.08),transparent_24%),linear-gradient(180deg,#070b16_0%,#0d1424_48%,#070b16_100%)] px-3 py-6 sm:px-5 md:px-8 lg:px-10">
+      <div className="mx-auto max-w-7xl space-y-8">
+        {loading && (
+          <AppLoader label="Loading profile..." />
+        )}
 
-      {!loading && profile && (
-        <>
-          <div className="flex flex-col items-center text-center">
-            {/* Profile Image */}
-            <ProfileImage isOwnProfile={isOwnProfile} />
+        {!loading && displayedProfile && (
+          <>
+            <section className="overflow-hidden rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[linear-gradient(135deg,rgba(8,16,28,0.98)_0%,rgba(13,20,36,0.94)_55%,rgba(8,16,28,0.98)_100%)] shadow-[0_24px_70px_rgba(0,0,0,0.24)]">
+              <div className="relative">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,rgba(0,212,255,0.16),transparent_28%),radial-gradient(circle_at_86%_16%,rgba(182,255,59,0.08),transparent_22%)]" />
+                <div className="relative grid gap-6 px-5 py-6 sm:px-7 sm:py-8 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center lg:gap-8 lg:px-8">
+                  <div className="mx-auto lg:mx-0">
+                    <ProfileImage isOwnProfile={isOwnProfile} />
+                  </div>
 
-            {/* User Name */}
-            <h2 className="text-2xl font-semibold mt-4">
-              {profile.name || "Unnamed Gamer"}
-            </h2>
+                  <div className="text-center lg:text-left">
+                    <div className="flex flex-wrap items-center justify-center gap-2 lg:justify-start">
+                      <span className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,212,255,0.16)] bg-[rgba(0,212,255,0.08)] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#cbeafe]">
+                        <FiUsers className="h-3.5 w-3.5 text-[var(--color-blue)]" />
+                        Player profile
+                      </span>
+                      {isOwnProfile ? (
+                        <span className="rounded-full bg-[var(--color-lime)] px-3 py-1 text-[11px] font-black uppercase tracking-[0.12em] text-[#07101a]">
+                          Your space
+                        </span>
+                      ) : null}
+                    </div>
 
-            {/* User Bio */}
-            <p className="text-gray-400 text-sm max-w-md mt-2">
-              {profile.bio || "No bio added yet."}
-            </p>
+                    <h1 className="mt-4 text-3xl font-black leading-tight text-white sm:text-4xl">
+                      {displayedProfile.name || "Unnamed Gamer"}
+                    </h1>
 
-            {/* Following and Followers Count */}
-            <div className="flex items-center gap-2 mt-3 text-gray-400 text-sm">
-              <span className="font-semibold text-white">
-                {profile.followersCount}
-              </span>{" "}
-              followers ·{" "}
-              <span className="font-semibold text-white">
-                {profile.followingCount}
-              </span>{" "}
-              following
-            </div>
+                    <p className="mt-3 max-w-2xl text-sm leading-7 text-[#c8d3e4] sm:text-[15px]">
+                      {displayedProfile.bio || "No bio added yet."}
+                    </p>
+                  </div>
 
-            {/* Action Buttons */}
-            {renderActionButton()}
-            {followError && (
-              <p className="mt-2 text-sm text-red-400">{followError}</p>
-            )}
-          </div>
-          {userReviews.length !== 0 ? (
-            <>
-              {/* Tabs */}
-              <div className="flex mt-10 border-b border-gray-700 w-full max-w-3xl justify-center">
-                {tabs.map((tab) => (
-                  <button
-                    key={tab + new Date().getMilliseconds()}
-                    className={`px-4 py-2 text-sm font-medium transition relative ${
-                      activeTab === tab
-                        ? "text-[#b072ff]"
-                        : "text-gray-400 hover:text-white"
-                    }`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {tab}
+                  <div className="flex justify-center lg:justify-end">
+                    {renderActionButton()}
+                  </div>
+                </div>
+              </div>
+            </section>
 
-                    {activeTab === tab && (
-                      <span className="absolute bottom-0 left-0 w-full h-[2px] bg-[#b072ff]"></span>
-                    )}
-                  </button>
-                ))}
+            <section className="grid gap-4 md:grid-cols-3">
+              <div className="rounded-[10px] border border-[rgba(182,255,59,0.16)] bg-[linear-gradient(180deg,rgba(182,255,59,0.14),rgba(182,255,59,0.04))] p-4 shadow-lg shadow-black/10">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c8d3e4]">
+                    Followers
+                  </p>
+                  <FiUsers className="h-4 w-4 text-[var(--color-lime)]" />
+                </div>
+                <p className="mt-3 text-2xl font-black text-white">
+                  {displayedProfile.followersCount}
+                </p>
               </div>
 
-              {/* Placeholder Game Cards */}
-              {activeTab === "Reviews" && (
-                <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5 w-full max-w-5xl">
-                  {userReviews.map((review, index) => (
-                    <Link key={review.createdAt} to={`/review/${review.id}`}>
-                      <ReviewCardProfile
-                        key={index}
-                        image={review.imageUrl}
-                        title={review.title}
-                      />
-                    </Link>
+              <div className="rounded-[10px] border border-[rgba(0,212,255,0.16)] bg-[linear-gradient(180deg,rgba(0,212,255,0.14),rgba(0,212,255,0.04))] p-4 shadow-lg shadow-black/10">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c8d3e4]">
+                    Following
+                  </p>
+                  <FiUserPlus className="h-4 w-4 text-[var(--color-blue)]" />
+                </div>
+                <p className="mt-3 text-2xl font-black text-white">
+                  {displayedProfile.followingCount}
+                </p>
+              </div>
+
+              <div className="rounded-[10px] border border-[rgba(248,184,78,0.16)] bg-[linear-gradient(180deg,rgba(248,184,78,0.14),rgba(248,184,78,0.04))] p-4 shadow-lg shadow-black/10">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[#c8d3e4]">
+                    Reviews posted
+                  </p>
+                  <FiFileText className="h-4 w-4 text-[#f8b84e]" />
+                </div>
+                <p className="mt-3 text-2xl font-black text-white">
+                  {displayedReviews.length}
+                </p>
+              </div>
+            </section>
+
+            {followError && (
+              <p className="rounded-[10px] border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                {followError}
+              </p>
+            )}
+
+            <section className="space-y-6">
+              <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[rgba(0,212,255,0.12)] pb-3">
+                <div>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-blue)]">
+                    Profile view
+                  </p>
+                  <h2 className="mt-2 text-2xl font-black text-white sm:text-3xl">
+                    Activity
+                  </h2>
+                </div>
+
+                <div className="inline-flex rounded-full border border-[rgba(0,212,255,0.12)] bg-[#0d1424]/84 p-1">
+                  {tabs.map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      className={`rounded-full px-4 py-2 text-sm font-bold transition ${
+                        activeTab === tab
+                          ? "bg-[rgba(0,212,255,0.12)] text-white"
+                          : "text-[#9aa7bd] hover:text-white"
+                      }`}
+                      onClick={() => setActiveTab(tab)}
+                    >
+                      {tab === "Analytics" ? (
+                        <span className="inline-flex items-center gap-2">
+                          <FiBarChart2 className="h-4 w-4" />
+                          {tab}
+                        </span>
+                      ) : (
+                        tab
+                      )}
+                    </button>
                   ))}
                 </div>
+              </div>
+
+              {activeTab === "Reviews" && (
+                <>
+                  {displayedReviews.length !== 0 ? (
+                    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      {displayedReviews.map((review) => (
+                        <ReviewCard key={review.id} review={review} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-[10px] border border-dashed border-white/10 bg-[#0d1424]/70 px-6 py-14 text-center shadow-xl shadow-black/10">
+                      <FiFileText className="mx-auto h-8 w-8 text-[#9aa7bd]" />
+                      <h3 className="mt-4 text-2xl font-black text-white">
+                        No reviews posted
+                      </h3>
+                      <p className="mt-2 text-sm leading-6 text-[#9aa7bd]">
+                        This profile has not published any reviews yet.
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
-              {activeTab === "Analytics" && <AnalyticsDashboard />}
-            </>
-          ) : (
-            <p className="mt-10">No Reviews Posted</p>
-          )}
-        </>
-      )}
-    </div>
+
+              {activeTab === "Analytics" && (
+                <div className="rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[#0d1424]/84 p-4 shadow-xl shadow-black/20 sm:p-6">
+                  <AnalyticsDashboard />
+                </div>
+              )}
+            </section>
+          </>
+        )}
+      </div>
+    </main>
   );
 };
 

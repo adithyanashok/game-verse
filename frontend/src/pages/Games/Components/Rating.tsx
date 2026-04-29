@@ -16,7 +16,7 @@ const RatingCard = () => {
             color: "#989fab",
           },
         }}
-        style={{ color: "#6711bf" }}
+        style={{ color: "var(--color-blue)" }}
         name="simple-controlled"
         value={Number(currentGame?.rating.overallRating.toFixed(0))}
         readOnly={true}
@@ -27,3 +27,4 @@ const RatingCard = () => {
 };
 
 export default RatingCard;
+

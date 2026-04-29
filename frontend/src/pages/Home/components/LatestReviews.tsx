@@ -2,10 +2,9 @@ import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import { fetchRecentReviews } from "../../../features/reviews/reviewsSlice";
-
-import CustomCard from "../../../components/common/ScrollableRow";
-import { Link } from "react-router-dom";
-import { Spinner } from "../../../components/common/Loader";
+import { AppLoader } from "../../../components/common/Loader";
+import ReviewCard from "../../Reviews/Components/ReviewCard";
+import HomeSectionState from "./HomeSectionState";
 
 const LatestReviews = () => {
   const dispatch = useAppDispatch();
@@ -23,18 +22,17 @@ const LatestReviews = () => {
     }
   }, [dispatch, recent]);
 
-  console.log(recent);
-
   if (loading) {
-    return (
-      <div className="flex justify-center py-4">
-        <Spinner />
-      </div>
-    );
+    return <AppLoader label="Loading latest reviews..." />;
   }
 
   if (error) {
-    return <div className="text-center py-4 text-red-500">{error}</div>;
+    return (
+      <HomeSectionState
+        title="Latest reviews are unavailable"
+        message={error}
+      />
+    );
   }
 
   if (!recent || recent.length === 0) {
@@ -45,39 +43,14 @@ const LatestReviews = () => {
     );
   }
   return (
-    <div className="scroll-row py-2 gap-1 sm:gap-2 px-4">
+    <div className="scroll-row flex gap-4 px-4 py-4 sm:px-6 lg:px-8">
       {recent.map((review) => (
-        <Link key={review.id} to={`/review/${review.id}`}>
-          <CustomCard
-            classes={{
-              container: "rounded-[10px]",
-              imageWrapper: "rounded-[8px]",
-              title:
-                "font-medium text-xs md:text-sm lg:text-[15px] 2xl:text-[16px] text-white mx-2 mt-2 line-clamp-2 overflow-hidden",
-              subtitle: "text-xs ml-2 mt-1 text-grey",
-              ratingWrapper: "mx-2 mt-1",
-            }}
-            padding="p-0"
-            width="w-[125px] sm:w-[150px] md:w-[200px] xl:w-[230px]"
-            height="h-42 sm:h-44 md:h-53 lg:h-54 xl:h-58 2xl:h-60"
-            subtitle={`By ${review.user && review.user.name}`}
-            image={
-              <img
-                className="w-full object-cover"
-                src={review.imageUrl}
-                alt={review.title || "Latest Review"}
-                loading="lazy"
-              />
-            }
-            title={review.title}
-            showSubtitle
-            rating={{
-              value: review.rating?.overall ?? 0,
-              size: "small",
-              color: "#7c3aed",
-            }}
-          />
-        </Link>
+        <div
+          key={review.id}
+          className="h-[310px] w-[240px] flex-shrink-0 sm:h-[325px] sm:w-[260px]"
+        >
+          <ReviewCard review={review} />
+        </div>
       ))}
     </div>
   );

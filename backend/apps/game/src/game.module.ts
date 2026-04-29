@@ -9,7 +9,6 @@ import { Genre } from './entities/genre.entity';
 import { GenreService } from './genre/genre.service';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MICROSERVICE_CONFIG, ServiceName } from 'libs/common/src';
-import { AiProvider } from './providers/ai.provider';
 import { Overview } from './entities/overview.entity';
 import { CacheModule } from '@nestjs/cache-manager';
 
@@ -55,6 +54,11 @@ console.log(ENV);
     }),
   ],
   controllers: [GameController],
-  providers: [GameService, GenreService, AiProvider],
+  providers: [
+    GameService,
+    GenreService,
+    // AI-generated overview feature disabled
+    // AiProvider,
+  ],
 })
 export class GameModule {}

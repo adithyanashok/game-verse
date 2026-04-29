@@ -5,12 +5,12 @@ interface Props {
 }
 const GameCard = (props: Props) => {
   return (
-    <div className="hover-card bg-dark rounded-[12px] md:rounded-2xl w-full h-full flex flex-col">
+    <div className="hover-card bg-dark rounded-[12px] md:rounded-2xl w-full h-full flex flex-col overflow-hidden">
       {/* IMAGE */}
       <div className="relative">
-        <div className="flex justify-center items-center gap-1 absolute bottom-3 right-3 w-12 h-7 bg-purple rounded-2xl">
-          <BiStar color="#ffffff" className="text-[12px] sm:text-[14px]" />
-          <p className="text-white text-[10px] sm:text-[12px]">
+        <div className="absolute bottom-3 right-3 flex h-7 w-12 items-center justify-center gap-1 rounded-2xl bg-[var(--color-lime)] shadow-lg shadow-[rgba(182,255,59,0.18)]">
+          <BiStar color="#07101a" className="text-[12px] sm:text-[14px]" />
+          <p className="text-[10px] font-bold text-[#07101a] sm:text-[12px]">
             {props.game.overall}
           </p>
         </div>
@@ -30,7 +30,7 @@ const GameCard = (props: Props) => {
           <h1 className="text-white font-bold text-[14px] md:text-[20px] line-clamp-1">
             {props.game.name}
           </h1>
-          <p className="text-[var(--color-purple)] sm:text-[12px] text-[10px] line-clamp-1">
+          <p className="text-[var(--color-blue)] sm:text-[12px] text-[10px] line-clamp-1">
             Released {props.game.releaseDate}
           </p>
         </div>
@@ -41,7 +41,7 @@ const GameCard = (props: Props) => {
             {props.game.genre.map((genre) => (
               <p
                 key={genre.id}
-                className="bg-dark-purple py-0.5 px-2 text-[var(--color-purple)] rounded-full text-[12px]"
+                className="bg-dark-purple py-0.5 px-2 text-[var(--color-blue)] rounded-full text-[12px]"
               >
                 {genre.name}
               </p>

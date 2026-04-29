@@ -21,8 +21,6 @@ import {
   RatingInterface,
   RatingItem,
 } from './interfaces/rating.interfaces';
-import { AiProvider } from './providers/ai.provider';
-import { Content } from './providers/interface/content.interface';
 import { Overview } from './entities/overview.entity';
 import { Genre } from './entities/genre.entity';
 
@@ -48,7 +46,8 @@ export class GameService {
 
     private readonly configService: ConfigService,
 
-    private readonly aiProvider: AiProvider,
+    // AI-generated overview feature disabled
+    // private readonly aiProvider: AiProvider,
 
     @Inject(ServiceName.REVIEW)
     private readonly reviewClient: ClientProxy,
@@ -130,18 +129,16 @@ export class GameService {
         throw new RpcException({ status: 404, message: 'Game not found' });
       }
 
-      const [rating, overview] = await Promise.all([
+      const [rating] = await Promise.all([
         firstValueFrom<RatingInterface>(
           this.reviewClient.send(MessagePatterns.GET_OVERALL_RATING, {
             gameId: game.id,
           }),
         ).catch(() => null),
-        this.getAiOverview(id).catch(() => {}),
       ]);
 
       const result = {
         ...game,
-        overview,
         rating,
       };
 
@@ -274,11 +271,28 @@ export class GameService {
 
   // Find One
   public async findOne(id: number) {
-    console.log(id);
-    const game = await this.gameRepo.findOneBy({ id });
+    const game = await this.gameRepo.findOne({
+      where: { id },
+      relations: ['genre'],
+    });
 
-    console.log(game);
-    return game;
+    if (!game) {
+      throw new RpcException({
+        status: 404,
+        message: 'Game not found',
+      });
+    }
+
+    const rating = await firstValueFrom<RatingInterface>(
+      this.reviewClient.send(MessagePatterns.GET_OVERALL_RATING, {
+        gameId: game.id,
+      }),
+    ).catch(() => null);
+
+    return {
+      ...game,
+      rating,
+    };
   }
 
   // Get Popular Games
@@ -305,66 +319,66 @@ export class GameService {
   }
 
   // Genereate AI Overview
-  public async generateAiOverview(gameId: number, review: Content | null) {
-    try {
-      const game = await this.gameRepo.findOne({ where: { id: gameId } });
-      if (!game) {
-        throw new RpcException({
-          status: 404,
-          message: 'Game not found',
-        });
-      }
-      const reviews = await firstValueFrom<Content[]>(
-        this.reviewClient.send(MessagePatterns.GET_REVIEWS_BY_GAMEID, {
-          gameId,
-        }),
-      );
+  // public async generateAiOverview(gameId: number, review: Content | null) {
+  //   try {
+  //     const game = await this.gameRepo.findOne({ where: { id: gameId } });
+  //     if (!game) {
+  //       throw new RpcException({
+  //         status: 404,
+  //         message: 'Game not found',
+  //       });
+  //     }
+  //     const reviews = await firstValueFrom<Content[]>(
+  //       this.reviewClient.send(MessagePatterns.GET_REVIEWS_BY_GAMEID, {
+  //         gameId,
+  //       }),
+  //     );
 
-      const existingOverview = await this.overviewRepo.findOneBy({
-        game: { id: gameId },
-      });
+  //     const existingOverview = await this.overviewRepo.findOneBy({
+  //       game: { id: gameId },
+  //     });
 
-      let savedOverview: Overview;
+  //     let savedOverview: Overview;
 
-      const overview = await this.aiProvider.aiOverview(reviews, review);
-      if (existingOverview) {
-        existingOverview.overview = overview ?? existingOverview.overview;
-        savedOverview = await this.overviewRepo.save(existingOverview);
-      } else {
-        const newOverview = this.overviewRepo.create({ overview, game });
-        savedOverview = await this.overviewRepo.save(newOverview);
-      }
+  //     const overview = await this.aiProvider.aiOverview(reviews, review);
+  //     if (existingOverview) {
+  //       existingOverview.overview = overview ?? existingOverview.overview;
+  //       savedOverview = await this.overviewRepo.save(existingOverview);
+  //     } else {
+  //       const newOverview = this.overviewRepo.create({ overview, game });
+  //       savedOverview = await this.overviewRepo.save(newOverview);
+  //     }
 
-      return new ApiResponse(true, 'Overview saved', savedOverview);
-    } catch (error) {
-      console.log(error);
-      throw new RpcException({
-        status: 500,
-        message: 'Failed to save',
-      });
-    }
-  }
+  //     return new ApiResponse(true, 'Overview saved', savedOverview);
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw new RpcException({
+  //       status: 500,
+  //       message: 'Failed to save',
+  //     });
+  //   }
+  // }
 
   // Get AI Overview
-  public async getAiOverview(gameId: number) {
-    try {
-      const overview = await this.overviewRepo.findOne({
-        where: { game: { id: gameId } },
-      });
-      if (!overview) {
-        throw new RpcException({
-          status: 404,
-          message: 'Game not found',
-        });
-      }
+  // public async getAiOverview(gameId: number) {
+  //   try {
+  //     const overview = await this.overviewRepo.findOne({
+  //       where: { game: { id: gameId } },
+  //     });
+  //     if (!overview) {
+  //       throw new RpcException({
+  //         status: 404,
+  //         message: 'Game not found',
+  //       });
+  //     }
 
-      return overview;
-    } catch (error) {
-      console.log(error);
-      throw new RpcException({
-        status: 500,
-        message: 'Failed to fetch',
-      });
-    }
-  }
+  //     return overview;
+  //   } catch (error) {
+  //     console.log(error);
+  //     throw new RpcException({
+  //       status: 500,
+  //       message: 'Failed to fetch',
+  //     });
+  //   }
+  // }
 }

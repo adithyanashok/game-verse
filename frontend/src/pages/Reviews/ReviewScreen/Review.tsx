@@ -1,182 +1,138 @@
-import { useEffect, useMemo, useCallback } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { ToastContainer, toast } from "react-toastify";
-import RatingBreakdown from "../Components/RatingBreakdown";
+import { useNavigate } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
+import { FiArrowLeft } from "react-icons/fi";
+import Banner from "../../Games/Components/Banner";
+
+import { useReview } from "./hooks/useReview";
+import StickyHeader from "./Components/StickyHeader";
+import ReviewSkeleton from "./Components/ReviewSkelton";
+import ReviewError from "./Components/ReviewError";
+import ReviewSnapshot from "./Components/ReviewSnapshot";
+import RatingSection from "./Components/RatingSection";
+import EngagementSection from "./Components/EngagementSection";
+import AnalyticsSection from "./Components/AnalyticsSection";
 import CommentsSection from "./Components/CommentSection";
-import {
-  fetchReviewById,
-  likeReview,
-  resetCurrentReview,
-  updateReviewView,
-  fetchCommentsByReviewId,
-  addComment,
-  deleteReview,
-  deleteComment,
-} from "../../../features/reviews/reviewsSlice";
-import type { RootState } from "../../../store";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import ReviewHeader from "./Components/ReviewHeader";
-import ReviewActions from "./Components/ReviewActions";
-import ViewCountChart from "../Components/Chart";
-
 const Review = () => {
-  const { id } = useParams<{ id: string }>();
-  const reviewId = useMemo(() => Number(id), [id]);
-
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
-
-  const { currentReview, loading, errors, commentsByReviewId } = useAppSelector(
-    (state: RootState) => state.reviews
-  );
-
-  const { accessToken, user } = useAppSelector(
-    (state: RootState) => state.auth
-  );
-
-  // Fetch review + comments
-  useEffect(() => {
-    if (!reviewId || Number.isNaN(reviewId)) return;
-
-    dispatch(fetchReviewById(reviewId));
-    dispatch(fetchCommentsByReviewId(reviewId));
-
-    if (accessToken) {
-      dispatch(updateReviewView(reviewId));
-    }
-
-    return () => {
-      dispatch(resetCurrentReview());
-    };
-  }, [accessToken, dispatch, reviewId]);
-
-  const isLoading = loading.fetchOne;
-  const errorMessage = errors.fetchOne;
-  const comments = useMemo(
-    () => commentsByReviewId[reviewId] ?? [],
-    [commentsByReviewId, reviewId]
-  );
-
-  // Handlers
-  const handleLike = useCallback(() => {
-    if (!reviewId || Number.isNaN(reviewId)) return;
-
-    if (!accessToken) {
-      navigate("/login");
-      return;
-    }
-
-    dispatch(likeReview(reviewId));
-  }, [accessToken, dispatch, navigate, reviewId]);
-
-  const handleDeleteReview = useCallback(async () => {
-    const result = await dispatch(deleteReview(reviewId));
-
-    if (deleteReview.fulfilled.match(result)) {
-      navigate("/reviews");
-    } else {
-      const error = result.payload;
-      toast(error, {
-        position: "top-right",
-        autoClose: 1000,
-        hideProgressBar: true,
-        style: { border: "1px solid #290d44" },
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        type: "error",
-        theme: "dark",
-      });
-    }
-  }, [dispatch, navigate, reviewId]);
-
-  const handleAddComment = useCallback(
-    (content: string, parentCommentId?: number) => {
-      const trimmed = content.trim();
-      if (!trimmed) return;
-
-      if (!accessToken) {
-        navigate("/login");
-        return;
-      }
-
-      dispatch(addComment({ reviewId, comment: trimmed, parentCommentId }));
-    },
-    [accessToken, dispatch, navigate, reviewId]
-  );
-
-  const handleDeleteComment = useCallback(
-    async (commentId: number) => {
-      await dispatch(deleteComment({ reviewId, commentId }));
-    },
-    [dispatch, reviewId]
-  );
+  const {
+    reviewId,
+    displayedReview,
+    visibleComments,
+    showStickyHeader,
+    isLoading,
+    errorMessage,
+    loadingLike,
+    loadingFetchComments,
+    errorFetchComments,
+    user,
+    handleLike,
+    handleShare,
+    handleDeleteReview,
+    handleAddComment,
+    handleDeleteComment,
+  } = useReview();
 
   return (
     <>
-      <ToastContainer hideProgressBar />
+      <ToastContainer hideProgressBar theme="dark" />
 
-      <div className="xl:px-40 sm:px-4 pb-10 space-y-8 sm:mt-5">
-        {isLoading && (
-          <p className="text-gray-400 text-sm">Loading review details...</p>
-        )}
+      {displayedReview && (
+        <StickyHeader
+          review={displayedReview}
+          visible={showStickyHeader}
+          onLike={handleLike}
+          onShare={handleShare}
+        />
+      )}
 
-        {!isLoading && errorMessage && (
-          <p className="text-red-400 text-sm">{errorMessage}</p>
-        )}
+      <main className="min-h-screen bg-[radial-gradient(circle_at_18%_0%,rgba(0,212,255,0.16),transparent_32%),radial-gradient(circle_at_86%_8%,rgba(182,255,59,0.08),transparent_28%),linear-gradient(180deg,#070b16_0%,#0d1424_45%,#070b16_100%)] px-3 pb-12 pt-6 sm:px-5 lg:px-8">
+        <div className="mx-auto max-w-6xl space-y-8">
+          <button
+            type="button"
+            onClick={() => navigate("/reviews")}
+            className="inline-flex items-center gap-2 rounded-full border border-[rgba(0,212,255,0.16)] bg-[#0d1424]/80 px-4 py-2 text-sm font-bold text-[#c8d3e4] transition hover:border-[rgba(0,212,255,0.4)] hover:bg-[rgba(0,212,255,0.1)] hover:text-white"
+          >
+            <FiArrowLeft className="h-4 w-4" />
+            Reviews
+          </button>
 
-        {!isLoading && !errorMessage && currentReview && (
-          <div className="space-y-8">
-            <div className="shadow-lg px-3 md:p-10 sm:rounded-2xl bg-dark border-y sm:border-x border-[#989fab1e]">
-              {/* Header */}
-              <ReviewHeader review={currentReview} LinkComponent={Link} />
+          {isLoading && <ReviewSkeleton />}
+          {!isLoading && errorMessage && <ReviewError message={errorMessage} />}
 
-              {/* Rating */}
-              <section className="mt-6">
-                <h2 className="text-white font-bold text-[14px] sm:text-[16px]">
-                  Rating Breakdown
-                </h2>
-                <RatingBreakdown rating={currentReview.rating} />
+          {!isLoading && !errorMessage && displayedReview && (
+            <div className="space-y-8">
+              <section className="overflow-hidden rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[#0d1424]/82 p-2 shadow-[0_24px_70px_rgba(0,0,0,0.24)] backdrop-blur">
+                <Banner
+                  game={displayedReview.game ?? null}
+                  badgeLabel="Featured game"
+                  showWriteButton={Boolean(displayedReview.game?.id)}
+                  actionLabel="Open game"
+                  onAction={() =>
+                    displayedReview.game?.id &&
+                    navigate(`/games/${displayedReview.game.id}`)
+                  }
+                />
               </section>
 
-              <hr className="mt-6 border-[#989fab1e]" />
+              <section className="space-y-4">
+                <ReviewSnapshot
+                  review={displayedReview}
+                  visibleCommentsCount={visibleComments.length}
+                  loadingLike={loadingLike}
+                  isOwner={user?.id === displayedReview.user.id}
+                  onLike={handleLike}
+                  onDelete={handleDeleteReview}
+                  onEdit={() =>
+                    navigate(`/edit-review/${displayedReview.id}`, {
+                      state: { currentReview: displayedReview },
+                    })
+                  }
+                />
 
-              {/* Actions */}
-              <ReviewActions
-                liked={currentReview.isLiked}
-                likeCount={currentReview.likeCount ?? 0}
-                views={currentReview.viewCount ?? 0}
-                loadingLike={loading.like}
-                isOwner={user?.id === currentReview.user.id}
-                onLike={handleLike}
-                onDelete={handleDeleteReview}
-                onEdit={() =>
-                  navigate(`/edit-review/${currentReview.id}`, {
-                    state: { currentReview },
-                  })
-                }
-              />
-              {user?.id === currentReview.user.id && <ViewCountChart />}
+                <RatingSection rating={displayedReview.rating} />
+
+                <EngagementSection
+                  likeCount={displayedReview.likeCount ?? 0}
+                  viewCount={displayedReview.viewCount ?? 0}
+                  commentCount={visibleComments.length}
+                />
+
+                {user?.id === displayedReview.user.id && <AnalyticsSection />}
+              </section>
+
+              <section
+                id="review-comments"
+                className="scroll-mt-24 rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[#0d1424]/84 p-4 shadow-[0_22px_60px_rgba(0,0,0,0.2)] sm:p-6 md:p-8"
+              >
+                <div className="mb-5 flex flex-wrap items-end justify-between gap-3 border-b border-[rgba(0,212,255,0.12)] pb-4">
+                  <div>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-(--color-lime)">
+                      Community feed
+                    </p>
+                    <h2 className="mt-1 text-2xl font-black text-white">
+                      Comments
+                    </h2>
+                  </div>
+                  <p className="text-sm font-semibold text-[#9aa7bd]">
+                    Join the discussion
+                  </p>
+                </div>
+                <CommentsSection
+                  onEditComment={(commentId, updatedText) =>
+                    console.log(commentId, updatedText)
+                  }
+                  comments={visibleComments}
+                  loading={loadingFetchComments}
+                  error={errorFetchComments}
+                  reviewId={reviewId}
+                  onAddComment={handleAddComment}
+                  onDeleteComment={handleDeleteComment}
+                />
+              </section>
             </div>
-
-            {/* Comments */}
-            <section className="sm:px-5 sm:md:px-10">
-              <CommentsSection
-                onEditComment={(commentId, updatedText) => {
-                  console.log(commentId, updatedText);
-                }}
-                comments={comments}
-                loading={loading.fetchComments}
-                error={errors.fetchComments}
-                reviewId={reviewId}
-                onAddComment={handleAddComment}
-                onDeleteComment={handleDeleteComment}
-              />
-            </section>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </main>
     </>
   );
 };

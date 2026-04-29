@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { FiBarChart2, FiEye, FiHeart, FiMessageSquare, FiTrendingUp } from "react-icons/fi";
 
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { getAnalyticsOverview } from "../../../features/reviews/reviewsSlice";
@@ -21,37 +22,66 @@ const AnalyticsDashboard = () => {
   );
 
   return (
-    <div className="w-full mt-4 sm:p-6 space-y-8">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-        <h1 className="text-xl sm:text-2xl font-bold text-white">
-          Review Analytics
-        </h1>
+    <div className="mt-4 w-full space-y-8 sm:p-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-blue)]">
+            Insights
+          </p>
+          <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">
+            Review analytics
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#9aa7bd]">
+            Track how your reviews are performing, where attention is building, and which posts are leading the conversation.
+          </p>
+        </div>
 
-        {/* Range Selector */}
-        <select
-          value={range}
-          onChange={(e) => setRange(e.target.value as AnalyticsRange)}
-          className="bg-dark text-white px-3 py-2 rounded-md border border-gray-700 w-full sm:w-auto"
-        >
-          {Object.values(AnalyticsRange).map((r) => (
-            <option key={r} value={r}>
-              {r.replace(/_/g, " ")}
-            </option>
-          ))}
-        </select>
+        <div className="inline-flex items-center gap-3 rounded-full border border-[rgba(0,212,255,0.12)] bg-[#070b16]/70 px-4 py-2.5">
+          <FiBarChart2 className="h-4 w-4 text-[var(--color-blue)]" />
+          <select
+            value={range}
+            onChange={(e) => setRange(e.target.value as AnalyticsRange)}
+            className="bg-transparent text-sm font-bold uppercase tracking-[0.12em] text-white outline-none"
+          >
+            {Object.values(AnalyticsRange).map((r) => (
+              <option key={r} value={r} className="bg-[#0d1424] text-white">
+                {r.replace(/_/g, " ")}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-3 sm:grid-cols-4 gap-4">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
-          { title: "Total Comments", value: analyticsOverview?.totalComment },
-          { title: "Total Likes", value: analyticsOverview?.totalLikes },
-          { title: "Total Views", value: analyticsOverview?.totalViews },
           {
-            title: "Views",
+            title: "Total Comments",
+            value: analyticsOverview?.totalComment,
+            icon: <FiMessageSquare className="h-4 w-4 text-[#f8b84e]" />,
+            accentClass:
+              "border-[rgba(248,184,78,0.16)] bg-[linear-gradient(180deg,rgba(248,184,78,0.14),rgba(248,184,78,0.04))]",
+          },
+          {
+            title: "Total Likes",
+            value: analyticsOverview?.totalLikes,
+            icon: <FiHeart className="h-4 w-4 text-[var(--color-lime)]" />,
+            accentClass:
+              "border-[rgba(182,255,59,0.16)] bg-[linear-gradient(180deg,rgba(182,255,59,0.14),rgba(182,255,59,0.04))]",
+          },
+          {
+            title: "Total Views",
+            value: analyticsOverview?.totalViews,
+            icon: <FiEye className="h-4 w-4 text-[var(--color-blue)]" />,
+            accentClass:
+              "border-[rgba(0,212,255,0.16)] bg-[linear-gradient(180deg,rgba(0,212,255,0.14),rgba(0,212,255,0.04))]",
+          },
+          {
+            title: "Views Trend",
             value: analyticsOverview?.views.currentViews,
             trends: analyticsOverview?.views.viewsTrend,
+            icon: <FiTrendingUp className="h-4 w-4 text-[#cbeafe]" />,
+            accentClass:
+              "border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))]",
           },
         ].map((item, index) => (
           <StatCard
@@ -61,14 +91,13 @@ const AnalyticsDashboard = () => {
             trend={item.trends}
             showArrow
             showPercent
+            icon={item.icon}
+            accentClass={item.accentClass}
           />
         ))}
       </div>
 
-      {/* Line Chart */}
       {analyticsOverview && <Chart analytics={analyticsOverview} />}
-
-      {/* Top Reviews */}
       {analyticsOverview && <TopReviews analytics={analyticsOverview} />}
     </div>
   );

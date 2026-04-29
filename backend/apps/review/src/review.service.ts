@@ -132,10 +132,17 @@ export class ReviewService {
 
       const id = review.userId;
 
-      const user: User = await lastValueFrom(
-        this.userClient.send(MessagePatterns.USER_FIND_BY_ID, id),
-      );
-      console.log('USER ', user);
+      const [user, game] = await Promise.all([
+        lastValueFrom<User>(
+          this.userClient.send(MessagePatterns.USER_FIND_BY_ID, id),
+        ),
+        lastValueFrom<GameResponse>(
+          this.client.send(MessagePatterns.FIND_ONE_GAME, {
+            id: review.gameId,
+          }),
+        ).catch(() => null),
+      ]);
+
       if (!user) {
         throw new RpcException({
           status: 404,
@@ -153,6 +160,7 @@ export class ReviewService {
       return new ApiResponse(true, 'Review Fetched Successfully', {
         ...review,
         user,
+        game,
         isLiked: liked ? true : false,
       });
     } catch (error) {

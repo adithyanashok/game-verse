@@ -3,11 +3,13 @@ import RatingCard from "./Rating";
 
 const ReviewStats = () => {
   return (
-    <div className="flex flex-col lg:flex-row lg:justify-center lg:items-center bg-dark p-5  gap-6 sm:rounded-2xl sm:mt-10">
+    <div className="flex w-full min-w-0 flex-col gap-5 rounded-[10px] border border-[rgba(0,212,255,0.1)] bg-[#070b16]/70 p-4 sm:p-5 lg:flex-row lg:items-center">
       {/* Rating */}
       <RatingCard />
       {/* Stats Bars */}
-      <RatingStats />
+      <div className="min-w-0 flex-1">
+        <RatingStats />
+      </div>
     </div>
   );
 };

@@ -20,6 +20,8 @@ export interface UserState {
   error: string | null;
   followLoading: boolean;
   followError: string | null;
+  profilesById: Record<number, UserProfile>;
+  fetchedAtById: Record<number, number>;
 }
 
 export interface UpdateUserProfilePayload {

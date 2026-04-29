@@ -4,52 +4,59 @@
 @tailwindcss components;
 @tailwindcss utilities;
 :root {
-  --color-primary: #191022;
-  --color-purple: #6711bf;
-  --color-blue: #155dfc;
-  --color-grey: #989fab;
+  --color-primary: #070b16;
+  --color-surface: #0d1424;
+  --color-surface-elevated: #121a2c;
+  --color-dark-purple: #18102d;
+  --color-purple: #8b5cf6;
+  --color-purple-dark: #6d28d9;
+  --color-blue: #00d4ff;
+  --color-lime: #b6ff3b;
+  --color-grey: #9aa7bd;
+  --color-border: rgba(154, 167, 189, 0.16);
+  --color-glow: rgba(0, 212, 255, 0.28);
 }
 @layer components {
   .bg-primary {
-    @apply bg-[#191022];
+    background-color: var(--color-primary);
   }
   .bg-purple {
-    @apply bg-[#6711bf];
+    background-color: var(--color-purple);
   }
   .bg-secondary {
-    @apply bg-blue-600;
+    background-color: var(--color-blue);
   }
   .bg-dark {
-    @apply bg-[#140c1b];
+    background-color: var(--color-surface);
   }
 
   .bg-dark-purple {
-    @apply bg-[#290d44];
+    background-color: var(--color-dark-purple);
   }
 
   .text-primary {
-    @apply text-[#ffffff];
+    color: #ffffff;
   }
   .text-secondary {
-    @apply text-[#191022];
+    color: var(--color-primary);
   }
 
   .text-purple {
-    @apply text-[#6711bf];
+    color: var(--color-purple);
   }
 
   .text-blue {
-    @apply text-[#155dfc];
+    color: var(--color-blue);
   }
   .text-grey {
-    @apply text-[#989fab];
+    color: var(--color-grey);
   }
   .app-purple-secondary {
-    @apply bg-[#191022];
+    background-color: var(--color-primary);
   }
 
   .hr {
-    @apply border-[#989fab1e];
+    border-color: var(--color-border);
   }
 
   .scroll-row {
@@ -61,14 +68,17 @@
   }
 
   .hover-card {
-    border: 1px solid #989fab1e;
+    border: 1px solid var(--color-border);
     transform: scale(1);
-    transition: transform 300ms ease, border-color 300ms ease;
+    transition: transform 300ms ease, border-color 300ms ease,
+      box-shadow 300ms ease;
   }
 
   .hover-card:hover {
-    border-color: #6711bf;
-    transform: scale(1.05);
+    border-color: rgba(0, 212, 255, 0.48);
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28),
+      0 0 22px var(--color-glow);
+    transform: translateY(-4px);
   }
 
   .card-image {
@@ -88,7 +98,6 @@
     }
   }
 }
-@apply text-[#191022];
 
 .no-scrollbar {
   scrollbar-width: none;

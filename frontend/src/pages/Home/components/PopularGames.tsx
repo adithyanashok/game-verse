@@ -3,7 +3,8 @@ import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import type { RootState } from "../../../store";
 import { getTopRatedGames } from "../../../features/games/gamesSlice";
 import { Link } from "react-router-dom";
-import { Spinner } from "../../../components/common/Loader";
+import { AppLoader } from "../../../components/common/Loader";
+import HomeSectionState from "./HomeSectionState";
 
 const PopularGames = () => {
   const dispatch = useAppDispatch();
@@ -18,30 +19,27 @@ const PopularGames = () => {
   }, [dispatch, topRatedGames]);
 
   if (loading.getTopRatedGames) {
-    return (
-      <div className="flex justify-center py-4">
-        <Spinner />
-      </div>
-    );
+    return <AppLoader label="Loading popular games..." />;
   }
 
   if (errors.getTopRatedGames) {
     return (
-      <div className="text-center py-4 text-red-500">
-        {errors.getTopRatedGames}
-      </div>
+      <HomeSectionState
+        title="Popular games are unavailable"
+        message={errors.getTopRatedGames}
+      />
     );
   }
   return (
-    <div className="scroll-row py-4 px-4">
+    <div className="scroll-row px-4 py-4 sm:px-6 lg:px-8">
       {topRatedGames.map((game) => {
         return (
           <Link to={`/games/${game.id}`} key={game.id}>
-            <div className="w-[200px] transform hover:scale-105 transition duration-300">
+            <div className="w-[220px] overflow-hidden rounded-[8px] border border-[rgba(0,212,255,0.12)] bg-[#0d1424]/80 p-2 transition duration-300 hover:-translate-y-1 hover:border-[rgba(0,212,255,0.36)] hover:bg-[#121a2c]">
               <img
-                className="object-cover w-[200px] h-[100px] rounded-[10px]"
+                className="h-[118px] w-full rounded-[6px] object-cover"
                 src={game.imgUrl}
-                alt=""
+                alt={game.name || "Popular game"}
               />
             </div>
           </Link>

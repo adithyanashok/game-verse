@@ -25,11 +25,12 @@ const Button: React.FC<ButtonProps> = ({
     "inline-flex items-center justify-center font-semibold transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed";
 
   const variantStyles = {
-    primary: "bg-purple  text-white hover:bg-[var(--color-purple-dark)]",
+    primary:
+      "bg-[var(--color-purple)] text-white shadow-lg shadow-[rgba(139,92,246,0.18)] hover:bg-[var(--color-purple-dark)]",
     secondary:
-      "border-2 border-blue-600 text-[var(--color-blue)] hover:bg-[#2e1e40]",
+      "border-2 border-[var(--color-blue)] text-[var(--color-blue)] hover:bg-[rgba(0,212,255,0.1)]",
     outline:
-      "border border-[var(--color-blue)] text-[var(--color-purple)] hover:bg-[var(--color-purple)] hover:text-white",
+      "border border-[var(--color-blue)] text-[var(--color-blue)] hover:bg-[var(--color-blue)] hover:text-[#07101a]",
   };
 
   return (

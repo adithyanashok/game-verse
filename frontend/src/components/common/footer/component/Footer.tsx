@@ -2,9 +2,9 @@ import FooterItems from "./FooterItems";
 
 const Footer = () => {
   return (
-    <div className="bg-primary text-gray-500">
-      <hr className="hr py-5" />
-      <div className="flex flex-wrap flex-col min-[305px]:flex-row min-[305px]:justify-evenly gap-4 ">
+    <footer className="border-t border-[rgba(0,212,255,0.12)] bg-[#070b16] text-[#9aa7bd]">
+      <div className="py-8" />
+      <div className="flex flex-col flex-wrap gap-4 min-[305px]:flex-row min-[305px]:justify-evenly">
         <FooterItems
           items={["About Us", "Terms of Service", "Privacy Policy"]}
           title="About"
@@ -14,10 +14,10 @@ const Footer = () => {
       </div>
       <hr className="hr my-15" />
 
-      <p className="text-center pb-10 text-[12px]">
-        © 2025 GameVerse. All right Reserved
+      <p className="pb-10 text-center text-[12px]">
+        &copy; 2025 GameVerse. All rights reserved.
       </p>
-    </div>
+    </footer>
   );
 };
 

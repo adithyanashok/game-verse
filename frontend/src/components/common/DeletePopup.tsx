@@ -18,9 +18,8 @@ const DeleteConfirmModal: React.FC<Props> = ({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 bg-[#191022]/70 flex items-center justify-center z-50">
-      {" "}
-      <div className="bg-[#191022] text-white p-6 rounded-lg shadow-xl w-[350px]">
+    <div className="fixed inset-0 bg-[#070b16]/80 flex items-center justify-center z-50">
+      <div className="w-[350px] rounded-[8px] border border-[rgba(0,212,255,0.14)] bg-[#0d1424] p-6 text-white shadow-2xl shadow-black/30">
         <h2 className="text-xl font-semibold mb-3">{title}</h2>
         <p className="mb-6 text-gray-300">{message}</p>
 

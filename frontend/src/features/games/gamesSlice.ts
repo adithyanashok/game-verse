@@ -63,9 +63,18 @@ const extractErrorMessage = (error: unknown, fallback: string): string => {
 export interface GameState {
   games: Game[];
   meta: PaginationMeta | null;
+  gamesRequestKey: string | null;
+  gamesFetchedAt: number | null;
   searchResults: Game[];
   searchMeta: PaginationMeta | null;
+  searchRequestKey: string | null;
+  searchFetchedAt: number | null;
   currentGame: Game | null;
+  currentGameId: number | null;
+  currentGameRequestId: number | null;
+  currentGameFetchedAt: number | null;
+  gameDetailsById: Record<number, Game>;
+  gameDetailsFetchedAtById: Record<number, number>;
   topRatedGames: Game[];
   loading: OperationState;
   errors: OperationErrorState;
@@ -74,20 +83,34 @@ export interface GameState {
 const initialState: GameState = {
   games: [],
   meta: null,
+  gamesRequestKey: null,
+  gamesFetchedAt: null,
   searchResults: [],
   searchMeta: null,
+  searchRequestKey: null,
+  searchFetchedAt: null,
   currentGame: null,
+  currentGameId: null,
+  currentGameRequestId: null,
+  currentGameFetchedAt: null,
+  gameDetailsById: {},
+  gameDetailsFetchedAtById: {},
   topRatedGames: [],
   loading: createOperationState(false),
   errors: createErrorState(null),
 };
 
 export const getGames = createAsyncThunk<
-  PaginatedGamesResponse,
+  PaginatedGamesResponse & { requestKey: string },
   FetchGamesPayload | void,
   { rejectValue: string }
 >("games/getGames", async (payload, thunkApi) => {
   try {
+    const requestKey = JSON.stringify({
+      page: payload?.page ?? 1,
+      limit: payload?.limit ?? 20,
+      search: payload?.search ?? "",
+    });
     const params = new URLSearchParams();
     if (payload) {
       if (payload.page) params.append("page", payload.page.toString());
@@ -98,14 +121,19 @@ export const getGames = createAsyncThunk<
     const query = params.toString();
     const url = query ? `${API.GAME.GET_GAMES}?${query}` : API.GAME.GET_GAMES;
 
-    const res = await apiClient.get<ApiResponse<PaginatedGamesResponse>>(url);
+    const res = await apiClient.get<ApiResponse<PaginatedGamesResponse>>(url, {
+      signal: thunkApi.signal,
+    });
 
     if (!res.data.status) {
       return thunkApi.rejectWithValue(
         res.data.message ?? "Failed to load games"
       );
     }
-    return res.data.data;
+    return {
+      ...res.data.data,
+      requestKey,
+    };
   } catch (error) {
     return thunkApi.rejectWithValue(
       extractErrorMessage(error, "Unable to load games")
@@ -114,11 +142,16 @@ export const getGames = createAsyncThunk<
 });
 
 export const searchGames = createAsyncThunk<
-  PaginatedGamesResponse,
+  PaginatedGamesResponse & { requestKey: string },
   FetchGamesPayload,
   { rejectValue: string }
 >("games/searchGames", async (payload, thunkApi) => {
   try {
+    const requestKey = JSON.stringify({
+      page: payload.page ?? 1,
+      limit: payload.limit ?? 20,
+      search: payload.search ?? "",
+    });
     const params = new URLSearchParams();
     if (payload.page) params.append("page", payload.page.toString());
     if (payload.limit) params.append("limit", payload.limit.toString());
@@ -127,14 +160,19 @@ export const searchGames = createAsyncThunk<
     const query = params.toString();
     const url = `${API.GAME.GET_GAMES}?${query}`;
 
-    const res = await apiClient.get<ApiResponse<PaginatedGamesResponse>>(url);
+    const res = await apiClient.get<ApiResponse<PaginatedGamesResponse>>(url, {
+      signal: thunkApi.signal,
+    });
 
     if (!res.data.status) {
       return thunkApi.rejectWithValue(
         res.data.message ?? "Failed to search games"
       );
     }
-    return res.data.data;
+    return {
+      ...res.data.data,
+      requestKey,
+    };
   } catch (error) {
     return thunkApi.rejectWithValue(
       extractErrorMessage(error, "Unable to search games")
@@ -142,27 +180,33 @@ export const searchGames = createAsyncThunk<
   }
 });
 
-export const getGame = createAsyncThunk<Game, string, { rejectValue: string }>(
-  "games/getGame",
-  async (id: string, thunkApi) => {
-    try {
-      const res = await apiClient.get<ApiResponse<Game>>(
-        `${API.GAME.GET_GAME}?id=${id}`
-      );
-
-      if (!res.data.status) {
-        return thunkApi.rejectWithValue(
-          res.data.message ?? "Failed to load game"
-        );
+export const getGame = createAsyncThunk<
+  { game: Game; requestId: number },
+  string,
+  { rejectValue: string }
+>("games/getGame", async (id: string, thunkApi) => {
+  try {
+    const res = await apiClient.get<ApiResponse<Game>>(
+      `${API.GAME.GET_GAME}?id=${id}`,
+      {
+        signal: thunkApi.signal,
       }
-      return res.data.data;
-    } catch (error) {
-      return thunkApi.rejectWithValue(
-        extractErrorMessage(error, "Unable to load game")
-      );
+    );
+
+    if (!res.data.status) {
+      return thunkApi.rejectWithValue(res.data.message ?? "Failed to load game");
     }
+
+    return {
+      game: res.data.data,
+      requestId: Number(id),
+    };
+  } catch (error) {
+    return thunkApi.rejectWithValue(
+      extractErrorMessage(error, "Unable to load game")
+    );
   }
-);
+});
 
 export const getTopRatedGames = createAsyncThunk<
   Game[],
@@ -197,39 +241,56 @@ const gamesSlice = createSlice({
       state.errors.search = null;
     },
     resetCurrentGame: (state: GameState) => {
-      state.currentGame = null;
       state.errors.getOne = null;
     },
   },
   extraReducers(builder: ActionReducerMapBuilder<GameState>) {
     builder
-      .addCase(getGames.pending, (state) => {
+      .addCase(getGames.pending, (state, action) => {
         state.loading.getAll = true;
         state.errors.getAll = null;
+        state.gamesRequestKey = JSON.stringify({
+          page: action.meta.arg?.page ?? 1,
+          limit: action.meta.arg?.limit ?? 20,
+          search: action.meta.arg?.search ?? "",
+        });
       })
       .addCase(getGames.fulfilled, (state, action) => {
         state.loading.getAll = false;
         state.games = action.payload.games;
         state.meta = action.payload.meta;
-        console.log(action.payload);
+        state.gamesRequestKey = action.payload.requestKey;
+        state.gamesFetchedAt = Date.now();
       })
       .addCase(getGames.rejected, (state, action) => {
         state.loading.getAll = false;
+        if (action.meta.aborted) {
+          return;
+        }
         state.errors.getAll = action.payload ?? "Failed to fetch games";
       })
 
       // GET A GAME
-      .addCase(getGame.pending, (state) => {
+      .addCase(getGame.pending, (state, action) => {
         state.loading.getOne = true;
         state.errors.getOne = null;
+        state.currentGameRequestId = Number(action.meta.arg);
       })
       .addCase(getGame.fulfilled, (state, action) => {
         state.loading.getOne = false;
-        state.currentGame = action.payload;
-        console.log(action.payload);
+        state.currentGame = action.payload.game;
+        state.currentGameId = action.payload.game.id;
+        state.currentGameRequestId = null;
+        state.currentGameFetchedAt = Date.now();
+        state.gameDetailsById[action.payload.game.id] = action.payload.game;
+        state.gameDetailsFetchedAtById[action.payload.game.id] = Date.now();
       })
       .addCase(getGame.rejected, (state, action) => {
         state.loading.getOne = false;
+        state.currentGameRequestId = null;
+        if (action.meta.aborted) {
+          return;
+        }
         state.errors.getOne = action.payload ?? "Failed to fetch game";
       })
 
@@ -241,7 +302,6 @@ const gamesSlice = createSlice({
       .addCase(getTopRatedGames.fulfilled, (state, action) => {
         state.loading.getTopRatedGames = false;
         state.topRatedGames = action.payload;
-        console.log(action.payload);
       })
       .addCase(getTopRatedGames.rejected, (state, action) => {
         state.loading.getTopRatedGames = false;
@@ -250,17 +310,27 @@ const gamesSlice = createSlice({
       })
 
       // SEARCH GAMES
-      .addCase(searchGames.pending, (state) => {
+      .addCase(searchGames.pending, (state, action) => {
         state.loading.search = true;
         state.errors.search = null;
+        state.searchRequestKey = JSON.stringify({
+          page: action.meta.arg.page ?? 1,
+          limit: action.meta.arg.limit ?? 20,
+          search: action.meta.arg.search ?? "",
+        });
       })
       .addCase(searchGames.fulfilled, (state, action) => {
         state.loading.search = false;
         state.searchResults = action.payload.games;
         state.searchMeta = action.payload.meta;
+        state.searchRequestKey = action.payload.requestKey;
+        state.searchFetchedAt = Date.now();
       })
       .addCase(searchGames.rejected, (state, action) => {
         state.loading.search = false;
+        if (action.meta.aborted) {
+          return;
+        }
         state.errors.search = action.payload ?? "Failed to search games";
       });
   },

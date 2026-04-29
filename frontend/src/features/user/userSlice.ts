@@ -2,7 +2,6 @@ import {
   createAsyncThunk,
   createSlice,
   type ActionReducerMapBuilder,
-  type PayloadAction,
 } from "@reduxjs/toolkit";
 
 import apiClient from "../../services/apiClient";
@@ -50,6 +49,8 @@ const initialState: UserState = {
   error: null,
   followLoading: false,
   followError: null,
+  profilesById: {},
+  fetchedAtById: {},
 };
 
 export const fetchUserProfile = createAsyncThunk<
@@ -59,7 +60,10 @@ export const fetchUserProfile = createAsyncThunk<
 >("user/fetchProfile", async (userId, thunkApi) => {
   try {
     const response = await apiClient.get<ApiResponse<UserProfile>>(
-      API.USER.FETCH_ONE(userId)
+      API.USER.FETCH_ONE(userId),
+      {
+        signal: thunkApi.signal,
+      }
     );
 
     if (!response.data.status || !response.data.data) {
@@ -224,81 +228,68 @@ const userSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(
-        fetchUserProfile.fulfilled,
-        (state, action: PayloadAction<UserProfile>) => {
-          state.loading = false;
-          state.profile = action.payload;
-
-          console.log(action.payload);
+      .addCase(fetchUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.profile = action.payload;
+        state.profilesById[action.payload.id] = action.payload;
+        state.fetchedAtById[action.payload.id] = Date.now();
+      })
+      .addCase(fetchUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        if (action.meta.aborted) {
+          return;
         }
-      )
-      .addCase(
-        fetchUserProfile.rejected,
-        (state, action: PayloadAction<string | undefined>) => {
-          state.loading = false;
-          state.error = action.payload ?? "Failed to load user";
-        }
-      )
+        state.error = action.payload ?? "Failed to load user";
+      })
       .addCase(followUser.pending, (state) => {
         state.followLoading = true;
         state.followError = null;
       })
-      .addCase(
-        followUser.fulfilled,
-        (state, action: PayloadAction<FollowStatusResponse>) => {
-          state.followLoading = false;
-          if (!state.profile) {
-            return;
-          }
-
-          const wasFollowing = state.profile.isFollowing;
-          state.profile.isFollowing = action.payload.isFollowing;
-
-          if (!wasFollowing && action.payload.isFollowing) {
-            state.profile.followersCount += 1;
-          }
+      .addCase(followUser.fulfilled, (state, action) => {
+        state.followLoading = false;
+        if (!state.profile) {
+          return;
         }
-      )
-      .addCase(
-        followUser.rejected,
-        (state, action: PayloadAction<string | undefined>) => {
-          state.followLoading = false;
-          state.followError =
-            action.payload ?? "Failed to update follow status";
+
+        const wasFollowing = state.profile.isFollowing;
+        state.profile.isFollowing = action.payload.isFollowing;
+
+        if (!wasFollowing && action.payload.isFollowing) {
+          state.profile.followersCount += 1;
         }
-      )
+
+        state.profilesById[state.profile.id] = { ...state.profile };
+      })
+      .addCase(followUser.rejected, (state, action) => {
+        state.followLoading = false;
+        state.followError = action.payload ?? "Failed to update follow status";
+      })
       .addCase(unfollowUser.pending, (state) => {
         state.followLoading = true;
         state.followError = null;
       })
-      .addCase(
-        unfollowUser.fulfilled,
-        (state, action: PayloadAction<FollowStatusResponse>) => {
-          state.followLoading = false;
-          if (!state.profile) {
-            return;
-          }
-
-          const wasFollowing = state.profile.isFollowing;
-          state.profile.isFollowing = action.payload.isFollowing;
-
-          if (wasFollowing && !action.payload.isFollowing) {
-            state.profile.followersCount = Math.max(
-              0,
-              state.profile.followersCount - 1
-            );
-          }
+      .addCase(unfollowUser.fulfilled, (state, action) => {
+        state.followLoading = false;
+        if (!state.profile) {
+          return;
         }
-      )
-      .addCase(
-        unfollowUser.rejected,
-        (state, action: PayloadAction<string | undefined>) => {
-          state.followLoading = false;
-          state.followError =
-            action.payload ?? "Failed to update follow status";
+
+        const wasFollowing = state.profile.isFollowing;
+        state.profile.isFollowing = action.payload.isFollowing;
+
+        if (wasFollowing && !action.payload.isFollowing) {
+          state.profile.followersCount = Math.max(
+            0,
+            state.profile.followersCount - 1
+          );
         }
-      )
+
+        state.profilesById[state.profile.id] = { ...state.profile };
+      })
+      .addCase(unfollowUser.rejected, (state, action) => {
+        state.followLoading = false;
+        state.followError = action.payload ?? "Failed to update follow status";
+      })
 
       // GET TOP REVIEWERS
       .addCase(getTopReviewers.pending, (state) => {
@@ -322,6 +313,8 @@ const userSlice = createSlice({
       .addCase(uploadUserImage.fulfilled, (state, action) => {
         state.loading = false;
         state.profile = action.payload;
+        state.profilesById[action.payload.id] = action.payload;
+        state.fetchedAtById[action.payload.id] = Date.now();
       })
       .addCase(uploadUserImage.rejected, (state, action) => {
         state.loading = false;
@@ -336,6 +329,8 @@ const userSlice = createSlice({
       .addCase(updateUserProfile.fulfilled, (state, action) => {
         state.loading = false;
         state.profile = action.payload;
+        state.profilesById[action.payload.id] = action.payload;
+        state.fetchedAtById[action.payload.id] = Date.now();
       })
       .addCase(updateUserProfile.rejected, (state, action) => {
         state.loading = false;

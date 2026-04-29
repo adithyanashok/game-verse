@@ -137,25 +137,24 @@ const CommentsSection: FC<CommentsSectionProps> = ({
 
   return (
     <>
-      <h2 className="text-white text-[14px] md:text-[16px] font-medium mb-2 ml-2">
+      <h2 className="mb-3 ml-2 text-base font-black text-white md:text-lg">
         Comments
       </h2>
 
-      {/* New comment form */}
       <form onSubmit={handleCommentSubmit} className="mx-2 mb-6 space-y-2">
         <input
           value={commentText}
           onChange={handleCommentChange}
           placeholder="Add a comment..."
-          className="w-full bg-transparent border-1 border-x-0 border-t-0 border-b-[#989fab1e] text-white text-[12px] sm:[14px] p-3 outline-none focus:border-[var(--color-purple)]"
+          className="w-full rounded-[8px] border border-[rgba(0,212,255,0.14)] bg-[#070b16]/70 p-3 text-sm text-white outline-none transition duration-150 placeholder:text-[#6f7c91] focus:border-[var(--color-blue)] focus:ring-2 focus:ring-[rgba(0,212,255,0.18)]"
         />
         <div className="flex justify-end">
           <button
             type="submit"
             disabled={!commentText.trim()}
-            className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-full border transition-colors text-[12px] ${
+            className={`rounded-full border px-3 py-1.5 text-[12px] font-bold transition duration-150 sm:px-4 sm:py-2 ${
               commentText.trim()
-                ? "bg-[var(--color-purple)] text-white border-transparent hover:opacity-90"
+                ? "bg-[var(--color-lime)] text-[#07101a] border-transparent hover:bg-[#ccff6f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)]"
                 : "border-[#989fab1e] text-gray-400 cursor-not-allowed"
             }`}
           >
@@ -175,7 +174,6 @@ const CommentsSection: FC<CommentsSectionProps> = ({
           <p className="text-gray-400 text-sm">No comments yet.</p>
         )}
 
-        {/* Comments list */}
         <Virtuoso
           style={{ height: "70vh" }}
           data={rootComments}

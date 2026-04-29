@@ -26,46 +26,50 @@ const ReviewActions: FC<ReviewActionsProps> = ({
   onEdit,
 }) => {
   const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [likePulse, setLikePulse] = useState(false);
 
   const handleConfirmDelete = useCallback(async () => {
     await onDelete();
     setOpenDeleteModal(false);
   }, [onDelete]);
 
-  console.log("LIKED ", liked);
+  const handleLikeClick = useCallback(() => {
+    setLikePulse(true);
+    window.setTimeout(() => setLikePulse(false), 360);
+    onLike();
+  }, [onLike]);
 
   return (
     <div className="flex flex-wrap gap-3 mt-5 mb-5">
-      {/* Like button */}
       <button
         type="button"
-        onClick={onLike}
+        onClick={handleLikeClick}
         disabled={loadingLike}
-        className={`flex items-center gap-1 h-7 px-1 md:py-1 rounded-full border transition-colors ${
+        className={`flex items-center gap-1 h-7 px-2 md:py-1 rounded-full border transition duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)] ${
           liked
-            ? "bg-[var(--color-purple)] text-white border-transparent"
-            : "border-[var(--color-purple)] text-[var(--color-purple)] hover:bg-[var(--color-purple)] hover:text-white"
-        } ${loadingLike ? "opacity-60 cursor-not-allowed" : ""}`}
+            ? "bg-[var(--color-lime)] text-[#07101a] border-transparent"
+            : "border-[var(--color-blue)] text-[var(--color-blue)] hover:bg-[rgba(0,212,255,0.1)]"
+        } ${likePulse ? "animate-pulse scale-105" : ""} ${
+          loadingLike ? "opacity-60 cursor-not-allowed" : ""
+        }`}
       >
         <HiThumbUp />
         <span className="text-[12px]">{liked ? "Liked" : "Like"}</span>
         <span className="text-[12px]">{likeCount}</span>
       </button>
 
-      {/* Views */}
-      <span className="flex items-center gap-2 h-7 px-2 md:py-2 rounded-full border border-[#989fab1e] text-purple text-[12px]">
-        <BsEye className="text-purple" />
+      <span className="flex items-center gap-2 h-7 px-2 md:py-2 rounded-full border border-[rgba(0,212,255,0.14)] text-[var(--color-blue)] text-[12px]">
+        <BsEye className="text-[var(--color-blue)]" />
         {views}
       </span>
 
-      {/* Owner actions */}
       {isOwner && (
         <>
           <button
             type="button"
             onClick={() => setOpenDeleteModal(true)}
             disabled={loadingLike}
-            className="flex items-center gap-2 h-7 px-2 md:py-2 text-white rounded-full transition-colors bg-red-600 hover:bg-red-500"
+            className="flex items-center gap-2 h-7 px-2 md:py-2 text-white rounded-full transition duration-150 bg-red-600 hover:bg-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
           >
             <BiBasket />
             <span className="text-[12px]">Delete</span>
@@ -75,7 +79,7 @@ const ReviewActions: FC<ReviewActionsProps> = ({
             type="button"
             onClick={onEdit}
             disabled={loadingLike}
-            className="flex items-center gap-2 h-7 px-2 md:py-2 text-white rounded-full transition-colors bg-[#6711bf] hover:bg-[#290d44]"
+            className="flex items-center gap-2 h-7 px-2 md:py-2 text-[#07101a] rounded-full transition duration-150 bg-[var(--color-blue)] hover:bg-[var(--color-lime)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)]"
           >
             <BiEdit />
             <span className="text-[12px]">Edit</span>
@@ -95,3 +99,4 @@ const ReviewActions: FC<ReviewActionsProps> = ({
 };
 
 export default React.memo(ReviewActions);
+

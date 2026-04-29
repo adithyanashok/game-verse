@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import type { RatingBreakdown as Rating } from "../../../features/reviews/types";
 
 interface RatingBreakdownProps {
@@ -6,7 +7,20 @@ interface RatingBreakdownProps {
 
 const metrics: Array<keyof Rating> = ["graphics", "gameplay", "story", "sound"];
 
+const getScoreColor = (value: number) => {
+  if (value < 2) return "#ef4444";
+  if (value < 3.5) return "#facc15";
+  return "var(--color-lime)";
+};
+
 const RatingBreakdown = ({ rating }: RatingBreakdownProps) => {
+  const [animateBars, setAnimateBars] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setAnimateBars(true));
+    return () => cancelAnimationFrame(frame);
+  }, [rating]);
+
   if (!rating) {
     return (
       <p className="text-gray-400 text-sm">
@@ -16,56 +30,50 @@ const RatingBreakdown = ({ rating }: RatingBreakdownProps) => {
   }
 
   return (
-    <div className="text-white flex flex-col justify-between sm:p-4 mt-4 sm:border sm:border-[#989fab1e] rounded-[10px] gap-4">
-      {metrics.map((metric) => {
+    <div className="mt-4 flex flex-col justify-between gap-4 rounded-[10px] text-white">
+      {metrics.map((metric, index) => {
         const value = rating[metric];
-        console.log(value);
+        const percent = Math.min(100, Math.max(0, value * 20));
+        const scoreColor = getScoreColor(value);
+
         return (
           <div
             key={metric}
-            className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 sm:gap-4"
+            className="rounded-[8px] border border-[rgba(0,212,255,0.1)] bg-[#0d1424]/70 p-3 transition duration-150 hover:border-[rgba(0,212,255,0.26)]"
           >
-            {/* Metric Label */}
-            <p className="text-[11px] sm:text-[14px] capitalize">{metric}</p>
-
-            {/* Progress + Value */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <progress
-                className="
-                  w-full 
-                  sm:w-48 
-                  h-2
-                  md:h-3 
-                  rounded-full 
-                  overflow-hidden 
-                  appearance-none 
-                  bg-dark-purple
-                  [&::-webkit-progress-bar]:rounded-full 
-                  [&::-webkit-progress-value]:bg-[var(--color-purple)] 
-                  [&::-webkit-progress-value]:rounded-full 
-                  [&::-moz-progress-bar]:bg-[var(--color-purple)]
-                "
-                value={value * 10}
-                max={100}
-              />
-              <p className="text-[10px] sm:text-[14px] font-bold whitespace-nowrap">
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="text-xs font-bold capitalize tracking-wide text-[#d8e1ef] sm:text-sm">
+                {metric}
+              </p>
+              <p className="whitespace-nowrap text-xs font-black sm:text-sm">
                 {value.toFixed(1)}/5
               </p>
+            </div>
+
+            <div className="h-2.5 overflow-hidden rounded-full bg-[#070b16]">
+              <div
+                className="h-full rounded-full transition-[width] duration-700 ease-out"
+                style={{
+                  width: animateBars ? `${percent}%` : "0%",
+                  background: `linear-gradient(90deg, #ef4444 0%, #facc15 52%, ${scoreColor} 100%)`,
+                  transitionDelay: `${index * 140}ms`,
+                }}
+              />
             </div>
           </div>
         );
       })}
 
-      {/* Overall Rating */}
-      <div className="flex flex-col sm:flex-row justify-between sm:items-center mt-2 pt-2 border-t border-[#989fab1e] gap-1">
-        <p className="text-[12px] sm:text-[14px] font-semibold">Overall</p>
-        <span className="text-[var(--color-purple)] font-bold sm:text-base text-[14px] sm:text-[16px]">
+      <div className="mt-1 flex flex-col gap-1 rounded-[8px] border border-[rgba(182,255,59,0.18)] bg-[rgba(182,255,59,0.08)] p-3 sm:flex-row sm:items-center sm:justify-between">
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#9aa7bd] sm:text-sm">
+          Overall
+        </p>
+        <span className="text-base font-black text-[var(--color-lime)] sm:text-lg">
           {rating.overall.toFixed(1)} / 5
         </span>
       </div>
     </div>
   );
 };
-console.log(RatingBreakdown);
 
 export default RatingBreakdown;

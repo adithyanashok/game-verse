@@ -13,7 +13,7 @@ const DropDown: React.FC<Props> = ({ selectedValue, onChange }) => {
         id="my-dropdown"
         value={selectedValue}
         onChange={(e) => onChange(e.target.value)}
-        className="appearance-none p-1 pl-2 md:p-2 md:pr-10 rounded-full bg-dark-purple text-[var(--color-purple)] text-[12px] font-bold outline-none cursor-pointer"
+        className="appearance-none p-1 pl-2 md:p-2 md:pr-10 rounded-full bg-dark-purple text-[var(--color-blue)] text-[12px] font-bold outline-none cursor-pointer"
       >
         <option value="option1" disabled>
           Genre
@@ -24,7 +24,7 @@ const DropDown: React.FC<Props> = ({ selectedValue, onChange }) => {
 
       <BiChevronDown
         size={16}
-        className="absolute right-2 mr-[4px] top-1/2 -translate-y-1/2 text-[#6711bf] pointer-events-none"
+        className="absolute right-2 mr-[4px] top-1/2 -translate-y-1/2 text-[var(--color-blue)] pointer-events-none"
       />
     </div>
   );

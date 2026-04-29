@@ -1,4 +1,5 @@
 import type { UserProfile } from "../user/types";
+import type { Genre, Rating } from "../games/types";
 
 export interface RatingBreakdown {
   graphics: number;
@@ -23,6 +24,16 @@ export interface ReviewSummary {
   rating?: RatingBreakdown;
 }
 
+export interface ReviewGameDetails {
+  id: number;
+  name: string;
+  description: string;
+  imgUrl: string;
+  releaseDate: string;
+  genre: Genre[];
+  rating?: Rating | null;
+}
+
 export interface ReviewAnalytics {
   likeCount: number;
   viewCount: number;
@@ -35,7 +46,9 @@ export interface ChartData {
   count: number;
 }
 
-export type ReviewDetails = ReviewSummary;
+export type ReviewDetails = ReviewSummary & {
+  game?: ReviewGameDetails | null;
+};
 
 export enum AnalyticsRange {
   past_7_days = "past_7_days",

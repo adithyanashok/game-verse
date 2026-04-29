@@ -24,7 +24,7 @@ const LatestReviewCard = ({ review }: { review: ReviewSummary }) => {
               sx={{
                 "& .MuiRating-iconEmpty": { color: "#989fab" },
               }}
-              style={{ color: "#6711bf", fontSize: "12px" }}
+              style={{ color: "var(--color-blue)", fontSize: "12px" }}
               name="read-only"
               value={Number(review.rating?.overall.toFixed(1))}
               precision={0.1}
@@ -43,3 +43,4 @@ const LatestReviewCard = ({ review }: { review: ReviewSummary }) => {
 };
 
 export default LatestReviewCard;
+
