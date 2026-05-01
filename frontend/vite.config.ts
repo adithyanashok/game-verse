@@ -8,14 +8,9 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          if (!id.includes("node_modules")) {
-            return undefined;
-          }
+          if (!id.includes("node_modules")) return;
 
-          if (
-            id.includes("react-chartjs-2") ||
-            id.includes("chart.js")
-          ) {
+          if (id.includes("react-chartjs-2") || id.includes("chart.js")) {
             return "charts";
           }
 
@@ -26,20 +21,13 @@ export default defineConfig({
             return "discussion";
           }
 
+          // 🔥 Merge React + MUI into ONE chunk
           if (
             id.includes("@mui/material") ||
             id.includes("@emotion/react") ||
-            id.includes("@emotion/styled")
-          ) {
-            return "mui";
-          }
-
-          if (
-            id.includes("react-router-dom") ||
-            id.includes("react-redux") ||
-            id.includes("@reduxjs/toolkit") ||
-            id.includes("react-dom") ||
-            id.includes("react")
+            id.includes("@emotion/styled") ||
+            id.includes("react") ||
+            id.includes("react-dom")
           ) {
             return "framework";
           }
