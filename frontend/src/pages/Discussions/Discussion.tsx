@@ -15,11 +15,8 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import MessageBubble from "./Components/MessageBubble";
 import { AppLoader } from "../../components/common/Loader";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import {
-  getDiscussion,
-  resetCurrentDiscussion,
-} from "../../features/discussions/discussionSlice";
+import { useAppSelector } from "../../store/hooks";
+import { useDiscussionData } from "./hooks/useDiscussionData";
 import type {
   Message,
   UserJoinedPayload,
@@ -27,12 +24,10 @@ import type {
 
 export default function DiscussionDetailsScreen() {
   const { id } = useParams<{ id: string }>();
-  const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const { accessToken, user } = useAppSelector((state) => state.auth);
-  const { currentDiscussion, loading, errors } = useAppSelector(
-    (state) => state.discussions,
-  );
+  
+  const { data: currentDiscussion, isLoading, error } = useDiscussionData(id ?? null);
 
   const [socket, setSocket] = useState<Socket | null>(null);
   const [message, setMessage] = useState("");
@@ -43,15 +38,8 @@ export default function DiscussionDetailsScreen() {
   useEffect(() => {
     if (!id) {
       navigate("/discussions", { replace: true });
-      return;
     }
-
-    void dispatch(getDiscussion(id));
-
-    return () => {
-      dispatch(resetCurrentDiscussion());
-    };
-  }, [dispatch, id, navigate]);
+  }, [id, navigate]);
 
   useEffect(() => {
     if (currentDiscussion?.totalMembers) {
@@ -68,12 +56,13 @@ export default function DiscussionDetailsScreen() {
       return;
     }
 
-    const wsUrl = import.meta.env.VITE_WS_URL || "http://localhost:8000";
+    const wsUrl = import.meta.env.VITE_WS_URL || "http://localhost:8001";
     const newSocket = io(wsUrl, {
-      query: { token: accessToken },
+      auth: { token: accessToken },
       path: "/socket.io",
       transports: ["websocket"],
-      forceNew: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     newSocket.on("connect_error", (err) => {
@@ -200,13 +189,12 @@ export default function DiscussionDetailsScreen() {
       discussionId: Number(id),
       adminId: user?.id,
     });
-    dispatch(resetCurrentDiscussion());
   };
 
   const isAdmin = currentDiscussion?.adminId === user?.id;
   const canSend = Boolean(message.trim() && socket);
 
-  if (loading.getOne) {
+  if (isLoading) {
     return (
       <AppLoader
         fullscreen
@@ -216,12 +204,12 @@ export default function DiscussionDetailsScreen() {
     );
   }
 
-  if (errors.getOne) {
+  if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_16%_0%,rgba(0,212,255,0.16),transparent_32%),linear-gradient(180deg,#070b16_0%,#0d1424_48%,#070b16_100%)] px-4 py-10">
         <div className="max-w-lg rounded-[10px] border border-red-500/20 bg-red-500/10 px-6 py-8 text-center text-red-200 shadow-xl shadow-black/20">
           <h2 className="text-2xl font-black text-white">Unable to open room</h2>
-          <p className="mt-3 text-sm leading-6">{errors.getOne}</p>
+          <p className="mt-3 text-sm leading-6">{error instanceof Error ? error.message : "Failed to fetch discussion"}</p>
           <button
             type="button"
             onClick={() => navigate("/discussions")}
@@ -333,7 +321,7 @@ export default function DiscussionDetailsScreen() {
                   <div key={`${msg.sender?.id ?? "guest"}-${idx}`} className="group relative">
                     <MessageBubble
                       message={msg.content}
-                      isOwn={msg.sender?.id === user?.id}
+                      isOwn={Boolean(user?.id && msg.sender?.id && msg.sender.id === user.id)}
                       senderName={msg.sender?.name}
                       id={msg.sender?.id}
                     />

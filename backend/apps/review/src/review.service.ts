@@ -106,7 +106,9 @@ export class ReviewService {
         });
 
       return new ApiResponse(true, 'Review Created Successfully', {
-        savedReview,
+        ...savedReview,
+        user: existingUser,
+        game,
       });
     } catch (error) {
       console.error('Create Review Error:', error);
@@ -440,13 +442,24 @@ export class ReviewService {
       review.text = comment ?? review.text;
       review.title = title ?? review.title;
 
+      const [user, game] = await Promise.all([
+        lastValueFrom<User>(
+          this.userClient.send(MessagePatterns.USER_FIND_BY_ID, review.userId),
+        ),
+        lastValueFrom<GameResponse>(
+          this.client.send(MessagePatterns.FIND_ONE_GAME, {
+            id: review.gameId,
+          }),
+        ).catch(() => null),
+      ]);
+
       const updatedReview = await this.repo.save(review);
 
-      return new ApiResponse(
-        true,
-        'Review Updated Successfully',
-        updatedReview,
-      );
+      return new ApiResponse(true, 'Review Updated Successfully', {
+        ...updatedReview,
+        user,
+        game,
+      });
     } catch (error) {
       console.log(error);
       throw error;

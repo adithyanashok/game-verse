@@ -7,13 +7,11 @@ import {
   FiUsers,
 } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { createDiscussion } from "../../features/discussions/discussionSlice";
+import { useDiscussionMutations } from "./hooks/useDiscussionMutations";
 
 export default function CreateDiscussionScreen() {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const { loading, errors } = useAppSelector((state) => state.discussions);
+  const { create } = useDiscussionMutations();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -21,7 +19,7 @@ export default function CreateDiscussionScreen() {
   const trimmedTitle = title.trim();
   const trimmedDescription = description.trim();
   const canSubmit = Boolean(
-    trimmedTitle && trimmedDescription && !loading.create,
+    trimmedTitle && trimmedDescription && !create.isPending,
   );
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -31,16 +29,12 @@ export default function CreateDiscussionScreen() {
       return;
     }
 
-    const result = await dispatch(
-      createDiscussion({
-        title: trimmedTitle,
-        description: trimmedDescription,
-      }),
+    create.mutate(
+      { title: trimmedTitle, description: trimmedDescription },
+      {
+        onSuccess: () => navigate("/discussions"),
+      }
     );
-
-    if (createDiscussion.fulfilled.match(result)) {
-      navigate("/discussions");
-    }
   };
 
   return (
@@ -166,9 +160,9 @@ export default function CreateDiscussionScreen() {
                 </div>
               </div>
 
-              {errors.create ? (
+              {create.error ? (
                 <p className="rounded-[10px] border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                  {errors.create}
+                  {create.error instanceof Error ? create.error.message : "Failed to create discussion"}
                 </p>
               ) : null}
 
@@ -190,7 +184,7 @@ export default function CreateDiscussionScreen() {
                   }`}
                 >
                   <FiSend className="h-4 w-4" />
-                  {loading.create ? "Creating..." : "Create Discussion"}
+                  {create.isPending ? "Creating..." : "Create Discussion"}
                 </button>
               </div>
             </form>

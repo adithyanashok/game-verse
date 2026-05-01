@@ -1,26 +1,29 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { BiSearch } from "react-icons/bi";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import type { RootState } from "../../store";
 import debounce from "../../utils/debouncer";
-import { getGames, searchGames } from "../../features/games/gamesSlice";
+import { useGames, useSearchGames } from "./hooks/useGameQueries";
 import { AppLoader } from "../../components/common/Loader";
 import GameCard from "./Components/GameCard";
 import Pagination from "../../components/common/Pagination";
 
 const GamesListScreen = () => {
-  const dispatch = useAppDispatch();
   const [selectedGenre, setSelectedGenre] = useState<string | null>("All");
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
 
-  const { games, meta, loading, searchResults, searchMeta } = useAppSelector(
-    (state: RootState) => state.game,
-  );
-
   const [page, setPage] = useState(1);
   const LIMIT = 20;
+
+  const { data: allGamesData, isLoading: loadingAll } = useGames({
+    page,
+    limit: LIMIT,
+  });
+  const { data: searchGamesData, isLoading: loadingSearch } = useSearchGames({
+    search,
+    page,
+    limit: LIMIT,
+  });
 
   const debouncedSetSearch = useMemo(
     () =>
@@ -36,16 +39,18 @@ const GamesListScreen = () => {
   }, [debouncedSetSearch, searchInput]);
 
   useEffect(() => {
-    if (search) {
-      dispatch(searchGames({ search, page, limit: LIMIT }));
-    } else {
-      dispatch(getGames({ page, limit: LIMIT }));
-    }
-  }, [dispatch, page, search]);
+    debouncedSetSearch(searchInput);
+  }, [debouncedSetSearch, searchInput]);
+
+  const displayedGames = search
+    ? (searchGamesData?.games ?? [])
+    : (allGamesData?.games ?? []);
+  const currentMeta = search ? searchGamesData?.meta : allGamesData?.meta;
+  const isLoading = search ? loadingSearch : loadingAll;
 
   const genres = useMemo(() => {
     const genreSet = new Set<string>();
-    games.forEach((game) => {
+    displayedGames.forEach((game) => {
       game.genre?.forEach((g) => {
         if (g.name) {
           genreSet.add(g.name);
@@ -53,10 +58,7 @@ const GamesListScreen = () => {
       });
     });
     return Array.from(genreSet).sort();
-  }, [games]);
-
-  const displayedGames = search ? searchResults : games;
-  const currentMeta = search ? searchMeta : meta;
+  }, [displayedGames]);
 
   const filteredGames = useMemo(() => {
     if (selectedGenre === "All") return displayedGames;
@@ -84,8 +86,8 @@ const GamesListScreen = () => {
             onClick={() => setSelectedGenre("All")}
             className={`sm:px-4 sm:py-2 px-2 py-1 rounded-full sm:text-sm text-xs font-semibold transition-colors ${
               selectedGenre === "All"
-                ? "bg-(--color-purple) text-white"
-                : "bg-dark-purple text-(--color-purple) hover:bg-(--color-blue) hover:text-white"
+                ? "bg-(--color-lime) text-black"
+                : "bg-(--color-lime)/5 text-(--color-lime) hover:bg-(--color-lime) hover:text-white"
             }`}
           >
             All
@@ -96,8 +98,8 @@ const GamesListScreen = () => {
               onClick={() => setSelectedGenre(genreName)}
               className={`sm:px-4 sm:py-2 px-2 py-1 rounded-full sm:text-sm text-xs font-semibold transition-colors ${
                 selectedGenre === genreName
-                  ? "bg-(--color-purple) text-white"
-                  : "bg-dark-purple text-(--color-purple) hover:bg-(--color-blue) hover:text-white"
+                  ? "bg-(--color-lime) text-black"
+                  : "bg-(--color-lime)/5 text-color-lime hover:bg-(--color-lime) hover:text-white"
               }`}
             >
               {genreName}
@@ -107,7 +109,7 @@ const GamesListScreen = () => {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 xl:gap-6 gap-3 mt-5">
-        {loading.getAll || loading.search ? (
+        {isLoading ? (
           <div className="col-span-full">
             <AppLoader label="Loading games..." />
           </div>

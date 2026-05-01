@@ -7,9 +7,10 @@ import AppLayout from "./layouts/AppLayout";
 import { RouteSkeleton } from "./components/common/Loader";
 import ErrorPage from "./components/common/ErrorPage";
 import NotFound from "./components/common/NotFound";
+import Review from "./pages/Reviews/ReviewScreen/Review";
 const HomePage = lazy(() => import("./pages/Home/HomePages"));
 const ReviewsPage = lazy(() => import("./pages/Reviews/ReviewsListScreen"));
-const Review = lazy(() => import("./pages/Reviews/ReviewScreen/Review"));
+// const Review = lazy(() => import("./pages/Reviews/ReviewScreen/Review"));
 const GamesPage = lazy(() => import("./pages/Games/GamesListScreen"));
 const Game = lazy(() => import("./pages/Games/GameScreen"));
 const UserDashboard = lazy(() => import("./pages/Dashboard/UserDashboard"));
@@ -113,7 +114,11 @@ const router = createBrowserRouter([
       },
       {
         path: "/review/:id",
-        element: withRouteBoundary(<Review />, "Loading review..."),
+        element: (
+          // withRouteBoundary(
+          <Review />
+        ),
+        // , "Loading review..."),
       },
       {
         path: "/games",

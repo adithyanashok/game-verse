@@ -1,9 +1,8 @@
 import { FiEdit2, FiUser } from "react-icons/fi";
 import { useMemo, useRef, useState, type ChangeEvent, type SyntheticEvent } from "react";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { uploadUserImage } from "../../../features/user/userSlice";
+import { useAppSelector } from "../../../store/hooks";
+import { useUserProfile, useUserMutations } from "../../../hooks/useUser";
 import { toast } from "react-toastify";
-import type { RootState } from "../../../store";
 import ImageCropper from "./ImageCropper";
 
 const getProfileImageUrl = (profileImage?: string) => {
@@ -32,8 +31,9 @@ export default function ProfileImage({
   const [imageFailed, setImageFailed] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { profile } = useAppSelector((state: RootState) => state.user);
-  const dispatch = useAppDispatch();
+  const authUser = useAppSelector((state) => state.auth.user);
+  const { data: profile } = useUserProfile(isOwnProfile ? authUser?.id : undefined);
+  const { uploadImage } = useUserMutations(authUser?.id);
 
   const imageUrl = useMemo(
     () => getProfileImageUrl(profile?.profileImage),
@@ -63,25 +63,26 @@ export default function ProfileImage({
     e.target.value = "";
   };
 
-  const handleCropComplete = async (file: File) => {
+  const handleCropComplete = (file: File) => {
     setCropImageSrc(null);
 
-    try {
-      await dispatch(uploadUserImage({ file })).unwrap();
-      setImageFailed(false);
-
-      toast.success("Profile image updated!", {
-        position: "top-right",
-        autoClose: 1000,
-        theme: "dark",
-      });
-    } catch (error) {
-      toast.error(String(error), {
-        position: "top-right",
-        autoClose: 1500,
-        theme: "dark",
-      });
-    }
+    uploadImage.mutate(file, {
+      onSuccess: () => {
+        setImageFailed(false);
+        toast.success("Profile image updated!", {
+          position: "top-right",
+          autoClose: 1000,
+          theme: "dark",
+        });
+      },
+      onError: (error) => {
+        toast.error(error instanceof Error ? error.message : "Upload failed", {
+          position: "top-right",
+          autoClose: 1500,
+          theme: "dark",
+        });
+      },
+    });
   };
 
   const handleCancelCrop = () => {

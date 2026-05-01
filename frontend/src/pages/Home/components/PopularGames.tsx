@@ -1,32 +1,20 @@
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import type { RootState } from "../../../store";
-import { getTopRatedGames } from "../../../features/games/gamesSlice";
 import { Link } from "react-router-dom";
 import { AppLoader } from "../../../components/common/Loader";
 import HomeSectionState from "./HomeSectionState";
+import { useTopRatedGames } from "../../../pages/Games/hooks/useGameQueries";
 
 const PopularGames = () => {
-  const dispatch = useAppDispatch();
-  const { topRatedGames, loading, errors } = useAppSelector(
-    (state: RootState) => state.game
-  );
+  const { data: topRatedGames = [], isLoading, error } = useTopRatedGames();
 
-  useEffect(() => {
-    if (!topRatedGames || topRatedGames.length === 0) {
-      dispatch(getTopRatedGames());
-    }
-  }, [dispatch, topRatedGames]);
-
-  if (loading.getTopRatedGames) {
+  if (isLoading) {
     return <AppLoader label="Loading popular games..." />;
   }
 
-  if (errors.getTopRatedGames) {
+  if (error) {
     return (
       <HomeSectionState
         title="Popular games are unavailable"
-        message={errors.getTopRatedGames}
+        message={error instanceof Error ? error.message : "Failed to fetch top rated games"}
       />
     );
   }

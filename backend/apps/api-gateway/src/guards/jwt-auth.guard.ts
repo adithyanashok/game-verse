@@ -32,10 +32,10 @@ export class JwtAuthGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    if (isPublic) return true;
-
     const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
     const token = this.extractToken(request);
+
+    if (isPublic && !token) return true;
 
     if (!token) {
       throw new UnauthorizedException('No token provided');
@@ -54,6 +54,7 @@ export class JwtAuthGuard implements CanActivate {
 
       return true;
     } catch (err) {
+      if (isPublic) return true;
       console.error('Auth validation failed', err);
       throw new UnauthorizedException('Invalid or expired token');
     }

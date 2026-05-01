@@ -1,9 +1,7 @@
-import { useAppSelector } from "../../../store/hooks";
-import type { RootState } from "../../../store";
 import ReviewCard from "../../Reviews/Components/ReviewCard";
+import type { ReviewSummary } from "../../../api/review/types";
 
-const Trending = () => {
-  const trending = useAppSelector((state: RootState) => state.reviews.trending);
+const Trending = ({ trending }: { trending: ReviewSummary[] }) => {
 
   return (
     <div className="scroll-row flex gap-4 px-4 py-4 sm:px-6 lg:px-8">

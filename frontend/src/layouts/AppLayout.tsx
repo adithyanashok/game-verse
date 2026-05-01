@@ -3,15 +3,20 @@ import Footer from "../components/common/footer/component/Footer";
 import ResponsiveNavbar from "../components/common/Navbar/ResponsiveNavbar";
 
 const AppLayout = () => {
-  const params = useLocation();
-  const showNavbarAndFooter =
-    params.pathname.includes("/discussion") &&
-    params.pathname !== "/discussions";
+  const { pathname } = useLocation();
+
+  const hideLayout =
+    pathname.startsWith("/discussion/") && pathname !== "/discussions";
+
   return (
     <>
-      {!showNavbarAndFooter && <ResponsiveNavbar />}
-      <Outlet />
-      {!showNavbarAndFooter && <Footer />}
+      {!hideLayout && <ResponsiveNavbar />}
+
+      <main>
+        <Outlet />
+      </main>
+
+      {!hideLayout && <Footer />}
     </>
   );
 };

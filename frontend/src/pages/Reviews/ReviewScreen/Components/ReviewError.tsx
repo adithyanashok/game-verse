@@ -1,7 +1,7 @@
 import { FiAlertCircle } from "react-icons/fi";
 
 interface Props {
-  message: string;
+  message?: string | null | undefined;
 }
 
 const ReviewError = ({ message }: Props) => (

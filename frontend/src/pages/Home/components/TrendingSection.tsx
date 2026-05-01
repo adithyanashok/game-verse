@@ -1,27 +1,10 @@
-import { useEffect } from "react";
 import Trending from "./Trending";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import type { RootState } from "../../../store";
-import { fetchTrendingReviews } from "../../../features/reviews/reviewsSlice";
+import { useTrendingReviews } from "../../../pages/Reviews/hooks/useReviewQueries";
 import { AppLoader } from "../../../components/common/Loader";
 import HomeSectionState from "./HomeSectionState";
 
 const TrendingSection = () => {
-  const dispatch = useAppDispatch();
-
-  const trending = useAppSelector((state: RootState) => state.reviews.trending);
-  const loading = useAppSelector(
-    (state: RootState) => state.reviews.loading.trending,
-  );
-  const error = useAppSelector(
-    (state: RootState) => state.reviews.errors.trending,
-  );
-
-  useEffect(() => {
-    if (!trending || trending.length === 0) {
-      dispatch(fetchTrendingReviews());
-    }
-  }, [dispatch, trending]);
+  const { data: trending, isLoading: loading, error } = useTrendingReviews();
 
   if (loading) {
     return <AppLoader label="Loading trending reviews..." />;
@@ -47,7 +30,7 @@ const TrendingSection = () => {
           </div>
           <HomeSectionState
             title="Trending reviews are unavailable"
-            message={error || "We couldn't load the trending feed right now."}
+            message={error instanceof Error ? error.message : "We couldn't load the trending feed right now."}
           />
         </div>
       </section>
@@ -79,7 +62,7 @@ const TrendingSection = () => {
           </p>
         </div>
 
-        <Trending />
+        <Trending trending={trending} />
       </div>
     </section>
   );

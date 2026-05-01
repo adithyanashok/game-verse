@@ -1,8 +1,6 @@
 import { useEffect } from "react";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getTopReviewers } from "../../../features/user/userSlice";
-import type { AppDispatch, RootState } from "../../../store";
+import { useTopReviewers } from "../../../hooks/useUser";
 import { FiUser } from "react-icons/fi";
 
 type ReviewerAvatarProps = {
@@ -42,17 +40,7 @@ const ReviewerAvatar = ({ name, image }: ReviewerAvatarProps) => {
 };
 
 const TopReviewers = () => {
-  const dispatch = useDispatch<AppDispatch>();
-
-  const reviewers = useSelector((state: RootState) => state.user.topReviewers);
-  const loading = useSelector((state: RootState) => state.user.loading);
-  const error = useSelector((state: RootState) => state.user.error);
-
-  useEffect(() => {
-    if (!reviewers || reviewers.length === 0) {
-      dispatch(getTopReviewers());
-    }
-  }, [dispatch, reviewers]);
+  const { data: reviewers = [], isLoading: loading, error } = useTopReviewers();
 
   return (
     <div>

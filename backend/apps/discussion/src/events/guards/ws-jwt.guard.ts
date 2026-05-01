@@ -44,7 +44,11 @@ export class WsAuthGuard implements CanActivate {
       client.handshake.headers.authorization?.split(' ') ?? [];
     if (type === 'Bearer') return token;
 
-    if (client.handshake.query.token) {
+    if (client.handshake.auth?.token) {
+      return client.handshake.auth.token;
+    }
+    
+    if (client.handshake.query?.token) {
       return client.handshake.query.token as string;
     }
 

@@ -44,12 +44,12 @@ export default function MessageBubble({
               : "border-[rgba(0,212,255,0.12)] bg-[linear-gradient(180deg,rgba(13,20,36,0.96),rgba(7,11,22,0.96))] text-[#dbe6f6]"
           }`}
         >
-          {!isOwn && senderName ? (
+          {!isOwn ? (
             <Link
-              to={`/profile/${id}`}
+              to={id ? `/profile/${id}` : "#"}
               className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[var(--color-blue)] transition hover:text-white"
             >
-              {senderName}
+              {senderName || "Gamer"}
             </Link>
           ) : (
             <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#5d6c84]">

@@ -1,23 +1,16 @@
 import { useState } from "react";
 import { AiFillStar } from "react-icons/ai";
-import {
-  FiArrowLeft,
-  FiCheckCircle,
-  FiSave,
-  FiStar,
-} from "react-icons/fi";
+import { FiArrowLeft, FiCheckCircle, FiSave, FiStar } from "react-icons/fi";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { useAppDispatch } from "../../store/hooks";
-import {
-  createReview,
-  updateReview,
-} from "../../features/reviews/reviewsSlice";
+import { useReviewFormMutations } from "./hooks/useReviewMutations";
 import type {
   CreateReviewPayload,
   ReviewSummary,
 } from "../../features/reviews/types";
 import Banner from "../Games/Components/Banner";
+import SimpleBanner from "./Components/SimpleBanner";
+import type { Game } from "../../api/game/types";
 
 type Form = {
   graphics: number;
@@ -60,10 +53,10 @@ const ratingItemMeta = [
 export default function ReviewFormScreen({ mode }: ReviewFormScreenProps) {
   const { state } = useLocation();
   const review = state?.currentReview;
-  const game = state?.game ?? review?.game;
+  const game: Game = state?.game ?? review?.game;
   const navigator = useNavigate();
   const { id } = useParams();
-  const dispatch = useAppDispatch();
+  const { create, update } = useReviewFormMutations();
 
   const [form, setForm] = useState<Form>(
     mode === "edit" && review
@@ -128,8 +121,6 @@ export default function ReviewFormScreen({ mode }: ReviewFormScreenProps) {
 
     setLoading(true);
 
-    let result;
-
     if (mode === "create") {
       const payload: CreateReviewPayload = {
         title: form.title.trim(),
@@ -142,10 +133,33 @@ export default function ReviewFormScreen({ mode }: ReviewFormScreenProps) {
           sound: form.sound,
         },
       };
-      result = await dispatch(createReview(payload));
+      create.mutate(payload, {
+        onSuccess: (data) => {
+          setLoading(false);
+          toast.success("Review created successfully!", {
+            position: "top-right",
+            autoClose: 1000,
+            hideProgressBar: true,
+            theme: "dark",
+          });
+          navigator(`/review/${data.id}`);
+        },
+        onError: (error) => {
+          setLoading(false);
+          toast.error(
+            error instanceof Error ? error.message : "Unable to save review",
+            {
+              position: "top-right",
+              autoClose: 1200,
+              hideProgressBar: true,
+              theme: "dark",
+            },
+          );
+        },
+      });
     } else {
-      result = await dispatch(
-        updateReview({
+      update.mutate(
+        {
           id: Number(review.id),
           title: form.title.trim(),
           comment: form.review.trim(),
@@ -155,37 +169,32 @@ export default function ReviewFormScreen({ mode }: ReviewFormScreenProps) {
             story: form.story,
             sound: form.sound,
           },
-        }),
-      );
-    }
-
-    setLoading(false);
-
-    if (result.meta.requestStatus === "fulfilled") {
-      toast.success(
-        mode === "create"
-          ? "Review created successfully!"
-          : "Review updated successfully!",
+        },
         {
-          position: "top-right",
-          autoClose: 1000,
-          hideProgressBar: true,
-          theme: "dark",
+          onSuccess: () => {
+            setLoading(false);
+            toast.success("Review updated successfully!", {
+              position: "top-right",
+              autoClose: 1000,
+              hideProgressBar: true,
+              theme: "dark",
+            });
+            navigator(-1);
+          },
+          onError: (error) => {
+            setLoading(false);
+            toast.error(
+              error instanceof Error ? error.message : "Unable to save review",
+              {
+                position: "top-right",
+                autoClose: 1200,
+                hideProgressBar: true,
+                theme: "dark",
+              },
+            );
+          },
         },
       );
-
-      if (mode === "create") {
-        navigator(`/review/${(result.payload as ReviewSummary).id}`);
-      } else {
-        navigator(-1);
-      }
-    } else {
-      toast.error(result.payload?.toString() || "Unable to save review", {
-        position: "top-right",
-        autoClose: 1200,
-        hideProgressBar: true,
-        theme: "dark",
-      });
     }
   };
 
@@ -205,10 +214,17 @@ export default function ReviewFormScreen({ mode }: ReviewFormScreenProps) {
 
         {game ? (
           <section className="overflow-hidden rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[#0d1424]/82 p-2 shadow-[0_24px_70px_rgba(0,0,0,0.24)] backdrop-blur">
-            <Banner
+            {/* <Banner
               game={game}
               showWriteButton={false}
               badgeLabel={mode === "create" ? "Review draft" : "Review editor"}
+            /> */}
+            <SimpleBanner
+              name={game.name}
+              badgeLabel="REVIEW DRAFT"
+              communityScore={game.rating.overallRating}
+              imageUrl={game.imgUrl}
+              description={game.description}
             />
           </section>
         ) : null}
@@ -325,8 +341,9 @@ export default function ReviewFormScreen({ mode }: ReviewFormScreenProps) {
                 </label>
                 <textarea
                   value={form.review}
+                  maxLength={500}
                   onChange={(e) => handleChange("review", e.target.value)}
-                  className="min-h-[260px] w-full resize-none rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[#070b16]/70 px-4 py-3 text-white placeholder:text-[#6f7d94] focus:border-[rgba(0,212,255,0.34)] focus:outline-none focus:ring-2 focus:ring-[rgba(0,212,255,0.14)]"
+                  className="min-h-65 w-full resize-none rounded-[10px] border border-[rgba(0,212,255,0.12)] bg-[#070b16]/70 px-4 py-3 text-white placeholder:text-[#6f7d94] focus:border-[rgba(0,212,255,0.34)] focus:outline-none focus:ring-2 focus:ring-[rgba(0,212,255,0.14)]"
                   placeholder="Write your thoughts about the game. What stood out immediately? Where did it lose momentum? Who would you recommend it to?"
                 />
               </div>
@@ -346,7 +363,7 @@ export default function ReviewFormScreen({ mode }: ReviewFormScreenProps) {
                   className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-black transition ${
                     loading
                       ? "cursor-not-allowed border border-white/10 bg-white/6 text-[#7f8ca2]"
-                      : "border border-[rgba(182,255,59,0.18)] bg-[var(--color-lime)] text-[#07101a] shadow-lg shadow-[rgba(182,255,59,0.18)] hover:bg-[#ccff6f]"
+                      : "border border-[rgba(182,255,59,0.18)] bg-(--color-lime) text-[#07101a] shadow-lg shadow-[rgba(182,255,59,0.18)] hover:bg-[#ccff6f]"
                   }`}
                 >
                   {loading ? (

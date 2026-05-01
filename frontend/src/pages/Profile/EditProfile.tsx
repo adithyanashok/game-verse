@@ -1,22 +1,28 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FiArrowLeft, FiEdit3, FiSave } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { Link, useNavigate } from "react-router-dom";
 import ProfileImage from "./Components/ProfileImage";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { updateUserProfile } from "../../features/user/userSlice";
+import { useAppSelector } from "../../store/hooks";
+import { useUserMutations, useUserProfile } from "../../hooks/useUser";
 import { Spinner } from "../../components/common/Loader";
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
 
   const authUser = useAppSelector((state) => state.auth.user);
-  const { profile } = useAppSelector((state) => state.user);
+  const { data: profile } = useUserProfile(authUser?.id);
+  const { updateProfile } = useUserMutations(authUser?.id);
 
-  const [name, setName] = useState(authUser?.name || "");
-  const [bio, setBio] = useState(authUser?.bio || "");
-  const [isSaving, setIsSaving] = useState(false);
+  const [name, setName] = useState("");
+  const [bio, setBio] = useState("");
+
+  useEffect(() => {
+    if (profile) {
+      setName(profile.name || "");
+      setBio(profile.bio || "");
+    }
+  }, [profile]);
 
   const isOwnProfile = authUser?.id === profile?.id;
 
@@ -30,42 +36,32 @@ export default function EditProfile() {
     [bio, name],
   );
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    setIsSaving(true);
 
-    try {
-      const result = await dispatch(
-        updateUserProfile({
-          name: name.trim(),
-          bio: bio.trim(),
-        }),
-      );
-
-      if (updateUserProfile.fulfilled.match(result)) {
-        toast.success("Profile updated!", {
-          position: "top-right",
-          autoClose: 1000,
-          theme: "dark",
-        });
-
-        navigate(-1);
-      } else {
-        toast.error(String(result.payload ?? "Unable to update profile"), {
-          position: "top-right",
-          autoClose: 1500,
-          theme: "dark",
-        });
+    updateProfile.mutate(
+      {
+        name: name.trim(),
+        bio: bio.trim(),
+      },
+      {
+        onSuccess: () => {
+          toast.success("Profile updated!", {
+            position: "top-right",
+            autoClose: 1000,
+            theme: "dark",
+          });
+          navigate(-1);
+        },
+        onError: (error) => {
+          toast.error(error instanceof Error ? error.message : "Unable to update profile", {
+            position: "top-right",
+            autoClose: 1500,
+            theme: "dark",
+          });
+        },
       }
-    } catch (error) {
-      toast.error(String(error), {
-        position: "top-right",
-        autoClose: 1500,
-        theme: "dark",
-      });
-    } finally {
-      setIsSaving(false);
-    }
+    );
   };
 
   return (
@@ -161,12 +157,12 @@ export default function EditProfile() {
                 </button>
                 <button
                   type="submit"
-                  disabled={isSaving}
+                  disabled={updateProfile.isPending}
                   className={`inline-flex items-center justify-center gap-2 rounded-full border border-[rgba(0,212,255,0.18)] bg-[linear-gradient(90deg,rgba(0,212,255,0.2),rgba(0,212,255,0.1))] px-5 py-3 text-sm font-black text-white transition hover:border-[rgba(0,212,255,0.34)] hover:bg-[linear-gradient(90deg,rgba(0,212,255,0.28),rgba(0,212,255,0.14))] ${
-                    isSaving ? "cursor-not-allowed opacity-70" : ""
+                    updateProfile.isPending ? "cursor-not-allowed opacity-70" : ""
                   }`}
                 >
-                  {isSaving ? (
+                  {updateProfile.isPending ? (
                     <Spinner className="h-5 w-5 border-2 text-white" />
                   ) : (
                     <>

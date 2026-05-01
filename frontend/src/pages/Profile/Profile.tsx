@@ -1,41 +1,25 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { FiBarChart2, FiEdit3, FiFileText, FiUserPlus, FiUsers } from "react-icons/fi";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
 import {
-  fetchUserProfile,
-  followUser,
-  unfollowUser,
-} from "../../features/user/userSlice";
-import { getByUserId } from "../../features/reviews/reviewsSlice";
+  FiBarChart2,
+  FiEdit3,
+  FiFileText,
+  FiUserPlus,
+  FiUsers,
+} from "react-icons/fi";
+import { useUserProfile, useUserMutations } from "../../hooks/useUser";
+import { useAppSelector } from "../../store/hooks";
 import AnalyticsDashboard from "./Components/AnalyticsDashboard";
 import ProfileImage from "./Components/ProfileImage";
 import { toast } from "react-toastify";
 import ReviewCard from "../Reviews/Components/ReviewCard";
 import { AppLoader, Spinner } from "../../components/common/Loader";
-import { isCacheFresh } from "../../utils/cache";
+import { useUserReviews } from "../Reviews/hooks/useReviewQueries";
 
 const ProfilePage = () => {
   const { userId: userIdParam } = useParams();
-  const dispatch = useAppDispatch();
-  const [activeTab, setActiveTab] = useState("Reviews");
   const authUser = useAppSelector((state) => state.auth.user);
-  const {
-    profile,
-    loading,
-    error,
-    followLoading,
-    followError,
-    profilesById,
-    fetchedAtById,
-  } = useAppSelector((state) => state.user);
-  const {
-    userReviews,
-    userReviewsByUserId,
-    userReviewsFetchedAtByUserId,
-    loading: reviewLoading,
-  } = useAppSelector((state) => state.reviews);
-
+  const [activeTab, setActiveTab] = useState("Reviews");
   const targetUserId = useMemo(() => {
     if (userIdParam) {
       const parsed = Number(userIdParam);
@@ -45,53 +29,29 @@ const ProfilePage = () => {
     return authUser?.id;
   }, [userIdParam, authUser?.id]);
 
-  const displayedProfile =
-    typeof targetUserId === "number"
-      ? profilesById[targetUserId] ??
-        (profile?.id === targetUserId ? profile : null)
-      : profile;
-  const displayedReviews =
-    typeof targetUserId === "number"
-      ? userReviewsByUserId[targetUserId] ??
-        (profile?.id === targetUserId ? userReviews : [])
-      : userReviews;
+  const {
+    data: displayedProfile,
+    isLoading: loading,
+    error,
+  } = useUserProfile(targetUserId);
 
-  useEffect(() => {
-    if (typeof targetUserId === "number") {
-      const pendingRequests: Array<{ abort: () => void }> = [];
-      const hasFreshProfile = isCacheFresh(fetchedAtById[targetUserId]);
-      const hasFreshReviews = isCacheFresh(userReviewsFetchedAtByUserId[targetUserId]);
+  const { follow, unfollow } = useUserMutations(targetUserId);
+  const followLoading = follow.isPending || unfollow.isPending;
+  const followError = follow.error || unfollow.error;
 
-      if (!hasFreshProfile && !loading) {
-        pendingRequests.push(dispatch(fetchUserProfile(targetUserId)));
-      }
-
-      if (!hasFreshReviews && !reviewLoading.fetchByUser) {
-        pendingRequests.push(
-          dispatch(getByUserId({ id: targetUserId, limit: 20, page: 1 })),
-        );
-      }
-
-      return () => {
-        pendingRequests.forEach((request) => request.abort());
-      };
-    }
-  }, [
-    dispatch,
-    fetchedAtById,
-    loading,
-    reviewLoading.fetchByUser,
-    targetUserId,
-    userReviewsFetchedAtByUserId,
-  ]);
+  const { data: userReviewsData } = useUserReviews(targetUserId as number);
+  const displayedReviews = userReviewsData?.reviews ?? [];
 
   useEffect(() => {
     if (error) {
-      toast.error(error, {
-        position: "top-right",
-        autoClose: 1500,
-        theme: "dark",
-      });
+      toast.error(
+        error instanceof Error ? error.message : "Failed to load profile",
+        {
+          position: "top-right",
+          autoClose: 1500,
+          theme: "dark",
+        },
+      );
     }
   }, [error]);
 
@@ -105,9 +65,9 @@ const ProfilePage = () => {
     }
 
     if (displayedProfile?.isFollowing) {
-      void dispatch(unfollowUser(targetUserId));
+      unfollow.mutate(targetUserId);
     } else {
-      void dispatch(followUser(targetUserId));
+      follow.mutate(targetUserId);
     }
   };
 
@@ -165,9 +125,7 @@ const ProfilePage = () => {
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_16%_0%,rgba(0,212,255,0.16),transparent_32%),radial-gradient(circle_at_84%_10%,rgba(182,255,59,0.08),transparent_24%),linear-gradient(180deg,#070b16_0%,#0d1424_48%,#070b16_100%)] px-3 py-6 sm:px-5 md:px-8 lg:px-10">
       <div className="mx-auto max-w-7xl space-y-8">
-        {loading && (
-          <AppLoader label="Loading profile..." />
-        )}
+        {loading && <AppLoader label="Loading profile..." />}
 
         {!loading && displayedProfile && (
           <>
@@ -248,7 +206,9 @@ const ProfilePage = () => {
 
             {followError && (
               <p className="rounded-[10px] border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                {followError}
+                {followError instanceof Error
+                  ? followError.message
+                  : "Action failed"}
               </p>
             )}
 

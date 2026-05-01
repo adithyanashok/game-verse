@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
 import {
   FiArrowRight,
   FiMessageSquare,
@@ -7,25 +6,11 @@ import {
   FiTrendingUp,
   FiUsers,
 } from "react-icons/fi";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { getDiscussions } from "../../features/discussions/discussionSlice";
 import { AppLoader } from "../../components/common/Loader";
-import { isCacheFresh } from "../../utils/cache";
+import { useDiscussionsData } from "./hooks/useDiscussionData";
 
 export default function DiscussionListScreen() {
-  const dispatch = useAppDispatch();
-  const { discussions, loading, errors, discussionsFetchedAt } = useAppSelector(
-    (state) => state.discussions,
-  );
-
-  useEffect(() => {
-    if (isCacheFresh(discussionsFetchedAt) || loading.getAll) {
-      return;
-    }
-
-    const request = dispatch(getDiscussions());
-    return () => request.abort();
-  }, [discussionsFetchedAt, dispatch, loading.getAll]);
+  const { data: discussions = [], isLoading, error } = useDiscussionsData();
 
   const totalMembers = discussions.reduce(
     (sum, item) => sum + item.totalMembers,
@@ -140,11 +125,11 @@ export default function DiscussionListScreen() {
             </div>
           </div>
 
-          {loading.getAll ? (
+          {isLoading ? (
             <AppLoader label="Loading discussions..." />
-          ) : errors.getAll ? (
+          ) : error ? (
             <div className="rounded-[10px] border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-200">
-              {errors.getAll}
+              {error instanceof Error ? error.message : "Failed to load discussions"}
             </div>
           ) : discussions.length > 0 ? (
             <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">

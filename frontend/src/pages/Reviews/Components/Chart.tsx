@@ -9,10 +9,8 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import type { RootState } from "../../../store";
-import { getAnalytics } from "../../../features/reviews/reviewsSlice";
 import { AnalyticsRange } from "../../../features/reviews/types";
+import { useReviewAnalytics } from "../hooks/useReviewQueries";
 
 // register chart.js
 ChartJS.register(
@@ -25,18 +23,11 @@ ChartJS.register(
 );
 
 export default function ViewCountChart() {
-  const dispatch = useAppDispatch();
-  const { reviewAnalytics } = useAppSelector(
-    (state: RootState) => state.reviews
-  );
-
   const [range, setRange] = useState<AnalyticsRange>(
     AnalyticsRange.past_14_days
   );
 
-  useEffect(() => {
-    dispatch(getAnalytics({ reviewId: 1, range }));
-  }, [dispatch, range]);
+  const { data: reviewAnalytics } = useReviewAnalytics(1, range);
 
   const chartData = {
     labels: reviewAnalytics?.chartData?.map((item) => item.date) || [],

@@ -1,26 +1,10 @@
-import { useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import type { RootState } from "../../../store";
-import { fetchRecentReviews } from "../../../features/reviews/reviewsSlice";
+import { useRecentReviews } from "../../../pages/Reviews/hooks/useReviewQueries";
 import { AppLoader } from "../../../components/common/Loader";
 import ReviewCard from "../../Reviews/Components/ReviewCard";
 import HomeSectionState from "./HomeSectionState";
 
 const LatestReviews = () => {
-  const dispatch = useAppDispatch();
-  const recent = useAppSelector((state: RootState) => state.reviews.recent);
-  const loading = useAppSelector(
-    (state: RootState) => state.reviews.loading.recent
-  );
-  const error = useAppSelector(
-    (state: RootState) => state.reviews.errors.recent
-  );
-
-  useEffect(() => {
-    if (!recent || recent.length === 0) {
-      dispatch(fetchRecentReviews());
-    }
-  }, [dispatch, recent]);
+  const { data: recent, isLoading: loading, error } = useRecentReviews();
 
   if (loading) {
     return <AppLoader label="Loading latest reviews..." />;
@@ -30,7 +14,7 @@ const LatestReviews = () => {
     return (
       <HomeSectionState
         title="Latest reviews are unavailable"
-        message={error}
+        message={error instanceof Error ? error.message : "Failed to load"}
       />
     );
   }

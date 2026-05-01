@@ -55,7 +55,7 @@ const CommentsSection: FC<CommentsSectionProps> = ({
 
   const rootComments = useMemo(
     () => comments.filter((c) => !c.parentCommentId),
-    [comments]
+    [comments],
   );
 
   const repliesByParentId = useMemo(() => {
@@ -74,7 +74,7 @@ const CommentsSection: FC<CommentsSectionProps> = ({
     (e: ChangeEvent<HTMLInputElement>) => {
       setCommentText(e.target.value);
     },
-    []
+    [],
   );
 
   const handleCommentSubmit = useCallback(
@@ -84,7 +84,7 @@ const CommentsSection: FC<CommentsSectionProps> = ({
       onAddComment(commentText);
       setCommentText("");
     },
-    [commentText, onAddComment]
+    [commentText, onAddComment],
   );
 
   const toggleReplyBox = useCallback((commentId: number) => {
@@ -111,7 +111,7 @@ const CommentsSection: FC<CommentsSectionProps> = ({
       setReplyDrafts((prev) => ({ ...prev, [commentId]: "" }));
       setOpenReplyBox((prev) => ({ ...prev, [commentId]: false }));
     },
-    [onAddComment, replyDrafts]
+    [onAddComment, replyDrafts],
   );
 
   const startEdit = useCallback((commentId: number, currentText: string) => {
@@ -132,7 +132,7 @@ const CommentsSection: FC<CommentsSectionProps> = ({
       onEditComment(commentId, trimmed);
       setEditing((prev) => ({ ...prev, [commentId]: false }));
     },
-    [editDrafts, onEditComment]
+    [editDrafts, onEditComment],
   );
 
   return (
@@ -146,7 +146,7 @@ const CommentsSection: FC<CommentsSectionProps> = ({
           value={commentText}
           onChange={handleCommentChange}
           placeholder="Add a comment..."
-          className="w-full rounded-[8px] border border-[rgba(0,212,255,0.14)] bg-[#070b16]/70 p-3 text-sm text-white outline-none transition duration-150 placeholder:text-[#6f7c91] focus:border-[var(--color-blue)] focus:ring-2 focus:ring-[rgba(0,212,255,0.18)]"
+          className="w-full rounded-lg border border-[rgba(0,212,255,0.14)] bg-[#070b16]/70 p-3 text-sm text-white outline-none transition duration-150 placeholder:text-[#6f7c91] focus:border-[var(--color-blue)] focus:ring-2 focus:ring-[rgba(0,212,255,0.18)]"
         />
         <div className="flex justify-end">
           <button
@@ -154,7 +154,7 @@ const CommentsSection: FC<CommentsSectionProps> = ({
             disabled={!commentText.trim()}
             className={`rounded-full border px-3 py-1.5 text-[12px] font-bold transition duration-150 sm:px-4 sm:py-2 ${
               commentText.trim()
-                ? "bg-[var(--color-lime)] text-[#07101a] border-transparent hover:bg-[#ccff6f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)]"
+                ? "bg-(--color-lime) text-[#07101a] border-transparent hover:bg-[#ccff6f] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-blue)]"
                 : "border-[#989fab1e] text-gray-400 cursor-not-allowed"
             }`}
           >

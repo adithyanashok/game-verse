@@ -47,6 +47,6 @@ export const API = {
   DISCUSSIONS: {
     CREATE: "/discussion/create-discussion",
     GET_ALL: "/discussion/get-discussions",
-    GET_ONE: (id: string) => `/discussion/get-discussion?${id}`,
+    GET_ONE: (id: string) => `/discussion/get-discussion?id=${id}`,
   },
 };

@@ -1,43 +1,41 @@
-import { useEffect, useState } from "react";
-import { FiBarChart2, FiEye, FiHeart, FiMessageSquare, FiTrendingUp } from "react-icons/fi";
+import { useState } from "react";
+import {
+  FiBarChart2,
+  FiEye,
+  FiHeart,
+  FiMessageSquare,
+  FiTrendingUp,
+} from "react-icons/fi";
 
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { getAnalyticsOverview } from "../../../features/reviews/reviewsSlice";
 import { AnalyticsRange } from "../../../features/reviews/types";
-import type { RootState } from "../../../store";
+import { useReviewAnalyticsOverview } from "../../Reviews/hooks/useReviewQueries";
 import StatCard from "./StatCard";
 import Chart from "./Chart";
 import TopReviews from "./TopReviews";
 
 const AnalyticsDashboard = () => {
-  const dispatch = useAppDispatch();
   const [range, setRange] = useState(AnalyticsRange.past_14_days);
 
-  useEffect(() => {
-    dispatch(getAnalyticsOverview({ reviewId: 0, range }));
-  }, [dispatch, range]);
-
-  const { analyticsOverview } = useAppSelector(
-    (state: RootState) => state.reviews
-  );
+  const { data: analyticsOverview } = useReviewAnalyticsOverview(range);
 
   return (
     <div className="mt-4 w-full space-y-8 sm:p-2">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-[var(--color-blue)]">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-(--color-blue)">
             Insights
           </p>
           <h1 className="mt-2 text-2xl font-black text-white sm:text-3xl">
             Review analytics
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-[#9aa7bd]">
-            Track how your reviews are performing, where attention is building, and which posts are leading the conversation.
+            Track how your reviews are performing, where attention is building,
+            and which posts are leading the conversation.
           </p>
         </div>
 
         <div className="inline-flex items-center gap-3 rounded-full border border-[rgba(0,212,255,0.12)] bg-[#070b16]/70 px-4 py-2.5">
-          <FiBarChart2 className="h-4 w-4 text-[var(--color-blue)]" />
+          <FiBarChart2 className="h-4 w-4 text-(--color-blue)" />
           <select
             value={range}
             onChange={(e) => setRange(e.target.value as AnalyticsRange)}

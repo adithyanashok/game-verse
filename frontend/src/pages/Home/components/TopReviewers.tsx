@@ -1,23 +1,11 @@
-import { useEffect } from "react";
-import type { AppDispatch, RootState } from "../../../store";
-import { useDispatch, useSelector } from "react-redux";
-import { getTopReviewers } from "../../../features/user/userSlice";
+import { useTopReviewers } from "../../../hooks/useUser";
 import { Link } from "react-router-dom";
 import ReviewerCard from "./ReviewerCard";
 import HomeSectionState from "./HomeSectionState";
 
 const TopReviewers = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const { data: reviewers = [], isLoading: loading, error } = useTopReviewers();
 
-  const reviewers = useSelector((state: RootState) => state.user.topReviewers);
-  const loading = useSelector((state: RootState) => state.user.loading);
-  const error = useSelector((state: RootState) => state.user.error);
-
-  useEffect(() => {
-    if (!reviewers || reviewers.length === 0) {
-      dispatch(getTopReviewers());
-    }
-  }, [dispatch, reviewers]);
   if (loading && reviewers.length === 0) {
     return (
       <div className="scroll-row px-4 sm:px-6 lg:px-8">
@@ -35,7 +23,7 @@ const TopReviewers = () => {
     return (
       <HomeSectionState
         title="Top reviewers are unavailable"
-        message={error || "We couldn't load reviewer rankings right now."}
+        message={error instanceof Error ? error.message : "We couldn't load reviewer rankings right now."}
       />
     );
   }
