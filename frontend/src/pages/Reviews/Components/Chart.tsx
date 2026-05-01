@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Line } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -19,22 +19,22 @@ ChartJS.register(
   CategoryScale,
   PointElement,
   Tooltip,
-  Legend
+  Legend,
 );
 
 export default function ViewCountChart() {
   const [range, setRange] = useState<AnalyticsRange>(
-    AnalyticsRange.past_14_days
+    AnalyticsRange.past_14_days,
   );
 
   const { data: reviewAnalytics } = useReviewAnalytics(1, range);
 
   const chartData = {
-    labels: reviewAnalytics?.chartData?.map((item) => item.date) || [],
+    labels: reviewAnalytics?.chartData?.map((item: { date: string; count: number }) => item.date) || [],
     datasets: [
       {
         label: "Views",
-        data: reviewAnalytics?.chartData?.map((item) => item.count) || [],
+        data: reviewAnalytics?.chartData?.map((item: { date: string; count: number }) => item.count) || [],
         borderColor: "#4c6ef5",
         backgroundColor: "rgba(76, 110, 245, 0.2)",
         borderWidth: 3,

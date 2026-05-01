@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useState } from "react";
 import { useTopReviewers } from "../../../hooks/useUser";
 import { FiUser } from "react-icons/fi";
@@ -59,19 +58,16 @@ const TopReviewers = () => {
             ))}
           </>
         )}
-
         {error && reviewers.length === 0 && (
           <div className="rounded-[8px] border border-[rgba(0,212,255,0.14)] bg-[#0d1424]/80 px-4 py-5 text-sm text-[#9aa7bd]">
             Top reviewers are unavailable right now.
           </div>
         )}
-
         {!loading && !error && reviewers.length === 0 && (
           <div className="rounded-[8px] border border-[rgba(0,212,255,0.14)] bg-[#0d1424]/80 px-4 py-5 text-sm text-[#9aa7bd]">
             No top reviewers found.
           </div>
         )}
-
         {reviewers.map((review) => {
           const reviewerName = review.name?.trim() || "GameVera Player";
 

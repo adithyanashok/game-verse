@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import ReviewCard from "../Reviews/Components/ReviewCard";
 import { AppLoader, Spinner } from "../../components/common/Loader";
 import { useUserReviews } from "../Reviews/hooks/useReviewQueries";
+import type { Review } from "../../types/review.type";
 
 const ProfilePage = () => {
   const { userId: userIdParam } = useParams();
@@ -252,7 +253,7 @@ const ProfilePage = () => {
                 <>
                   {displayedReviews.length !== 0 ? (
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                      {displayedReviews.map((review) => (
+                      {displayedReviews.map((review: Review) => (
                         <ReviewCard key={review.id} review={review} />
                       ))}
                     </div>

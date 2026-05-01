@@ -4,11 +4,7 @@ import { FiArrowLeft, FiCheckCircle, FiSave, FiStar } from "react-icons/fi";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useReviewFormMutations } from "./hooks/useReviewMutations";
-import type {
-  CreateReviewPayload,
-  ReviewSummary,
-} from "../../features/reviews/types";
-import Banner from "../Games/Components/Banner";
+import type { CreateReviewPayload } from "../../features/reviews/types";
 import SimpleBanner from "./Components/SimpleBanner";
 import type { Game } from "../../api/game/types";
 
