@@ -1,18 +1,20 @@
 # GameVera - Game Review Platform
 
+![GameVera Banner](./assets/banner.png)
+
 ## 🎮 Quick Overview
 
 A full-stack game review and community platform with real-time discussions, analytics, and social features.
 
 ## 🛠️ Tech Stack
 
-**Frontend:** React 19 + TypeScript + Redux Toolkit + Tailwind CSS + Vite  
+**Frontend:** React 19 + TypeScript + TanStack Query + Tailwind CSS + Vite  
 **Backend:** NestJS Microservices + TypeScript  
 **Databases:** MySQL (games/reviews) + PostgreSQL (users)  
 **Real-time:** Socket.IO  
 **Security:** JWT + OAuth 2.0 + CSRF Protection  
 **Cloud:** AWS S3 + Google AI  
-**DevOps:** Docker + Docker Compose
+**DevOps:** Docker + Docker Compose, Github Actions
 
 ## 🏗️ Architecture
 
@@ -56,7 +58,7 @@ docker-compose -f docker-compose.prod.yml up -d
 
 ## 📦 Core Dependencies
 
-- React 19, Redux Toolkit, Axios, Socket.IO Client
+- React 19, TanStack Query, Axios, Socket.IO Client
 - NestJS 11, TypeORM, Passport JWT, Socket.IO
 - Material-UI, Framer Motion, Chart.js
 - bcrypt, Helmet, class-validator
@@ -66,6 +68,5 @@ docker-compose -f docker-compose.prod.yml up -d
 - Microservices Architecture
 - API Gateway Pattern
 - Repository Pattern
-- Redux State Management
 - JWT Authentication
 - WebSocket Real-time Communication
