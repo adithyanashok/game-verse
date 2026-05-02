@@ -36,12 +36,11 @@ jobs:
           context: ./backend
 
           # Point to the specific Dockerfile for this service
-          file: ./backend/apps/user/Dockerfile # <--- CHANGED
+          file: ./backend/apps/user/Dockerfile
 
           push: true
           tags: ${{ env.DOCKER_IMAGE }}:latest
-
-          # Removed build-args (unless your specific Dockerfile still needs them)
+          no-cache: true
 
       # --- 2. DEPLOY TO EC2 ---
       - name: Copy Compose File to EC2
