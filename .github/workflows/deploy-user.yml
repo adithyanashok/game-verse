@@ -6,10 +6,8 @@ on:
     paths:
       - "backend/apps/user/**"
       - "backend/apps/user/Dockerfile"
-      - "backend/libs/constants/**"
-      - "backend/libs/dto/user/**"
-      - "backend/libs/dto/api-response.dto.ts"
-      - "backend/libs/dto/search.dto.ts"
+      - "backend/libs/common/**"
+      - "backend/libs/contract/**"
       - "docker-compose.prod.yml"
       - ".github/workflows/deploy-user.yml"
 
