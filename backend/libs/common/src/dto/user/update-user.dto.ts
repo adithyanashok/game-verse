@@ -28,6 +28,7 @@ export class UpdateUserDto {
     description: 'Profile image of user',
     required: false,
     nullable: true,
+    type: String,
   })
   @IsOptional()
   @IsString()
