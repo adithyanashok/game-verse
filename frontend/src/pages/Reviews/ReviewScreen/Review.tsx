@@ -100,7 +100,7 @@ const Review = () => {
                 commentCount={comments.length}
               />
 
-              <AnalyticsSection />
+              {isOwner && <AnalyticsSection />}
             </section>
 
             {/* Comments */}
