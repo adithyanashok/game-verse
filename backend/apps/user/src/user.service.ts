@@ -90,6 +90,7 @@ export class UserService {
 
       user.bio = updateUserDto.bio ?? user.bio;
       user.name = updateUserDto.name ?? user.name;
+      user.profileImage = updateUserDto.profileImage ?? user.profileImage;
 
       const updatedUser = await this.userRepository.save(user);
 
