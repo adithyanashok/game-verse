@@ -16,7 +16,12 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { ClientProxy, RpcException } from '@nestjs/microservices';
-import { ApiBearerAuth, ApiHeaders, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiHeaders,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { MessagePatterns, UpdateUserDto, type User } from 'libs/common/src';
 import { firstValueFrom } from 'rxjs';
 import { CurrentUser } from '../src/decorators/current-user.decorator';
@@ -26,6 +31,7 @@ import * as multer from 'multer';
 import { Public } from '../src/decorators/public.decorator';
 
 @ApiBearerAuth()
+@ApiTags('Users')
 @Controller('users')
 export class UserController {
   constructor(
